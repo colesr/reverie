@@ -452,6 +452,15 @@ async function initEngine() {
           els.progressFill.style.width = pct + "%";
           els.progressLabel.textContent = p.text || "Loading…";
         },
+      },
+      {
+        // Per-model engine config. Without this, WebLLM's default for some
+        // models reports a 4096-token window that it then rejects prompts
+        // against. Explicitly setting the window + enabling sliding attention
+        // keeps long conversations from hitting a hard wall.
+        context_window_size: 8192,
+        sliding_window_size: -1,
+        attention_sink_size: 4,
       }
     );
     state.engine = engine;
@@ -669,18 +678,31 @@ async function handleSend() {
   state.messages.push(assistant);
   renderMessages();
 
-  // Build prompt for engine (use its ChatCompletion API)
+  // Build prompt for engine (use its ChatCompletion API).
+  // Rough token budgeting: ~4 chars/token. Keep total under ~6k tokens of
+  // input so there's room for the response. Older turns are dropped first,
+  // system prompt is always preserved.
+  const MAX_INPUT_CHARS = 6000 * 4;
+  const history = state.messages
+    .filter(m => m.role === "user" || m.role === "assistant")
+    .slice(0, -1) // exclude the empty placeholder we just pushed
+    .map(m => ({
+      role: m.role,
+      // For assistant history, we don't include prior thinking — it eats
+      // context and the answer alone is what should inform future turns.
+      content: m.role === "assistant" ? (m.content || "") : m.content,
+    }));
+
+  // Drop oldest pairs until we fit. Always keep the latest user turn.
+  let totalChars = SYSTEM_PROMPT.length + history.reduce((n, m) => n + m.content.length, 0);
+  while (totalChars > MAX_INPUT_CHARS && history.length > 1) {
+    const dropped = history.shift();
+    totalChars -= dropped.content.length;
+  }
+
   const chatMessages = [
     { role: "system", content: SYSTEM_PROMPT },
-    ...state.messages
-      .filter(m => m.role === "user" || m.role === "assistant")
-      .slice(0, -1) // exclude the empty placeholder we just pushed
-      .map(m => ({
-        role: m.role,
-        // For assistant history, reconstruct the original-style response
-        // (we don't include prior thinking; it eats context).
-        content: m.role === "assistant" ? (m.content || "") : m.content,
-      })),
+    ...history,
   ];
 
   state.generating = true;
