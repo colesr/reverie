@@ -907,7 +907,7 @@
                 <button class="st-btn primary" id="st-upload-btn-2">Upload image</button>
                 <button class="st-btn secondary" id="st-blank-btn-2">Blank canvas</button>
               </div>
-              <div class="st-note">Note: this local text model can't see pixels. It composes by adding and manipulating shapes on a vector overlay on top of your image. Think of it as the AI as your art assistant, taking direction.</div>
+              <div class="st-note"><b>How this works:</b> the local model can't see pixels of uploaded images. It composes vector shapes (circles, rectangles, text, paths) on an overlay on top of your image. Ask it to add things, draw things, annotate, frame, or mark up. If you want placement relative to image content, describe what's in the image.</div>
             </div>
             <svg id="st-canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" style="display:none;"></svg>
           </div>
@@ -3667,7 +3667,7 @@ const studio = (() => {
         renderCanvas();
         showCanvas();
         enableInput();
-        addSystemMessage(`Image loaded (${file.name}). The AI will add a vector overlay on top — tell it what to draw, label, or mark up. It can't see pixel contents, so describe the scene if that helps.`);
+        addSystemMessage(`Image loaded (${file.name}). Reminder: the local model can't see its pixels — it can only add vector shapes on top. Try things like "add a thick black frame", "draw arrows pointing to things I'll describe", "add stars scattered across the sky", "write a caption at the bottom". Describe what's in the image if you want placement to match the scene.`);
       };
       img.onerror = () => alert("Couldn't read that image.");
       img.src = reader.result;
@@ -3849,6 +3849,19 @@ const studio = (() => {
   //   {"action":"remove","id":N}
   //   {"action":"recolor_all","fill":"#hex"}          // affects all shape fills
   //   {"action":"clear"}                              // remove all ops, keep base image
+  // Resolve a shape ID from whatever the model sent. Accepts:
+  //   - a plain number: 3
+  //   - a numeric string: "3"
+  //   - a decorated string with a number in it: "circle-3", "#3", "shape3"
+  function resolveShapeId(raw) {
+    if (raw == null) return null;
+    if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+    const s = String(raw);
+    const m = s.match(/\d+/);
+    if (!m) return null;
+    return parseInt(m[0], 10);
+  }
+
   function applyCommands(commands) {
     let applied = 0, errors = [];
     for (const c of commands) {
@@ -3862,15 +3875,19 @@ const studio = (() => {
             break;
           }
           case "modify": {
-            const idx = state.ops.findIndex(o => o.id === c.id);
-            if (idx === -1) throw new Error(`modify: shape #${c.id} not found`);
+            const targetId = resolveShapeId(c.id);
+            if (targetId == null) throw new Error(`modify: missing or invalid id "${c.id}"`);
+            const idx = state.ops.findIndex(o => o.id === targetId);
+            if (idx === -1) throw new Error(`modify: shape #${targetId} not found (only ${state.ops.length} shape${state.ops.length === 1 ? "" : "s"} exist${state.ops.length === 1 ? "s" : ""})`);
             state.ops[idx].attrs = { ...state.ops[idx].attrs, ...(c.attrs || {}) };
             applied++;
             break;
           }
           case "remove": {
-            const idx = state.ops.findIndex(o => o.id === c.id);
-            if (idx === -1) throw new Error(`remove: shape #${c.id} not found`);
+            const targetId = resolveShapeId(c.id);
+            if (targetId == null) throw new Error(`remove: missing or invalid id "${c.id}"`);
+            const idx = state.ops.findIndex(o => o.id === targetId);
+            if (idx === -1) throw new Error(`remove: shape #${targetId} not found`);
             state.ops.splice(idx, 1);
             applied++;
             break;
@@ -3927,16 +3944,23 @@ const studio = (() => {
 
   // ── AI prompt + response parsing ────────────────────────────────
   function buildStudioSystemPrompt() {
-    const baseDesc = state.baseImageDataUrl
-      ? `The user has uploaded a raster image as the background layer. You cannot see its pixels. You can only add vector shapes as an overlay on top. If the user describes what's in the image, you can reason about it from their description.`
-      : `The canvas is blank. You are drawing from scratch using SVG shapes.`;
+    const hasImage = !!state.baseImageDataUrl;
+    const baseDesc = hasImage
+      ? `BACKGROUND LAYER: The user has uploaded a raster image that sits underneath your vector overlay. You CANNOT see the pixels of this image. You have no idea what's in it — not the colors, subjects, composition, or anything visual.
 
-    // Summarize current shapes for the model
+How to handle this:
+- If the user asks you to "cartoonize", "stylize", "transform", or otherwise modify the image itself — that is NOT possible. Say so honestly in your plain-text response, and instead propose what you CAN do: add decorative overlays, frames, labels, annotations, or stylistic shapes on top.
+- If the user describes what's in the image ("there's a dog in the center"), use that description to place shapes appropriately.
+- If you're unsure what's in the image, ASK the user to describe it in your plain-text response, then emit an empty <ops>[]</ops> block for that turn.`
+      : `The canvas is blank. You are composing artwork from scratch using SVG shapes.`;
+
+    // Summarize current shapes with the EXACT id format the system uses
+    const validIds = state.ops.map(o => o.id);
     const shapeSummary = state.ops.length === 0
       ? "(no shapes yet — the overlay is empty)"
       : state.ops.map(o => {
           const attrs = o.attrs || {};
-          let summary = `#${o.id} ${o.type}`;
+          let summary = `  • id: ${o.id}  →  ${o.type}`;
           if (o.type === "circle") summary += ` at (${attrs.cx},${attrs.cy}) r=${attrs.r}`;
           else if (o.type === "rect") summary += ` at (${attrs.x},${attrs.y}) ${attrs.width}x${attrs.height}`;
           else if (o.type === "ellipse") summary += ` at (${attrs.cx},${attrs.cy}) rx=${attrs.rx} ry=${attrs.ry}`;
@@ -3945,6 +3969,10 @@ const studio = (() => {
           if (attrs.fill) summary += ` fill=${attrs.fill}`;
           return summary;
         }).join("\n");
+
+    const idRules = state.ops.length === 0
+      ? `There are NO existing shapes yet. Do not use "modify" or "remove" — only "add" and "clear" are valid. Shape IDs will be assigned automatically by the system when shapes are added.`
+      : `The ONLY valid shape IDs are: ${validIds.join(", ")}. IDs are plain integers — not strings, not "circle-1", not "#1". When you use "modify" or "remove", the "id" field MUST be one of these exact integers: ${validIds.join(", ")}. Never invent an ID; never use a decorated name.`;
 
     return `You are Studio, a collaborative visual art assistant. You help the user create and modify vector artwork on an SVG canvas.
 
@@ -3955,6 +3983,9 @@ ${baseDesc}
 Current shapes on the overlay:
 ${shapeSummary}
 
+ID RULES (critical):
+${idRules}
+
 Your job: translate the user's direction into a SHORT plain-text acknowledgment PLUS a JSON command block that modifies the canvas.
 
 STRICT OUTPUT FORMAT — follow exactly:
@@ -3963,24 +3994,24 @@ STRICT OUTPUT FORMAT — follow exactly:
 
 Supported commands:
 {"action":"add","shape":{"type":"circle|rect|ellipse|line|polygon|path|text","attrs":{...}}}
-{"action":"modify","id":<shape_id>,"attrs":{...}}     — merge-updates attributes
-{"action":"remove","id":<shape_id>}
-{"action":"recolor_all","fill":"#hexcolor"}           — recolors all non-text shape fills
-{"action":"clear"}                                     — removes all overlay shapes
+{"action":"modify","id":<integer>,"attrs":{...}}     — id MUST be one of the existing integer IDs listed above
+{"action":"remove","id":<integer>}                    — id MUST be one of the existing integer IDs listed above
+{"action":"recolor_all","fill":"#hexcolor"}
+{"action":"clear"}
 
 Shape attribute reference:
 - circle: cx, cy, r, fill, stroke, stroke-width, opacity
-- rect: x, y, width, height, rx (for rounded corners), fill, stroke, stroke-width, opacity
+- rect: x, y, width, height, rx (rounded corners), fill, stroke, stroke-width, opacity
 - ellipse: cx, cy, rx, ry, fill, stroke, stroke-width, opacity
 - line: x1, y1, x2, y2, stroke, stroke-width, opacity
-- polygon: points ("x1,y1 x2,y2 x3,y3 …"), fill, stroke
+- polygon: points ("x1,y1 x2,y2 …"), fill, stroke
 - path: d (SVG path data), fill, stroke, stroke-width
 - text: x, y, text, font-family, font-size, font-weight, font-style, text-anchor, fill
 
-Use colors aesthetically — hex codes like "#e07a5f", "#81b29a", "#f2cc8f", "#3d405b", "#f4f1de" are a nice palette. Vary size, position, and color to make compositions interesting. Don't stack everything at (100,100).
+Use colors aesthetically. A pleasing palette: #e07a5f (warm orange), #81b29a (sage green), #f2cc8f (soft yellow), #3d405b (deep navy), #f4f1de (cream). Vary size, position, and color — don't stack everything at (100,100).
 
-Example response for "add three orange circles across the top":
-I'll add three orange circles spaced evenly across the top of the canvas.
+Example when canvas is empty and user says "add three orange circles across the top":
+I'll add three orange circles spaced evenly across the top.
 <ops>
 [
   {"action":"add","shape":{"type":"circle","attrs":{"cx":160,"cy":80,"r":44,"fill":"#e07a5f"}}},
@@ -3989,11 +4020,17 @@ I'll add three orange circles spaced evenly across the top of the canvas.
 ]
 </ops>
 
-IMPORTANT:
+Example when the user says "cartoonize this photo" and a background image is present:
+I can't see your photo's pixels, so I can't transform the image itself. But I can add cartoony overlays — thick black outlines, speech bubbles, stars, or a frame. What would you like me to add? If you can describe what's in the photo, I can place the overlays thoughtfully.
+<ops>[]</ops>
+
+IMPORTANT RULES:
 - Always emit BOTH the plain text AND the <ops> block on every turn.
-- If the user's request doesn't require canvas changes, emit an empty array: <ops>[]</ops>.
-- Keep your plain text to 1-2 sentences. The user sees the shapes directly; don't narrate what's visible.
-- Use existing shape IDs when the user says "the circle" or "that one" — don't add duplicates when they mean modify.`;
+- If no canvas changes are needed (or you're asking the user for clarification), emit <ops>[]</ops>.
+- Keep your plain text to 1-2 sentences.
+- Use existing integer shape IDs when the user refers to something that's already there.
+- NEVER invent IDs like "circle-1" or "shape-3". IDs are raw integers only.
+- If the user asks for something you cannot actually do (like modifying pixel content of an uploaded image), say so honestly in your plain-text response.`;
   }
 
   // Extract the JSON array inside <ops>…</ops>, if any.
