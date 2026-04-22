@@ -223,7 +223,12 @@
   .cr-chat-header-info { min-width: 0; flex: 1; }
   .cr-chat-header-title { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 16px; color: var(--c-text); }
   .cr-chat-header-title .hash { color: var(--c-text-dim); font-family: var(--mono); font-weight: 500; }
-  .cr-chat-header-desc { font-size: 12px; color: var(--c-text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cr-chat-header-desc {
+    font-size: 12px; color: var(--c-text-muted); margin-top: 2px;
+    line-height: 1.45; max-height: calc(1.45em * 2);
+    overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
   .cr-chat-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
   .cr-icon-btn {
     background: transparent; border: none; cursor: pointer;
@@ -301,6 +306,51 @@
   }
   .cr-reply-btn:hover { background: var(--c-panel-hover); color: var(--c-accent); }
   .cr-reply-count { font-size: 11px; color: var(--c-text-dim); }
+
+  /* Small separator between vote/reply group and reactions */
+  .cr-msg-actions .sep {
+    width: 1px; align-self: stretch; background: var(--c-border-subtle);
+    margin: 3px 2px;
+  }
+  .cr-react-btn {
+    background: transparent; border: 1px solid transparent; cursor: pointer;
+    padding: 2px 8px; border-radius: 12px;
+    display: inline-flex; align-items: center; gap: 4px;
+    font: 12px var(--sans); color: var(--c-text-muted);
+    transition: all 0.15s ease;
+    line-height: 1.4;
+  }
+  .cr-react-btn:hover { background: var(--c-panel-hover); border-color: var(--c-border); }
+  .cr-react-btn.reacted.love { background: rgba(230, 57, 70, 0.12); border-color: rgba(230, 57, 70, 0.3); color: #c92a36; }
+  .cr-react-btn.reacted.lol  { background: rgba(247, 184, 1, 0.15);  border-color: rgba(247, 184, 1, 0.45);  color: #9a6a00; }
+  .cr-react-btn .emoji {
+    font-size: 14px; line-height: 1; display: inline-block;
+    transform-origin: center; transition: transform 0.15s ease;
+  }
+  .cr-react-btn:hover .emoji { transform: scale(1.15); }
+  .cr-react-btn.just-popped .emoji { animation: cr-react-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .cr-react-btn .count { font-variant-numeric: tabular-nums; min-width: 8px; }
+  .cr-react-btn .count:empty { display: none; }
+
+  @keyframes cr-react-pop {
+    0%   { transform: scale(1);   }
+    30%  { transform: scale(1.6) rotate(-8deg); }
+    55%  { transform: scale(0.85) rotate(4deg); }
+    75%  { transform: scale(1.15) rotate(-2deg); }
+    100% { transform: scale(1); }
+  }
+
+  /* Flying-emoji satisfaction cue — briefly appears and floats up on click */
+  .cr-react-fly {
+    position: absolute; pointer-events: none;
+    font-size: 28px; opacity: 0; z-index: 60;
+    animation: cr-react-fly 0.9s ease-out forwards;
+  }
+  @keyframes cr-react-fly {
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+    15%  { opacity: 1; transform: translate(-50%, -8px) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -58px) scale(0.8) rotate(12deg); }
+  }
 
   .cr-msg.threaded { position: relative; padding-left: 22px; }
   .cr-msg.threaded::before {
@@ -590,7 +640,7 @@
     transition: border-color 0.15s;
   }
   .cr-custom-form input:focus, .cr-custom-form textarea:focus { border-color: var(--c-accent); }
-  .cr-custom-form textarea { min-height: 64px; }
+  .cr-custom-form textarea { min-height: 72px; font: 13px var(--sans); line-height: 1.5; }
 
   /* Locked state */
   .cr-locked { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
@@ -859,7 +909,7 @@
             <span class="label">Room Name</span>
             <input id="cr-new-room-name" type="text" placeholder="e.g. late-night-philosophers" maxlength="32" />
             <span class="label">Description (optional)</span>
-            <input id="cr-new-room-desc" type="text" placeholder="what's this room about?" maxlength="80" />
+            <textarea id="cr-new-room-desc" placeholder="What's this room about? Set the scope, the question on the table, who should speak up, what 'done' looks like. The more specific you are, the better the council's responses." maxlength="800" rows="4"></textarea>
             <div style="font-size:12px; color:var(--c-text-muted); line-height:1.5; margin-top:4px;">
               Once created, you can invite bots using the <b>+ Invite a Bot</b> button inside the room.
               Note: since this page has no backend, "members" means bots you invite. Other humans can't connect here.
@@ -1865,27 +1915,58 @@ const chatroom = (() => {
     // Threading defaults
     msg.parentId = msg.parentId || null;
     msg.votes = msg.votes || { up: 0, down: 0, voters: {} };
+    msg.reactions = msg.reactions || { love: { count: 0, by: {} }, lol: { count: 0, by: {} } };
     room.messages.push(msg);
     if (roomId !== state.currentRoomId) {
       room.unread = true;
       renderRooms();
     } else {
-      // Record whether the user was near the bottom BEFORE we re-render
-      const nearBottom = isNearBottom();
+      const isOwnMessage = msg.authorType === "human" && msg.author === state.username;
+      // Pin the view if the user looks busy upstream: a reply composer is open,
+      // they're actively typing in the main composer, or they've scrolled away
+      // from the bottom. In those cases we never yank them back down.
+      const userBusyUpstream = !!state.replyingTo
+        || (document.activeElement === els.input && els.input.value.length > 0)
+        || !isNearBottom();
+
       if (msg.parentId) {
-        // Threaded: structure changes, so we re-render the tree
+        // Threaded: structure changes, so we re-render the tree preserving scroll
         renderMessages();
-        // Don't yank the user to the bottom if they're reading history
-        if (nearBottom && !msg.system) scrollMessagesBottom();
+        // Only snap if it's the user's own reply (they just sent it) AND they're not mid-type elsewhere
+        if (isOwnMessage && !userBusyUpstream) scrollMessagesBottom();
       } else {
         appendMessageDOM(msg, 0);
-        if (nearBottom || msg.authorType === "human" || msg.system) scrollMessagesBottom();
+        // Only snap to bottom for user's own top-level sends, system messages,
+        // or when the user is already at the bottom and not busy upstream.
+        if (msg.system || isOwnMessage || !userBusyUpstream) scrollMessagesBottom();
       }
     }
     return msg;
   }
   function addSystemMessage(roomId, text) {
     return addMessage(roomId, { system: true, text });
+  }
+
+  // ── Reactions (love, lol) ─────────────────────────────────────────
+  // Separate from up/down votes: these are emotional "resonance" markers.
+  function reactToMessage(roomId, msgId, actorId, kind) {
+    const room = state.rooms[roomId];
+    if (!room) return;
+    const msg = room.messages.find(m => m.id === msgId);
+    if (!msg || msg.system) return;
+    if (!msg.reactions) msg.reactions = { love: { count: 0, by: {} }, lol: { count: 0, by: {} } };
+    if (!msg.reactions[kind]) msg.reactions[kind] = { count: 0, by: {} };
+    const already = !!msg.reactions[kind].by[actorId];
+    if (already) {
+      // toggle off
+      delete msg.reactions[kind].by[actorId];
+      msg.reactions[kind].count = Math.max(0, msg.reactions[kind].count - 1);
+    } else {
+      msg.reactions[kind].by[actorId] = Date.now();
+      msg.reactions[kind].count++;
+    }
+    if (roomId === state.currentRoomId) updateReactionDisplay(msg, kind, !already);
+    return !already; // true if this was an add, false if a remove
   }
 
   // ── Voting ────────────────────────────────────────────────────────
@@ -2010,8 +2091,10 @@ const chatroom = (() => {
     createRoom(name, els.newRoomDesc.value.trim());
     closeRoomModal();
   });
-  els.newRoomName.addEventListener("keydown", (e) => { if (e.key === "Enter") els.newRoomDesc.focus(); });
-  els.newRoomDesc.addEventListener("keydown", (e) => { if (e.key === "Enter") els.createRoomBtn.click(); });
+  els.newRoomName.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); els.newRoomDesc.focus(); } });
+  els.newRoomDesc.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); els.createRoomBtn.click(); }
+  });
 
   els.chatterRate.addEventListener("change", (e) => { state.chatterRate = e.target.value; });
 
@@ -2030,7 +2113,7 @@ const chatroom = (() => {
   function renderAll() {
     renderRooms();
     renderPeople();
-    renderMessages();
+    renderMessages({ scrollToBottom: true });
     updateChatHeader();
   }
 
@@ -2123,21 +2206,26 @@ const chatroom = (() => {
     return total;
   }
 
-  function renderMessages() {
+  // Render the entire message tree. By default, the caller's scroll
+  // position is preserved — call scrollMessagesBottom() separately if
+  // you want to snap to the bottom (e.g. on room switch or when the
+  // user themselves just sent a message).
+  function renderMessages(opts = {}) {
+    const prevScroll = els.messages.scrollTop;
     els.messages.innerHTML = "";
     const room = currentRoom();
 
-    // Render top-level system messages in natural order, but threaded
-    // messages are rendered as a tree from top-level (parentId === null) chat messages.
+    // System messages stay in natural order; chat messages render as a tree from roots.
     for (const msg of room.messages) {
-      if (msg.system) {
-        appendSystemDOM(msg);
-        continue;
-      }
-      // Only render real messages at the top level; their children are rendered recursively
+      if (msg.system) { appendSystemDOM(msg); continue; }
       if (!msg.parentId) appendMessageDOM(msg, 0);
     }
-    scrollMessagesBottom();
+    if (opts.scrollToBottom) {
+      scrollMessagesBottom();
+    } else {
+      // Restore prior scroll (the DOM rebuild will have reset scrollTop to 0).
+      requestAnimationFrame(() => { els.messages.scrollTop = prevScroll; });
+    }
   }
 
   function appendSystemDOM(msg) {
@@ -2205,6 +2293,12 @@ const chatroom = (() => {
     const userVote = (msg.votes && msg.votes.voters[voterId]) || 0;
     const score = ((msg.votes?.up) || 0) - ((msg.votes?.down) || 0);
     const scoreCls = score > 0 ? "positive" : score < 0 ? "negative" : "";
+
+    const loveCount = msg.reactions?.love?.count || 0;
+    const lolCount  = msg.reactions?.lol?.count  || 0;
+    const iLoved = !!(msg.reactions?.love?.by && msg.reactions.love.by[voterId]);
+    const iLol   = !!(msg.reactions?.lol?.by  && msg.reactions.lol.by[voterId]);
+
     parts.push(`<div class="cr-msg-actions">`);
     parts.push(`<span class="cr-vote">`);
     parts.push(`<button class="cr-vote-btn${userVote === 1 ? " voted-up" : ""}" data-vote-up title="Upvote">▲</button>`);
@@ -2213,6 +2307,9 @@ const chatroom = (() => {
     parts.push(`</span>`);
     parts.push(`<button class="cr-reply-btn" data-reply>↳ Reply</button>`);
     if (replyCount > 0) parts.push(`<span class="cr-reply-count">${replyCount} ${replyCount === 1 ? "reply" : "replies"}</span>`);
+    parts.push(`<span class="sep"></span>`);
+    parts.push(`<button class="cr-react-btn love${iLoved ? " reacted" : ""}" data-react="love" title="Love"><span class="emoji">❤️</span><span class="count">${loveCount || ""}</span></button>`);
+    parts.push(`<button class="cr-react-btn lol${iLol ? " reacted" : ""}" data-react="lol" title="LOL"><span class="emoji">😂</span><span class="count">${lolCount || ""}</span></button>`);
     parts.push(`</div>`);
 
     parts.push(`</div>`);
@@ -2237,6 +2334,20 @@ const chatroom = (() => {
       e.stopPropagation();
       if (!state.signedOn) return;
       openReplyComposer(msg.id);
+    });
+    el.querySelectorAll("[data-react]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!state.signedOn) return;
+        const kind = btn.dataset.react;
+        const added = reactToMessage(currentRoom().id, msg.id, currentVoterId(), kind);
+        // Always replay the pop animation on click (whether adding or removing)
+        btn.classList.remove("just-popped");
+        void btn.offsetWidth; // force restart
+        btn.classList.add("just-popped");
+        // Only fly the emoji upward when ADDING a reaction (satisfying cue)
+        if (added) spawnReactionFly(btn, kind);
+      });
     });
 
     // If the reply composer is currently targeting this message, insert it right here
@@ -2268,6 +2379,48 @@ const chatroom = (() => {
     downBtn.classList.toggle("voted-down", userVote === -1);
   }
 
+  // Update just the reaction counters/state for a message without a full re-render.
+  // If `popBy` is provided (the name of whoever reacted), we briefly animate
+  // the button so users can see bots reacting in real time.
+  function updateReactionDisplay(msg, kind, wasAdd) {
+    const row = els.messages.querySelector(`.cr-msg[data-msg-id="${CSS.escape(msg.id)}"]`);
+    if (!row) return;
+    const btn = row.querySelector(`:scope > .cr-msg-content > .cr-msg-actions [data-react="${kind}"]`);
+    if (!btn) return;
+    const count = msg.reactions?.[kind]?.count || 0;
+    const voterId = currentVoterId();
+    const iReacted = !!(msg.reactions?.[kind]?.by && msg.reactions[kind].by[voterId]);
+    btn.classList.toggle("reacted", iReacted);
+    const countEl = btn.querySelector(".count");
+    if (countEl) countEl.textContent = count ? String(count) : "";
+    // Animate pop on any reaction change (including bots')
+    btn.classList.remove("just-popped");
+    void btn.offsetWidth;
+    btn.classList.add("just-popped");
+    // For bot reactions we also fly a small emoji to make it visible
+    if (wasAdd) {
+      // Only fly if the scroll is close enough that the user would actually see it
+      const rect = btn.getBoundingClientRect();
+      const container = els.messages.getBoundingClientRect();
+      if (rect.top >= container.top - 40 && rect.bottom <= container.bottom + 40) {
+        // already animated via pop; optional fly only for our own clicks handled elsewhere
+      }
+    }
+  }
+
+  // Spawn a brief "flying emoji" from a reaction button — satisfying feedback cue
+  function spawnReactionFly(btn, kind) {
+    const glyph = kind === "love" ? "❤️" : "😂";
+    const rect = btn.getBoundingClientRect();
+    const fly = document.createElement("div");
+    fly.className = "cr-react-fly";
+    fly.textContent = glyph;
+    fly.style.left = (rect.left + rect.width / 2) + "px";
+    fly.style.top = rect.top + "px";
+    document.body.appendChild(fly);
+    setTimeout(() => fly.remove(), 950);
+  }
+
   function currentVoterId() {
     return state.signedOn ? `human:${state.username}` : "anon";
   }
@@ -2285,9 +2438,11 @@ const chatroom = (() => {
     state.replyingTo = msgId;
     state.replyAttachments = [];
     renderMessages();
-    // Focus the newly-mounted textarea
+    // Focus the newly-mounted textarea and gently bring the composer into view
     setTimeout(() => {
-      const ta = els.messages.querySelector(".cr-reply-composer textarea");
+      const composer = els.messages.querySelector(".cr-reply-composer");
+      if (composer) composer.scrollIntoView({ behavior: "smooth", block: "center" });
+      const ta = composer?.querySelector("textarea");
       if (ta) ta.focus();
     }, 30);
   }
@@ -2801,8 +2956,10 @@ Current participants: ${participants}${entryNote}`;
       text, parentId: opts.replyTo || null,
     });
     if (msg) {
-      // Small chance this bot also casts a vote on something recent, to make the room feel alive
+      // Small chance this bot also casts a vote and/or drops a reaction on something recent,
+      // to make the room feel alive.
       maybeBotVote(bot, room);
+      maybeBotReact(bot, room);
       afterNewMessage(msg);
     }
   }
@@ -2820,6 +2977,21 @@ Current participants: ${participants}${entryNote}`;
     const target = pool[Math.floor(Math.random() * pool.length)];
     const dir = Math.random() < 0.75 ? 1 : -1; // mostly upvotes
     voteOnMessage(room.id, target.id, voterId, dir);
+  }
+
+  // Bots also occasionally leave emotional reactions — purely for room liveness.
+  function maybeBotReact(bot, room) {
+    if (Math.random() > 0.25) return; // ~25% chance per bot turn
+    const actorId = `bot:${bot.id}`;
+    const real = room.messages.filter(m => !m.system && !m.typing && m.author !== bot.name);
+    if (real.length === 0) return;
+    const pool = real.slice(-4);
+    const target = pool[Math.floor(Math.random() * pool.length)];
+    // Hearts more common than lols overall; the persona doesn't directly change weights
+    // (keeping it simple — the room just feels warm), but playful bots lean LOL.
+    const playful = /hellokitty|sk8rgrrl|xXDark|moodring|nightowl/i.test(bot.name);
+    const kind = Math.random() < (playful ? 0.5 : 0.3) ? "lol" : "love";
+    reactToMessage(room.id, target.id, actorId, kind);
   }
 
   // ── Human send (top-level, via main composer) ────────────────────
