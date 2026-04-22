@@ -625,6 +625,298 @@
     color: var(--r-text-dim); font: italic 13px var(--serif);
   }
 
+  /* Epigraph — a quiet line from the Book at the top of Reverie */
+  .r-epigraph {
+    padding: 10px 24px 14px;
+    text-align: center;
+    font: italic 14px/1.5 var(--serif);
+    color: var(--r-text-muted);
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+    animation: r-epigraph-in 0.8s ease-out;
+  }
+  @keyframes r-epigraph-in {
+    from { opacity: 0; transform: translateY(-2px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .r-epigraph::before, .r-epigraph::after {
+    content: "";
+    display: inline-block;
+    width: 26px; height: 1px;
+    background: rgba(200, 165, 116, 0.35);
+    vertical-align: middle;
+    margin: 0 12px 4px;
+  }
+  .r-epigraph .epi-meta {
+    display: block;
+    font: 9.5px var(--mono);
+    color: var(--r-text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 6px;
+    opacity: 0.8;
+  }
+
+  /* Remember-this bookmark on Reverie responses (next to vote arrows) */
+  .r-bookmark-btn {
+    background: transparent; border: 1px solid var(--r-border);
+    color: var(--r-text-muted);
+    cursor: pointer; padding: 4px 9px; border-radius: 6px;
+    font-size: 13px; line-height: 1;
+    transition: all 0.12s ease;
+  }
+  .r-bookmark-btn:hover { border-color: #c8a574; color: #c8a574; }
+  .r-bookmark-btn.saved { background: rgba(200,165,116,0.15); border-color: #c8a574; color: #c8a574; }
+
+  /* ── Book modal ── */
+  .r-book-tabs {
+    display: flex; align-items: center; gap: 4px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--r-border-subtle);
+  }
+  .r-book-tab {
+    background: transparent; border: none;
+    color: var(--r-text-muted);
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font: 500 12px var(--sans);
+    transition: all 0.12s ease;
+  }
+  .r-book-tab:hover { background: var(--r-bg-subtle); color: var(--r-text); }
+  .r-book-tab.active {
+    background: var(--r-bg-subtle);
+    color: #c8a574;
+  }
+  .r-book-tab-spacer { flex: 1; }
+  .r-book-reflect-btn {
+    background: transparent; border: 1px solid var(--r-border);
+    color: var(--r-text-muted);
+    padding: 5px 12px; border-radius: 6px;
+    font: 500 11px var(--sans);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .r-book-reflect-btn::before {
+    content: "◐";
+    font-size: 11px;
+    color: #c8a574;
+  }
+  .r-book-reflect-btn:hover { border-color: #c8a574; color: var(--r-text); }
+  .r-book-reflect-btn.working::before {
+    animation: r-book-reflect-spin 1.1s linear infinite;
+  }
+  .r-book-reflect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  @keyframes r-book-reflect-spin { to { transform: rotate(360deg); } }
+
+  .r-book-body { padding: 16px 20px 24px; }
+
+  .r-book-section-hint {
+    font: italic 12px/1.55 var(--serif);
+    color: var(--r-text-muted);
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: var(--r-bg-subtle);
+    border-left: 2px solid #c8a574;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Moments */
+  .r-moment {
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 8px;
+    position: relative;
+  }
+  .r-moment-user {
+    font: 500 11px var(--mono);
+    color: var(--r-text-muted);
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--r-border-subtle);
+  }
+  .r-moment-user::before { content: "you said — "; opacity: 0.6; }
+  .r-moment-text {
+    font: 14px/1.6 var(--serif);
+    color: var(--r-text);
+  }
+  .r-moment-note {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: var(--r-bg);
+    border-radius: 5px;
+    font: italic 12px var(--serif);
+    color: var(--r-text-muted);
+  }
+  .r-moment-meta {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 8px;
+    font: 10px var(--mono);
+    color: var(--r-text-dim);
+    letter-spacing: 0.03em;
+  }
+  .r-moment-meta .actions { margin-left: auto; display: flex; gap: 4px; }
+  .r-moment-action {
+    background: transparent; border: none;
+    color: var(--r-text-dim);
+    cursor: pointer;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font: 10px var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.1s;
+  }
+  .r-moment-action:hover { background: var(--r-bg); color: var(--r-text); }
+  .r-moment-action.danger:hover { color: var(--r-danger); }
+
+  /* About entries */
+  .r-about-entry {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 7px;
+  }
+  .r-about-bullet {
+    color: #c8a574;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .r-about-text {
+    flex: 1;
+    font: 13px/1.55 var(--sans);
+    color: var(--r-text);
+  }
+  .r-about-text textarea {
+    width: 100%; background: var(--r-bg); border: 1px solid var(--r-border);
+    color: var(--r-text); border-radius: 5px; padding: 6px 9px;
+    resize: vertical; min-height: 50px;
+    font: 13px var(--sans);
+    outline: none;
+  }
+  .r-about-src {
+    font: 9px var(--mono); color: var(--r-text-dim);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    flex-shrink: 0; margin-top: 3px;
+    padding: 2px 6px; border-radius: 3px;
+    background: var(--r-bg);
+  }
+  .r-about-src.manual { color: #81b29a; }
+  .r-about-src.auto { color: #c8a574; }
+  .r-about-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+  .r-about-add {
+    display: flex; gap: 6px; align-items: flex-start;
+    margin-top: 10px;
+  }
+  .r-about-add textarea {
+    flex: 1;
+    background: var(--r-bg); border: 1px solid var(--r-border);
+    color: var(--r-text);
+    padding: 8px 11px;
+    border-radius: 6px;
+    font: 13px var(--sans);
+    resize: vertical; min-height: 38px;
+    outline: none;
+    transition: border-color 0.12s;
+  }
+  .r-about-add textarea:focus { border-color: var(--r-accent-dim); }
+
+  /* Through-lines */
+  .r-throughline {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 8px;
+  }
+  .r-throughline-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .r-throughline-name {
+    font: 500 15px var(--serif);
+    color: var(--r-text);
+  }
+  .r-throughline-count {
+    font: 10px var(--mono);
+    color: var(--r-text-dim);
+    letter-spacing: 0.05em;
+  }
+  .r-throughline-desc {
+    font: italic 13px/1.55 var(--serif);
+    color: var(--r-text-muted);
+  }
+  .r-throughline-actions {
+    margin-top: 8px;
+    display: flex; gap: 6px;
+  }
+
+  /* Reflect modal — proposals from Reverie */
+  .r-reflect-proposals {
+    padding: 10px 0;
+  }
+  .r-reflect-proposal {
+    padding: 11px 14px;
+    margin-bottom: 8px;
+    background: var(--r-bg);
+    border: 1px solid var(--r-border-subtle);
+    border-left: 2px solid #c8a574;
+    border-radius: 0 6px 6px 0;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .r-reflect-kind {
+    font: 500 9.5px var(--mono);
+    color: #c8a574;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    padding: 2px 7px;
+    background: rgba(200,165,116,0.1);
+    border-radius: 4px;
+  }
+  .r-reflect-text {
+    flex: 1;
+    font: 13px/1.55 var(--sans);
+    color: var(--r-text);
+  }
+  .r-reflect-actions {
+    display: flex; gap: 4px;
+    flex-shrink: 0;
+  }
+  .r-reflect-accept {
+    background: rgba(129,178,154,0.15);
+    border: 1px solid rgba(129,178,154,0.3);
+    color: #81b29a;
+    padding: 4px 10px; border-radius: 5px;
+    font: 10px var(--mono); cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .r-reflect-accept:hover { background: rgba(129,178,154,0.25); }
+  .r-reflect-dismiss {
+    background: transparent;
+    border: 1px solid var(--r-border);
+    color: var(--r-text-dim);
+    padding: 4px 10px; border-radius: 5px;
+    font: 10px var(--mono); cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .r-reflect-dismiss:hover { color: var(--r-text-muted); }
+
+  .r-book-empty {
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--r-text-dim);
+    font: italic 14px/1.7 var(--serif);
+  }
+  .r-book-empty strong { color: var(--r-text-muted); font-style: normal; font-weight: 400; }
+
   /* Studio saved looks (shape memory) */
   .st-looks-panel {
     padding: 10px 12px;
@@ -1942,11 +2234,15 @@
       </div>
       <div class="r-controls">
         <select id="model-select" title="Model"></select>
+        <button id="r-book-btn" title="Your Book — moments, things you've shared, through-lines" class="r-header-btn">Book</button>
         <button id="r-history-btn" title="Search past conversations" class="r-header-btn">History</button>
         <button id="r-settings-btn" title="Settings" class="r-header-btn">Settings</button>
         <button id="r-clear-btn" title="Clear conversation">Clear</button>
       </div>
     </header>
+
+    <!-- Epigraph — a quiet line from the user's Book, if any -->
+    <div id="r-epigraph" class="r-epigraph" style="display:none;"></div>
 
     <!-- Settings modal -->
     <div id="r-settings-modal" class="r-modal" aria-hidden="true">
@@ -2025,6 +2321,25 @@
           <div class="r-history-topics" id="r-history-topics"></div>
           <div class="r-history-results" id="r-history-results"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- Book modal -->
+    <div id="r-book-modal" class="r-modal" aria-hidden="true">
+      <div class="r-modal-backdrop" data-close="book"></div>
+      <div class="r-modal-panel r-modal-panel-wide">
+        <div class="r-modal-header">
+          <h2>Your Book</h2>
+          <button class="r-modal-close" data-close="book" aria-label="Close">×</button>
+        </div>
+        <div class="r-book-tabs">
+          <button class="r-book-tab active" data-book-tab="moments">Moments</button>
+          <button class="r-book-tab" data-book-tab="about">About you</button>
+          <button class="r-book-tab" data-book-tab="throughlines">Through-lines</button>
+          <span class="r-book-tab-spacer"></span>
+          <button class="r-book-reflect-btn" id="r-book-reflect-btn" title="Ask Reverie to reflect on recent conversations">Reflect</button>
+        </div>
+        <div class="r-modal-body r-book-body" id="r-book-body"></div>
       </div>
     </div>
 
@@ -2701,16 +3016,34 @@ Always include both sections. Always close the </thinking> tag before your final
     if (m.role === "assistant" && !m._thinkingStreaming && (m.content || "").trim() && m._voteKey) {
       const stored = prefStore.get(m._voteKey);
       const myVote = stored?.vote || 0;
+      const isBookmarked = bookStore.hasMoment(m._userPrompt || "", m.content || "");
       const bar = document.createElement("div");
       bar.className = "r-vote-bar";
       bar.innerHTML = `
         <span class="r-vote-label">Was this helpful? Your feedback teaches Reverie your preferences.</span>
+        <button class="r-bookmark-btn${isBookmarked ? " saved" : ""}" title="Remember this in your Book">${isBookmarked ? "✦" : "✧"}</button>
         <button class="r-send-to-artboard" title="Save to Artboard">→ Artboard</button>
         <button class="r-vote-btn r-vote-up${myVote === 1 ? " active" : ""}" data-vote="up" title="Helpful — show me more like this">▲</button>
         <button class="r-vote-btn r-vote-down${myVote === -1 ? " active" : ""}" data-vote="down" title="Not helpful — avoid this style">▼</button>
       `;
       bar.querySelector('[data-vote="up"]').addEventListener("click", () => toggleVote(m, 1));
       bar.querySelector('[data-vote="down"]').addEventListener("click", () => toggleVote(m, -1));
+      bar.querySelector('.r-bookmark-btn').addEventListener("click", (e) => {
+        const btn = e.currentTarget;
+        const userText = m._userPrompt || "";
+        const reverieText = m.content || "";
+        const existingId = bookStore.findMomentId(userText, reverieText);
+        if (existingId) {
+          bookStore.removeMoment(existingId);
+          btn.classList.remove("saved");
+          btn.textContent = "✧";
+        } else {
+          bookStore.addMoment(userText, reverieText);
+          btn.classList.add("saved");
+          btn.textContent = "✦";
+          refreshEpigraph();
+        }
+      });
       bar.querySelector('.r-send-to-artboard').addEventListener("click", async (e) => {
         const btn = e.currentTarget;
         btn.disabled = true;
@@ -2803,9 +3136,24 @@ Always include both sections. Always close the </thinking> tag before your final
   function buildSystemPrompt(currentUserText, attachedFiles) {
     let prompt = SYSTEM_PROMPT;
 
+    // Book context: relevant About entries + the names of active through-lines.
+    // This is the lightest-touch injection — the Book's real value is in moments,
+    // which the user curates; we inject only what might shape THIS response.
+    const relevantAbout = bookStore.findRelevantAbout(currentUserText, 3);
+    const book = bookStore.all();
+    const throughlineNames = (book.throughlines || []).slice(0, 8).map(t => t.name).filter(Boolean);
+    if (relevantAbout.length > 0 || throughlineNames.length > 0) {
+      prompt += `\n\n---\nContext from the user's Book (their curated notes to themselves — reference silently, never announce you're doing so).`;
+      if (relevantAbout.length > 0) {
+        prompt += `\n\nAbout this user:\n`;
+        for (const e of relevantAbout) prompt += `- ${e.text}\n`;
+      }
+      if (throughlineNames.length > 0) {
+        prompt += `\nOngoing threads the user has named: ${throughlineNames.join(", ")}.`;
+      }
+    }
+
     // Personal dictionary (glossary): only inject entries that might be relevant.
-    // Relevance = exact word match (case-insensitive) of the term in the user's prompt.
-    // If no matches, skip entirely to keep prompts lean.
     const relevantDict = dictStore.findRelevant(currentUserText);
     if (relevantDict.length > 0) {
       prompt += `\n\n---\nGlossary (user's personal dictionary — these terms appear in their message):\n`;
@@ -3274,6 +3622,129 @@ Always include both sections. Always close the </thinking> tag before your final
     },
   };
 
+  // ── Book store ──────────────────────────────────────────────────
+  // The Book is a local, editable artifact that accumulates over time:
+  //   moments      — specific exchanges the user or Reverie marked as significant
+  //   about        — short first-person observations about the user (auto + manual)
+  //   throughlines — named recurring themes, each with pointers to moments
+  // Everything is in localStorage, readable, editable, erasable.
+  // Reverie renders it; she doesn't own it.
+  const BOOK_KEY = "reverie-book-v1";
+  const BOOK_DISMISSED_KEY = "reverie-book-dismissed-v1";
+
+  const bookStore = {
+    read() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(BOOK_KEY) || "null");
+        if (!raw) return { moments: [], about: [], throughlines: [] };
+        return { moments: raw.moments || [], about: raw.about || [], throughlines: raw.throughlines || [] };
+      } catch { return { moments: [], about: [], throughlines: [] }; }
+    },
+    write(book) {
+      try { localStorage.setItem(BOOK_KEY, JSON.stringify(book)); }
+      catch (e) { console.warn("book save failed", e); }
+    },
+    all() { return this.read(); },
+
+    addMoment(userText, reverieText, note) {
+      const book = this.read();
+      const id = "m_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      book.moments.push({
+        id,
+        userText: (userText || "").slice(0, 500),
+        reverieText: (reverieText || "").slice(0, 1500),
+        note: note || "",
+        savedAt: Date.now(),
+      });
+      // Cap at 200 moments; oldest go first
+      while (book.moments.length > 200) book.moments.shift();
+      this.write(book);
+      return id;
+    },
+    removeMoment(id) {
+      const book = this.read();
+      book.moments = book.moments.filter(m => m.id !== id);
+      // Remove from throughlines too
+      for (const tl of book.throughlines) { tl.touches = (tl.touches || []).filter(t => t !== id); }
+      this.write(book);
+    },
+    hasMoment(userText, reverieText) {
+      const book = this.read();
+      return book.moments.some(m =>
+        m.userText === (userText || "").slice(0, 500) &&
+        m.reverieText === (reverieText || "").slice(0, 1500)
+      );
+    },
+    findMomentId(userText, reverieText) {
+      const book = this.read();
+      const m = book.moments.find(m =>
+        m.userText === (userText || "").slice(0, 500) &&
+        m.reverieText === (reverieText || "").slice(0, 1500)
+      );
+      return m ? m.id : null;
+    },
+
+    addAbout(text, source) {
+      const book = this.read();
+      const id = "a_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      book.about.push({
+        id, text: (text || "").trim().slice(0, 300),
+        source: source || "manual",
+        addedAt: Date.now(),
+      });
+      while (book.about.length > 80) book.about.shift();
+      this.write(book);
+      return id;
+    },
+    updateAbout(id, text) {
+      const book = this.read();
+      const entry = book.about.find(a => a.id === id);
+      if (entry) { entry.text = (text || "").trim().slice(0, 300); this.write(book); }
+    },
+    removeAbout(id) {
+      const book = this.read();
+      book.about = book.about.filter(a => a.id !== id);
+      this.write(book);
+    },
+
+    addThroughline(name, description) {
+      const book = this.read();
+      const id = "t_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      book.throughlines.push({
+        id, name: (name || "").trim().slice(0, 80),
+        description: (description || "").trim().slice(0, 400),
+        touches: [],
+        createdAt: Date.now(),
+      });
+      this.write(book);
+      return id;
+    },
+    removeThroughline(id) {
+      const book = this.read();
+      book.throughlines = book.throughlines.filter(t => t.id !== id);
+      this.write(book);
+    },
+
+    // Keyword relevance for injection into system prompt (same primitive as dict)
+    findRelevantAbout(userText, limit) {
+      if (!userText) return [];
+      const book = this.read();
+      if (book.about.length === 0) return [];
+      const queryTokens = new Set((userText.toLowerCase().match(/[a-z][a-z'-]{2,}/g) || []).filter(t => !TOPIC_STOPWORDS.has(t)));
+      if (queryTokens.size === 0) return book.about.slice(-2); // fallback: recent
+      const scored = book.about.map(a => {
+        const tokens = (a.text.toLowerCase().match(/[a-z][a-z'-]{2,}/g) || []).filter(t => !TOPIC_STOPWORDS.has(t));
+        let overlap = 0;
+        for (const t of tokens) if (queryTokens.has(t)) overlap++;
+        return { entry: a, score: overlap };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      const hits = scored.filter(s => s.score > 0).slice(0, limit || 3).map(s => s.entry);
+      // If nothing matched but Book has about entries, fall back to the two most recent
+      return hits.length ? hits : book.about.slice(-2);
+    },
+  };
+
   // ── History store ───────────────────────────────────────────────
   // Records (user prompt, assistant response, timestamp, extracted topic keywords)
   // for each completed turn. Used by the History modal to enable search + topic grouping.
@@ -3386,6 +3857,7 @@ Always include both sections. Always close the </thinking> tag before your final
     modal.setAttribute("aria-hidden", "false");
     if (which === "settings") renderSettings();
     if (which === "history") renderHistory();
+    if (which === "book") renderBook();
   }
   function closeModal(which) {
     const modal = $(`r-${which}-modal`);
@@ -3546,6 +4018,398 @@ Always include both sections. Always close the </thinking> tag before your final
   // ── Header button wiring ────────────────────────────────────────
   $("r-settings-btn").addEventListener("click", () => openModal("settings"));
   $("r-history-btn").addEventListener("click", () => openModal("history"));
+  $("r-book-btn").addEventListener("click", () => openModal("book"));
+
+  // ── Book modal rendering ────────────────────────────────────────
+  let bookActiveTab = "moments";
+  function renderBook() {
+    // Reset to Moments tab on open
+    bookActiveTab = "moments";
+    document.querySelectorAll(".r-book-tab").forEach(t => {
+      t.classList.toggle("active", t.dataset.bookTab === bookActiveTab);
+    });
+    renderBookBody();
+  }
+  document.querySelectorAll(".r-book-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      bookActiveTab = tab.dataset.bookTab;
+      document.querySelectorAll(".r-book-tab").forEach(t => t.classList.toggle("active", t === tab));
+      renderBookBody();
+    });
+  });
+
+  function renderBookBody() {
+    const body = $("r-book-body");
+    body.innerHTML = "";
+    const book = bookStore.all();
+    if (bookActiveTab === "moments") renderBookMoments(body, book);
+    else if (bookActiveTab === "about") renderBookAbout(body, book);
+    else if (bookActiveTab === "throughlines") renderBookThroughlines(body, book);
+  }
+
+  function renderBookMoments(body, book) {
+    const hint = document.createElement("div");
+    hint.className = "r-book-section-hint";
+    hint.textContent = "Moments you marked worth remembering. Click the ✧ on any Reverie response to save one.";
+    body.appendChild(hint);
+    if (book.moments.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-book-empty";
+      empty.innerHTML = "Nothing saved here yet.<br><strong>Your Book begins when you mark your first moment.</strong>";
+      body.appendChild(empty);
+      return;
+    }
+    // Most recent first
+    const sorted = book.moments.slice().sort((a, b) => b.savedAt - a.savedAt);
+    for (const m of sorted) {
+      const row = document.createElement("div");
+      row.className = "r-moment";
+      const user = document.createElement("div");
+      user.className = "r-moment-user";
+      user.textContent = (m.userText || "").trim() || "(no prompt)";
+      const text = document.createElement("div");
+      text.className = "r-moment-text";
+      text.textContent = (m.reverieText || "").trim();
+      row.appendChild(user); row.appendChild(text);
+      if (m.note) {
+        const n = document.createElement("div");
+        n.className = "r-moment-note";
+        n.textContent = m.note;
+        row.appendChild(n);
+      }
+      const meta = document.createElement("div");
+      meta.className = "r-moment-meta";
+      const dateStr = new Date(m.savedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      meta.innerHTML = `<span>${dateStr}</span>`;
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "r-moment-action danger";
+      removeBtn.textContent = "remove";
+      removeBtn.addEventListener("click", () => {
+        if (!confirm("Remove this moment from your Book?")) return;
+        bookStore.removeMoment(m.id);
+        renderBookBody();
+        refreshEpigraph();
+      });
+      actions.appendChild(removeBtn);
+      meta.appendChild(actions);
+      row.appendChild(meta);
+      body.appendChild(row);
+    }
+  }
+
+  function renderBookAbout(body, book) {
+    const hint = document.createElement("div");
+    hint.className = "r-book-section-hint";
+    hint.textContent = "Short notes about you — work, people, context Reverie can reference. You can add or edit anything here. Hit Reflect to ask Reverie to propose notes from recent conversations.";
+    body.appendChild(hint);
+
+    if (book.about.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-book-empty";
+      empty.innerHTML = "Blank slate.<br><strong>Add your first note below, or use Reflect.</strong>";
+      body.appendChild(empty);
+    } else {
+      for (const a of book.about) {
+        const row = document.createElement("div");
+        row.className = "r-about-entry";
+        row.dataset.id = a.id;
+        const bullet = document.createElement("span"); bullet.className = "r-about-bullet"; bullet.textContent = "·";
+        const text = document.createElement("div"); text.className = "r-about-text"; text.textContent = a.text;
+        const src = document.createElement("span"); src.className = `r-about-src ${a.source || "manual"}`; src.textContent = a.source || "manual";
+        const actions = document.createElement("div"); actions.className = "r-about-actions";
+        const editBtn = document.createElement("button"); editBtn.className = "r-moment-action"; editBtn.textContent = "edit";
+        const removeBtn = document.createElement("button"); removeBtn.className = "r-moment-action danger"; removeBtn.textContent = "×";
+        editBtn.addEventListener("click", () => {
+          const ta = document.createElement("textarea");
+          ta.value = a.text;
+          text.innerHTML = ""; text.appendChild(ta); ta.focus();
+          const finish = () => {
+            bookStore.updateAbout(a.id, ta.value);
+            renderBookBody();
+          };
+          ta.addEventListener("blur", finish);
+          ta.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") { renderBookBody(); }
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") ta.blur();
+          });
+        });
+        removeBtn.addEventListener("click", () => {
+          bookStore.removeAbout(a.id);
+          renderBookBody();
+        });
+        actions.appendChild(editBtn); actions.appendChild(removeBtn);
+        row.appendChild(bullet); row.appendChild(text); row.appendChild(src); row.appendChild(actions);
+        body.appendChild(row);
+      }
+    }
+
+    // Add form
+    const form = document.createElement("div");
+    form.className = "r-about-add";
+    form.innerHTML = `
+      <textarea id="r-about-new" placeholder="Add a note (e.g. 'I'm a data analyst exploring finance roles in Boston')"></textarea>
+      <button class="r-dict-add-btn" id="r-about-add-btn">Add</button>
+    `;
+    body.appendChild(form);
+    const ta = form.querySelector("#r-about-new");
+    form.querySelector("#r-about-add-btn").addEventListener("click", () => {
+      const txt = ta.value.trim();
+      if (!txt) return;
+      bookStore.addAbout(txt, "manual");
+      renderBookBody();
+    });
+    ta.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") form.querySelector("#r-about-add-btn").click();
+    });
+  }
+
+  function renderBookThroughlines(body, book) {
+    const hint = document.createElement("div");
+    hint.className = "r-book-section-hint";
+    hint.textContent = "Named threads that come back — a decision, a person, a question you keep circling. Reverie knows these by name and can pick them up when they come up.";
+    body.appendChild(hint);
+
+    if (book.throughlines.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-book-empty";
+      empty.innerHTML = "No through-lines yet.<br><strong>Add one below — or Reflect to see if Reverie notices any.</strong>";
+      body.appendChild(empty);
+    } else {
+      for (const t of book.throughlines) {
+        const row = document.createElement("div");
+        row.className = "r-throughline";
+        const head = document.createElement("div"); head.className = "r-throughline-head";
+        const name = document.createElement("div"); name.className = "r-throughline-name"; name.textContent = t.name;
+        const count = document.createElement("div"); count.className = "r-throughline-count"; count.textContent = `${(t.touches||[]).length} touch${(t.touches||[]).length === 1 ? "" : "es"}`;
+        head.appendChild(name); head.appendChild(count);
+        const desc = document.createElement("div"); desc.className = "r-throughline-desc"; desc.textContent = t.description || "";
+        const actions = document.createElement("div"); actions.className = "r-throughline-actions";
+        const removeBtn = document.createElement("button"); removeBtn.className = "r-moment-action danger"; removeBtn.textContent = "remove";
+        removeBtn.addEventListener("click", () => {
+          if (!confirm(`Remove "${t.name}" from your through-lines?`)) return;
+          bookStore.removeThroughline(t.id);
+          renderBookBody();
+        });
+        actions.appendChild(removeBtn);
+        row.appendChild(head); if (t.description) row.appendChild(desc); row.appendChild(actions);
+        body.appendChild(row);
+      }
+    }
+
+    // Add form
+    const form = document.createElement("div");
+    form.className = "r-about-add";
+    form.innerHTML = `
+      <textarea id="r-tl-new" placeholder="Name a through-line (e.g. 'The Boston question') — one per line: name / description"></textarea>
+      <button class="r-dict-add-btn" id="r-tl-add-btn">Add</button>
+    `;
+    body.appendChild(form);
+    const ta = form.querySelector("#r-tl-new");
+    form.querySelector("#r-tl-add-btn").addEventListener("click", () => {
+      const val = ta.value.trim();
+      if (!val) return;
+      const [name, ...rest] = val.split("\n");
+      bookStore.addThroughline(name.trim(), rest.join(" ").trim());
+      renderBookBody();
+    });
+  }
+
+  // ── Reflect: ask Reverie to propose Book entries from recent history ──
+  $("r-book-reflect-btn").addEventListener("click", async () => {
+    const btn = $("r-book-reflect-btn");
+    if (btn.disabled) return;
+    if (!engineState.engine) { alert("Reverie isn't loaded yet."); return; }
+    if (engineState.generating) { alert("Reverie is busy. Try again in a moment."); return; }
+    const hist = historyStore.all();
+    if (hist.length < 3) {
+      alert("Not enough conversation yet to reflect on. Talk with Reverie for a while first.");
+      return;
+    }
+    btn.disabled = true; btn.classList.add("working");
+    try {
+      const proposals = await askReverieToReflect();
+      showReflectProposals(proposals);
+    } catch (e) {
+      console.warn("reflect failed", e);
+      alert("Reflection didn't work: " + (e.message || e));
+    } finally {
+      btn.disabled = false; btn.classList.remove("working");
+    }
+  });
+
+  async function askReverieToReflect() {
+    // Use the most recent 30 history entries (or all if fewer)
+    const hist = historyStore.all().slice(-30);
+    const existingAbout = bookStore.all().about.map(a => a.text);
+    const existingThroughlines = bookStore.all().throughlines.map(t => t.name);
+
+    // Compact the history for the model
+    const summary = hist.map((e, i) => {
+      const q = (e.q || "").slice(0, 120).replace(/\s+/g, " ").trim();
+      const a = (e.a || "").slice(0, 240).replace(/\s+/g, " ").trim();
+      return `${i+1}. Q: ${q}\n   A: ${a}`;
+    }).join("\n");
+
+    const sys = `You are helping the user curate their Book — a small private file about what they've shared with you over recent conversations. Read the conversations below and propose 3-6 entries the user might want to add.
+
+Output STRICT JSON ONLY (no prose outside the JSON), in this exact format:
+{
+  "about": [ "short note about the user (30-80 words) — things they've mentioned about themselves, their work, people, context", ... ],
+  "throughlines": [ { "name": "short theme name (2-6 words)", "description": "one sentence on what this thread is about" }, ... ]
+}
+
+Rules:
+- Each "about" entry is a single fact or short note, first-person-neutral (do NOT use "I" or "me" — these are notes ABOUT the user). Examples: "works as a data analyst in Boston", "exploring a move to a finance role", "has been weighing whether to leave current job since spring".
+- Do NOT repeat anything from this list of existing about entries: ${JSON.stringify(existingAbout)}
+- Do NOT repeat anything from this list of existing through-lines: ${JSON.stringify(existingThroughlines)}
+- Through-lines are themes that come up across MULTIPLE turns (not single mentions). If nothing recurs, leave "throughlines" as an empty array.
+- If there's nothing new worth proposing, return {"about":[],"throughlines":[]}.
+- Be accurate. Only include things you can clearly see in the conversations.`;
+
+    const user = `Recent conversations:\n\n${summary}`;
+
+    let fullResponse = "";
+    await engineState.run(async () => {
+      const stream = await engineState.engine.chat.completions.create({
+        messages: [{ role: "system", content: sys }, { role: "user", content: user }],
+        stream: true, temperature: 0.4, max_tokens: 800,
+      });
+      for await (const chunk of stream) {
+        const delta = chunk.choices?.[0]?.delta?.content || "";
+        if (delta) fullResponse += delta;
+      }
+    });
+    // Parse the JSON robustly — strip fences / extra prose
+    let parsed = null;
+    try {
+      let cleaned = fullResponse.trim();
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+      // Find the first { and last } to be safe
+      const first = cleaned.indexOf("{"), last = cleaned.lastIndexOf("}");
+      if (first !== -1 && last > first) cleaned = cleaned.slice(first, last + 1);
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      throw new Error("Reverie's response couldn't be parsed.");
+    }
+    const about = Array.isArray(parsed.about) ? parsed.about.filter(x => typeof x === "string" && x.trim()) : [];
+    const throughlines = Array.isArray(parsed.throughlines)
+      ? parsed.throughlines.filter(t => t && typeof t === "object" && t.name).map(t => ({
+          name: String(t.name).trim(),
+          description: String(t.description || "").trim(),
+        }))
+      : [];
+    return { about, throughlines };
+  }
+
+  function showReflectProposals(proposals) {
+    const body = $("r-book-body");
+    body.innerHTML = "";
+    const hint = document.createElement("div");
+    hint.className = "r-book-section-hint";
+    hint.textContent = "Reverie proposed the following from your recent conversations. Accept the ones that ring true. Dismiss the ones that don't.";
+    body.appendChild(hint);
+
+    const proposalsEl = document.createElement("div");
+    proposalsEl.className = "r-reflect-proposals";
+
+    if (proposals.about.length === 0 && proposals.throughlines.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-book-empty";
+      empty.innerHTML = "Reverie didn't find anything new worth proposing.<br><strong>Your Book is already caught up, or there hasn't been enough new material.</strong>";
+      body.appendChild(empty);
+      return;
+    }
+
+    for (const text of proposals.about) {
+      const row = document.createElement("div");
+      row.className = "r-reflect-proposal";
+      const kind = document.createElement("span"); kind.className = "r-reflect-kind"; kind.textContent = "about";
+      const txt = document.createElement("div"); txt.className = "r-reflect-text"; txt.textContent = text;
+      const actions = document.createElement("div"); actions.className = "r-reflect-actions";
+      const accept = document.createElement("button"); accept.className = "r-reflect-accept"; accept.textContent = "add";
+      const dismiss = document.createElement("button"); dismiss.className = "r-reflect-dismiss"; dismiss.textContent = "skip";
+      accept.addEventListener("click", () => { bookStore.addAbout(text, "auto"); row.remove(); });
+      dismiss.addEventListener("click", () => row.remove());
+      actions.appendChild(accept); actions.appendChild(dismiss);
+      row.appendChild(kind); row.appendChild(txt); row.appendChild(actions);
+      proposalsEl.appendChild(row);
+    }
+    for (const t of proposals.throughlines) {
+      const row = document.createElement("div");
+      row.className = "r-reflect-proposal";
+      const kind = document.createElement("span"); kind.className = "r-reflect-kind"; kind.textContent = "thread";
+      const txt = document.createElement("div"); txt.className = "r-reflect-text";
+      txt.innerHTML = `<strong>${escapeHtmlR(t.name)}</strong>${t.description ? "<br><span style='font-style:italic;color:var(--r-text-muted);font-size:12px;'>" + escapeHtmlR(t.description) + "</span>" : ""}`;
+      const actions = document.createElement("div"); actions.className = "r-reflect-actions";
+      const accept = document.createElement("button"); accept.className = "r-reflect-accept"; accept.textContent = "add";
+      const dismiss = document.createElement("button"); dismiss.className = "r-reflect-dismiss"; dismiss.textContent = "skip";
+      accept.addEventListener("click", () => { bookStore.addThroughline(t.name, t.description); row.remove(); });
+      dismiss.addEventListener("click", () => row.remove());
+      actions.appendChild(accept); actions.appendChild(dismiss);
+      row.appendChild(kind); row.appendChild(txt); row.appendChild(actions);
+      proposalsEl.appendChild(row);
+    }
+    body.appendChild(proposalsEl);
+
+    // Done button returns to normal view
+    const done = document.createElement("button");
+    done.className = "r-dict-add-btn";
+    done.textContent = "Done";
+    done.style.marginTop = "14px";
+    done.addEventListener("click", () => {
+      bookActiveTab = "about";
+      document.querySelectorAll(".r-book-tab").forEach(t => t.classList.toggle("active", t.dataset.bookTab === "about"));
+      renderBookBody();
+    });
+    body.appendChild(done);
+  }
+
+  function escapeHtmlR(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  // ── Epigraph ────────────────────────────────────────────────────
+  // A quiet italic line from the user's Book that appears at the top of
+  // Reverie's view. Rotates daily (deterministic seed by date) so it feels
+  // stable within a day and gently shifts between days.
+  function refreshEpigraph() {
+    const el = $("r-epigraph");
+    if (!el) return;
+    const book = bookStore.all();
+    const moments = book.moments.slice().sort((a, b) => b.savedAt - a.savedAt);
+    if (moments.length === 0) {
+      el.style.display = "none";
+      el.innerHTML = "";
+      return;
+    }
+    // Prefer recent (last 30 days) moments; if none, fall back to any
+    const recentCutoff = Date.now() - 30 * 86400 * 1000;
+    const pool = moments.filter(m => m.savedAt > recentCutoff);
+    const chosen = (pool.length ? pool : moments);
+    // Seed by date so same day = same epigraph
+    const day = Math.floor(Date.now() / 86400000);
+    const picked = chosen[day % chosen.length];
+    if (!picked) { el.style.display = "none"; return; }
+    // Extract a short, evocative line from the reverie text (first sentence capped ~140 chars)
+    let line = (picked.reverieText || "").trim();
+    const firstPeriod = line.search(/[.!?](\s|$)/);
+    if (firstPeriod > 20 && firstPeriod < 160) line = line.slice(0, firstPeriod + 1);
+    else line = line.slice(0, 140) + (line.length > 140 ? "…" : "");
+    const daysAgo = Math.max(1, Math.round((Date.now() - picked.savedAt) / 86400000));
+    const timeLabel = daysAgo === 1 ? "yesterday" : daysAgo < 7 ? `${daysAgo} days ago` : daysAgo < 30 ? `${Math.round(daysAgo/7)} week${Math.round(daysAgo/7) === 1 ? "" : "s"} ago` : `${Math.round(daysAgo/30)} month${Math.round(daysAgo/30) === 1 ? "" : "s"} ago`;
+    el.style.display = "block";
+    el.innerHTML = "";
+    const quote = document.createElement("span");
+    quote.textContent = line;
+    el.appendChild(quote);
+    const meta = document.createElement("span");
+    meta.className = "epi-meta";
+    meta.textContent = `from your Book · ${timeLabel}`;
+    el.appendChild(meta);
+  }
+
+  // Refresh epigraph on load + when state changes
+  refreshEpigraph();
 
   // ── Encrypted Private Vault ─────────────────────────────────────
   // Uses Web Crypto (AES-GCM + PBKDF2) + IndexedDB. The master key lives in
