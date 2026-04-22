@@ -223,6 +223,17 @@
     flex: 1; background: #0a0806; border: 1px solid var(--r-border);
     border-radius: 10px; overflow: hidden; position: relative;
     display: flex; align-items: center; justify-content: center; min-height: 0;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  /* Gentle pulsing border + soft glow while the AI is working */
+  .st-canvas-wrap.working {
+    border-color: rgba(131, 197, 190, 0.5);
+    box-shadow: 0 0 0 1px rgba(131, 197, 190, 0.25), 0 0 28px rgba(131, 197, 190, 0.18);
+    animation: st-wrap-breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes st-wrap-breathe {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(131, 197, 190, 0.2), 0 0 20px rgba(131, 197, 190, 0.12); }
+    50%      { box-shadow: 0 0 0 2px rgba(131, 197, 190, 0.45), 0 0 40px rgba(131, 197, 190, 0.3); }
   }
   .st-canvas-wrap svg { max-width: 100%; max-height: 100%; background: #fafafa; border-radius: 6px; }
   .st-placeholder { padding: 40px; text-align: center; max-width: 480px; }
@@ -247,10 +258,28 @@
     font: 500 11px var(--mono); color: var(--r-text-muted); letter-spacing: 0.1em; text-transform: uppercase;
     display: flex; justify-content: space-between; align-items: center;
   }
-  .st-status { font: 10px var(--mono); color: var(--r-text-dim); letter-spacing: 0.05em; text-transform: none; }
-  .st-status.working { color: var(--r-accent); }
-  .st-status.working::after { content: "…"; animation: st-dots 1s steps(4) infinite; }
-  @keyframes st-dots { to { content: "…    "; } }
+  .st-status { font: 10px var(--mono); color: var(--r-text-dim); letter-spacing: 0.05em; text-transform: none; display: inline-flex; align-items: center; gap: 6px; }
+  .st-status.working { color: #83c5be; }
+  .st-dots { display: inline-flex; gap: 3px; align-items: center; }
+  .st-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--r-border);
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .st-dot.done   { background: rgba(131, 197, 190, 0.6); }
+  .st-dot.active {
+    background: #83c5be;
+    animation: st-dot-pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes st-dot-pulse {
+    0%, 100% { transform: scale(1);   opacity: 1;   box-shadow: 0 0 0 0 rgba(131, 197, 190, 0.55); }
+    50%      { transform: scale(1.35); opacity: 0.85; box-shadow: 0 0 0 4px rgba(131, 197, 190, 0); }
+  }
+  .st-phase-label {
+    font-style: italic;
+    opacity: 0.9;
+    min-width: 72px; /* prevents horizontal jitter when labels change width */
+  }
 
   .st-messages { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
   .st-messages::-webkit-scrollbar { width: 6px; }
@@ -3868,6 +3897,33 @@ const studio = (() => {
     renderCanvas();
   });
 
+  // ── Live status indicator ───────────────────────────────────────
+  // Phases mapped to user-facing labels. Order matters: the dots visually advance
+  // as the AI progresses through each stage.
+  const STATUS_PHASES = [
+    { key: "thinking",  label: "thinking" },   // waiting for first token
+    { key: "composing", label: "composing" },  // request dispatched, waiting for server/engine
+    { key: "writing",   label: "writing" },    // first token seen, streaming output
+    { key: "applying",  label: "applying" },   // streaming done, parsing + canvas render
+  ];
+  function setStatus(phaseKey) {
+    if (!phaseKey) {
+      els.status.innerHTML = "";
+      els.status.classList.remove("working");
+      return;
+    }
+    els.status.classList.add("working");
+    const idx = STATUS_PHASES.findIndex(p => p.key === phaseKey);
+    const label = (STATUS_PHASES.find(p => p.key === phaseKey) || {}).label || phaseKey;
+    // Render: [• • • •] thinking (with only one dot pulsing — the current phase)
+    const dots = STATUS_PHASES.map((p, i) => {
+      if (i < idx) return `<span class="st-dot done"></span>`;
+      if (i === idx) return `<span class="st-dot active"></span>`;
+      return `<span class="st-dot"></span>`;
+    }).join("");
+    els.status.innerHTML = `<span class="st-dots">${dots}</span><span class="st-phase-label">${label}</span>`;
+  }
+
   // ── Rendering ───────────────────────────────────────────────────
   // The SVG canvas composites: (processed base image) → (vector shapes on top).
   // The processed base image is recomputed whenever filters or cropBox change.
@@ -4580,19 +4636,163 @@ Final rules:
   }
 
   // Extract the JSON array inside <ops>…</ops>, if any.
+  // Resilient multi-tier parser.
+  // Small models frequently drop the closing </ops>, wrap in code fences,
+  // use variant tag casing, or emit trailing commas / single quotes.
   function parseOpsFromResponse(text) {
-    const match = text.match(/<ops>([\s\S]*?)<\/ops>/i);
-    if (!match) return { text: text.trim(), ops: null, raw: null };
-    const cleanText = (text.slice(0, match.index) + text.slice(match.index + match[0].length)).trim();
-    let ops = null;
-    let raw = match[1].trim();
-    // Strip any wrapping code fences the model might have added
-    raw = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-    try {
-      ops = JSON.parse(raw);
-      if (!Array.isArray(ops)) ops = null;
-    } catch { ops = null; }
-    return { text: cleanText, ops, raw };
+    // ── Tier 1: proper <ops>…</ops> tags (any casing, any tag variant) ──
+    const TAG_OPEN = /<\s*ops?\s*>/i;
+    const TAG_CLOSE = /<\s*\/\s*ops?\s*>/i;
+    const openMatch = text.match(TAG_OPEN);
+    if (openMatch) {
+      const openIdx = openMatch.index;
+      const afterOpen = text.slice(openIdx + openMatch[0].length);
+      const closeMatch = afterOpen.match(TAG_CLOSE);
+      let bodyRaw, textBefore, textAfter;
+      if (closeMatch) {
+        bodyRaw = afterOpen.slice(0, closeMatch.index);
+        textBefore = text.slice(0, openIdx);
+        textAfter = afterOpen.slice(closeMatch.index + closeMatch[0].length);
+      } else {
+        // Missing closing tag — take everything after <ops> as body
+        bodyRaw = afterOpen;
+        textBefore = text.slice(0, openIdx);
+        textAfter = "";
+      }
+      const ops = tryParseOpsJson(bodyRaw);
+      const cleanText = (textBefore + " " + textAfter).trim();
+      return { text: cleanText, ops, raw: bodyRaw.trim() };
+    }
+
+    // ── Tier 2: fenced code block that looks like ops JSON ──
+    const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fence) {
+      const body = fence[1];
+      const ops = tryParseOpsJson(body);
+      if (ops) {
+        const cleanText = (text.slice(0, fence.index) + text.slice(fence.index + fence[0].length)).trim();
+        return { text: cleanText, ops, raw: body.trim() };
+      }
+    }
+
+    // ── Tier 3: raw JSON array anywhere in the response ──
+    // Only accept it if it looks like ops JSON (contains an "action" key).
+    const firstBracket = text.indexOf("[");
+    if (firstBracket !== -1) {
+      const lastBracket = text.lastIndexOf("]");
+      if (lastBracket > firstBracket) {
+        const body = text.slice(firstBracket, lastBracket + 1);
+        if (/"action"\s*:/.test(body)) {
+          const ops = tryParseOpsJson(body);
+          if (ops) {
+            const cleanText = (text.slice(0, firstBracket) + text.slice(lastBracket + 1)).trim();
+            return { text: cleanText, ops, raw: body };
+          }
+        }
+      }
+    }
+
+    // ── Tier 4: a single JSON object that happens to be a valid op ──
+    // Matches {"action":"…", …}
+    const objMatch = text.match(/\{\s*"action"\s*:[\s\S]*?\}/);
+    if (objMatch) {
+      const wrapped = "[" + objMatch[0] + "]";
+      const ops = tryParseOpsJson(wrapped);
+      if (ops) {
+        const cleanText = (text.slice(0, objMatch.index) + text.slice(objMatch.index + objMatch[0].length)).trim();
+        return { text: cleanText, ops, raw: wrapped };
+      }
+    }
+
+    // Nothing parseable — return text as-is.
+    return { text: text.trim(), ops: null, raw: null };
+  }
+
+  // Try to parse a JSON array, first strictly, then with light repair for common
+  // model mistakes: trailing commas, single quotes, unterminated strings,
+  // unclosed arrays/objects at EOF (max_tokens truncation).
+  function tryParseOpsJson(raw) {
+    if (!raw) return null;
+    let s = raw.trim();
+
+    // Strip a surrounding code fence if present
+    s = s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+    // Strip stray backticks
+    s = s.replace(/^`+|`+$/g, "").trim();
+
+    // Strict first
+    const strict = safeJsonParse(s);
+    if (Array.isArray(strict)) return strict;
+
+    // Light repair attempt
+    const repaired = repairJson(s);
+    const parsed = safeJsonParse(repaired);
+    if (Array.isArray(parsed)) return parsed;
+
+    // If it parsed as an object that's a single op, wrap it
+    if (parsed && typeof parsed === "object" && parsed.action) return [parsed];
+
+    return null;
+  }
+
+  function safeJsonParse(s) {
+    try { return JSON.parse(s); } catch { return null; }
+  }
+
+  // Minimal, conservative JSON repair:
+  // - remove trailing commas before ] or }
+  // - convert single-quoted strings to double-quoted (outside of already-double-quoted regions)
+  // - close an unclosed array/object at EOF (truncation safety net)
+  function repairJson(s) {
+    let t = s;
+
+    // Remove trailing commas
+    t = t.replace(/,(\s*[\]}])/g, "$1");
+
+    // Convert unquoted object keys like {action: ...} to {"action": ...}
+    // Only the keys, and only if they're simple word chars
+    t = t.replace(/([{,]\s*)([A-Za-z_][\w-]*)(\s*:)/g, '$1"$2"$3');
+
+    // Convert single-quoted strings to double-quoted, but be careful not to
+    // touch apostrophes inside double-quoted strings. A simple heuristic:
+    // only convert ' pairs that aren't inside a "…" region.
+    {
+      let out = "";
+      let inDouble = false;
+      for (let i = 0; i < t.length; i++) {
+        const ch = t[i];
+        const prev = i > 0 ? t[i - 1] : "";
+        if (ch === '"' && prev !== "\\") { inDouble = !inDouble; out += ch; continue; }
+        if (ch === "'" && !inDouble) { out += '"'; continue; }
+        out += ch;
+      }
+      t = out;
+    }
+
+    // Truncation repair: count unclosed brackets/braces and append closers.
+    // Ignore brackets inside string literals.
+    {
+      let depthArr = 0, depthObj = 0;
+      let inStr = false;
+      for (let i = 0; i < t.length; i++) {
+        const ch = t[i];
+        const prev = i > 0 ? t[i - 1] : "";
+        if (ch === '"' && prev !== "\\") { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === "[") depthArr++;
+        else if (ch === "]") depthArr--;
+        else if (ch === "{") depthObj++;
+        else if (ch === "}") depthObj--;
+      }
+      // If we ended inside a string, close it first.
+      if (inStr) t += '"';
+      // Strip a trailing dangling comma if our last non-space is ","
+      t = t.replace(/,\s*$/, "");
+      while (depthObj > 0) { t += "}"; depthObj--; }
+      while (depthArr > 0) { t += "]"; depthArr--; }
+    }
+
+    return t;
   }
 
   async function sendDirection() {
@@ -4609,9 +4809,9 @@ Final rules:
     els.input.style.height = "auto";
 
     state.working = true;
-    els.status.textContent = "Working";
-    els.status.classList.add("working");
+    setStatus("thinking");
     els.sendBtn.disabled = true;
+    els.wrap.classList.add("working"); // canvas border gets the pulsing gradient
 
     const sys = buildStudioSystemPrompt();
     // Keep short history (studio conversations can get long; the canvas IS the state)
@@ -4621,26 +4821,29 @@ Final rules:
       .map(m => ({ role: m.role, content: m.content + (m.rawOps ? `\n<ops>${m.rawOps}</ops>` : "") }));
 
     let fullResponse = "";
+    let sawFirstToken = false;
     try {
       await engineState.run(async () => {
+        setStatus("composing");
         const stream = await engineState.engine.chat.completions.create({
           messages: [{ role: "system", content: sys }, ...recentHistory, { role: "user", content: prompt }],
-          stream: true, temperature: 0.6, max_tokens: 800,
+          stream: true, temperature: 0.6, max_tokens: 1200,
         });
         for await (const chunk of stream) {
           const delta = chunk.choices?.[0]?.delta?.content || "";
-          if (delta) fullResponse += delta;
+          if (delta) {
+            if (!sawFirstToken) { sawFirstToken = true; setStatus("writing"); }
+            fullResponse += delta;
+          }
         }
       });
     } catch (e) {
       addMsg("error", `Generation failed: ${e.message || e}`);
-      state.working = false;
-      els.status.textContent = "";
-      els.status.classList.remove("working");
-      els.sendBtn.disabled = false;
+      finishWorking();
       return;
     }
 
+    setStatus("applying");
     const { text, ops, raw } = parseOpsFromResponse(fullResponse);
     const displayText = text || "(done)";
     let extras = {};
@@ -4652,19 +4855,26 @@ Final rules:
       if (errors.length) addMsg("error", `Some commands failed: ${errors.join("; ")}`);
       else if (applied === 0) addMsg("system", "(no changes applied)");
     } else if (ops && ops.length === 0) {
-      // Empty ops array = no canvas change intended
       addMsg("assistant", displayText);
     } else {
-      // Failed to parse — include the raw response so the user sees what happened
-      addMsg("assistant", displayText || fullResponse.slice(0, 400));
-      addMsg("error", "Couldn't parse an <ops> block from that response — the model may have drifted. Try rephrasing the request or rerunning.");
+      // Couldn't parse — show exactly what the model produced so the issue is visible.
+      // Small models sometimes drop the <ops> tag entirely and just chat back; the
+      // resilient parser handles most recovery cases, so reaching here usually means
+      // no JSON-like content was emitted at all.
+      addMsg("assistant", displayText || "(no text)");
+      const preview = fullResponse.length > 400 ? fullResponse.slice(0, 400) + "…" : fullResponse;
+      addMsg("error", `No canvas commands found in that response. The model responded but didn't emit an <ops> block. Try rephrasing more directly ("apply the noir preset", "add a red circle at 200,200"). Raw output:\n\n${preview}`);
     }
 
-    state.working = false;
-    els.status.textContent = "";
-    els.status.classList.remove("working");
-    els.sendBtn.disabled = false;
+    finishWorking();
     els.input.focus();
+  }
+
+  function finishWorking() {
+    state.working = false;
+    setStatus("");
+    els.sendBtn.disabled = false;
+    els.wrap.classList.remove("working");
   }
 
   els.sendBtn.addEventListener("click", sendDirection);
