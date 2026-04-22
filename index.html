@@ -503,6 +503,208 @@
     font: italic 13px var(--serif);
   }
 
+  /* Vault — locked/unlocked states inside settings */
+  .r-vault-status {
+    padding: 10px 12px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 7px;
+    font: 12px var(--sans);
+    color: var(--r-text-muted);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+  }
+  .r-vault-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .r-vault-dot.none   { background: var(--r-text-dim); }
+  .r-vault-dot.locked { background: var(--r-accent-dim); }
+  .r-vault-dot.open   { background: #81b29a; box-shadow: 0 0 6px rgba(129,178,154,0.5); }
+  .r-vault-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .r-vault-actions .r-header-btn { padding: 7px 13px; font-size: 12px; }
+  .r-vault-actions .r-dict-add-btn { padding: 7px 13px; font-size: 12px; }
+
+  /* Vault modal body states */
+  .r-vault-setup, .r-vault-unlock {
+    padding: 12px 2px;
+    max-width: 420px;
+  }
+  .r-vault-setup p, .r-vault-unlock p {
+    font: 13px/1.6 var(--sans);
+    color: var(--r-text-muted);
+    margin-bottom: 14px;
+  }
+  .r-vault-setup .warning, .r-vault-unlock .warning {
+    background: rgba(200,122,90,0.08);
+    border: 1px solid rgba(200,122,90,0.2);
+    color: var(--r-text-muted);
+    padding: 10px 14px;
+    border-radius: 7px;
+    font: 12px/1.55 var(--sans);
+    margin-bottom: 14px;
+  }
+  .r-vault-input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .r-vault-input-group label {
+    font: 500 11px var(--sans); color: var(--r-text-muted);
+  }
+  .r-vault-input-group input {
+    background: var(--r-bg);
+    border: 1px solid var(--r-border);
+    color: var(--r-text);
+    padding: 8px 11px;
+    border-radius: 6px;
+    font: 13px var(--sans);
+    outline: none;
+    transition: border-color 0.12s;
+  }
+  .r-vault-input-group input:focus { border-color: var(--r-accent-dim); }
+  .r-vault-button-row { display: flex; gap: 8px; justify-content: flex-end; }
+  .r-vault-error {
+    color: var(--r-danger);
+    font: 12px var(--sans);
+    padding: 8px 0;
+    min-height: 20px;
+  }
+
+  .r-vault-browse { padding-top: 4px; }
+  .r-vault-browse-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+  .r-vault-browse-head .count {
+    font: 10px var(--mono); color: var(--r-text-dim);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .r-vault-files { display: flex; flex-direction: column; gap: 6px; }
+  .r-vault-file {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 8px;
+  }
+  .r-vault-file-icon {
+    width: 32px; height: 32px; border-radius: 6px;
+    background: rgba(129,178,154,0.12);
+    color: #81b29a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .r-vault-file-info { flex: 1; min-width: 0; }
+  .r-vault-file-name {
+    font: 500 13px var(--sans);
+    color: var(--r-text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .r-vault-file-meta {
+    font: 10px var(--mono);
+    color: var(--r-text-dim);
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+  .r-vault-file-actions { display: flex; gap: 4px; }
+  .r-vault-file-action {
+    background: transparent;
+    border: 1px solid var(--r-border);
+    color: var(--r-text-muted);
+    padding: 4px 9px;
+    border-radius: 5px;
+    cursor: pointer;
+    font: 10px var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.12s;
+  }
+  .r-vault-file-action:hover { border-color: var(--r-accent-dim); color: var(--r-text); }
+  .r-vault-file-action.danger:hover { border-color: var(--r-danger); color: var(--r-danger); }
+  .r-vault-empty {
+    padding: 30px 20px; text-align: center;
+    color: var(--r-text-dim); font: italic 13px var(--serif);
+  }
+
+  /* Studio saved looks (shape memory) */
+  .st-looks-panel {
+    padding: 10px 12px;
+    background: var(--r-bg-subtle);
+    border-bottom: 1px solid var(--r-border-subtle);
+  }
+  .st-looks-title {
+    display: flex; align-items: center; justify-content: space-between;
+    font: 500 10px var(--mono); color: var(--r-text-muted);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .st-looks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 6px;
+  }
+  .st-look-card {
+    background: var(--r-bg-elevated);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    position: relative;
+    transition: all 0.15s ease;
+  }
+  .st-look-card:hover {
+    border-color: #83c5be;
+    transform: translateY(-1px);
+  }
+  .st-look-thumb {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #0a0806;
+    object-fit: cover;
+    display: block;
+  }
+  .st-look-thumb.empty {
+    display: flex; align-items: center; justify-content: center;
+    font: 10px var(--mono); color: var(--r-text-dim); letter-spacing: 0.05em;
+  }
+  .st-look-name {
+    padding: 3px 6px 4px;
+    font: 10px var(--mono);
+    color: var(--r-text-muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    border-top: 1px solid var(--r-border-subtle);
+  }
+  .st-look-remove {
+    position: absolute; top: 2px; right: 2px;
+    background: rgba(20,17,13,0.75);
+    border: none; color: #f4f1de;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    font-size: 10px; line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .st-look-card:hover .st-look-remove { opacity: 1; }
+  .st-look-remove:hover { background: var(--r-danger); }
+
+  .st-looks-empty {
+    font: italic 11px var(--serif);
+    color: var(--r-text-dim);
+    padding: 4px 0;
+  }
+  .st-looks-save {
+    font: 10px var(--mono);
+    padding: 3px 9px;
+    background: transparent;
+    border: 1px solid var(--r-border);
+    color: var(--r-text-muted);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .st-looks-save:hover:not(:disabled) { border-color: #83c5be; color: #83c5be; }
+  .st-looks-save:disabled { opacity: 0.3; cursor: not-allowed; }
+
   /* ═══════════ STUDIO ═══════════ */
   body.view-studio {
     background: #1a1612;
@@ -1511,7 +1713,28 @@
             <div class="r-dict-count" id="r-dict-count"></div>
           </section>
 
+          <section class="r-settings-section">
+            <div class="r-settings-section-head">
+              <h3>Private vault</h3>
+              <p class="r-settings-hint">Encrypted local storage for sensitive files. Upload once, reference forever — contracts, resumes, medical notes, whatever matters. Password-locked with AES-GCM; everything lives in your browser's IndexedDB. <strong>If you lose the password, the files are unrecoverable.</strong></p>
+            </div>
+            <div id="r-vault-status"></div>
+            <div class="r-vault-actions" id="r-vault-actions"></div>
+          </section>
+
         </div>
+      </div>
+    </div>
+
+    <!-- Vault modal (setup / unlock / browse) -->
+    <div id="r-vault-modal" class="r-modal" aria-hidden="true">
+      <div class="r-modal-backdrop" data-close="vault"></div>
+      <div class="r-modal-panel r-modal-panel-wide">
+        <div class="r-modal-header">
+          <h2 id="r-vault-title">Vault</h2>
+          <button class="r-modal-close" data-close="vault" aria-label="Close">×</button>
+        </div>
+        <div class="r-modal-body" id="r-vault-body"></div>
       </div>
     </div>
 
@@ -1632,6 +1855,14 @@
           <div class="st-sidebar-header">
             <span>Direction</span>
             <span class="st-status" id="st-status"></span>
+          </div>
+
+          <div class="st-looks-panel" id="st-looks-panel" style="display:none;">
+            <div class="st-looks-title">
+              <span id="st-looks-count">Saved looks</span>
+              <button class="st-looks-save" id="st-looks-save-btn" title="Save current canvas as a reusable look">+ Save current</button>
+            </div>
+            <div class="st-looks-grid" id="st-looks-grid"></div>
           </div>
 
           <div class="st-filter-panel" id="st-filter-panel" style="display:none;">
@@ -2743,6 +2974,8 @@ Always include both sections. Always close the </thinking> tag before your final
       refreshNetIndicator();
     };
     renderDictList();
+    // Vault section — defined later in the file but hoisted via function declaration
+    if (typeof renderVaultSection === "function") renderVaultSection();
   }
 
   function renderDictList() {
@@ -2874,6 +3107,455 @@ Always include both sections. Always close the </thinking> tag before your final
   // ── Header button wiring ────────────────────────────────────────
   $("r-settings-btn").addEventListener("click", () => openModal("settings"));
   $("r-history-btn").addEventListener("click", () => openModal("history"));
+
+  // ── Encrypted Private Vault ─────────────────────────────────────
+  // Uses Web Crypto (AES-GCM + PBKDF2) + IndexedDB. The master key lives in
+  // memory only while the vault is unlocked; refresh the page and you must
+  // re-enter the password.
+  //
+  // Storage layout:
+  //   IDB `reverie-vault` db, `files` store keyed by file id, each entry:
+  //   { id, name, mime, size, iv, ciphertext }
+  //   IDB `meta` store with key "config": { salt, check_iv, check_ct, createdAt }
+  //   The `check` field is an encrypted known-plaintext used to verify password
+  //   correctness without storing the password or key.
+
+  const VAULT_DB_NAME = "reverie-vault";
+  const VAULT_DB_VERSION = 1;
+  const PBKDF2_ITERS = 600_000;
+  const VAULT_IDLE_TIMEOUT_MS = 30 * 60 * 1000; // auto-lock after 30 minutes idle
+
+  const vault = (() => {
+    let db = null;
+    let masterKey = null;
+    let lastActivity = 0;
+
+    function openDb() {
+      return new Promise((resolve, reject) => {
+        if (db) return resolve(db);
+        const req = indexedDB.open(VAULT_DB_NAME, VAULT_DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const d = e.target.result;
+          if (!d.objectStoreNames.contains("files")) d.createObjectStore("files", { keyPath: "id" });
+          if (!d.objectStoreNames.contains("meta"))  d.createObjectStore("meta",  { keyPath: "key" });
+        };
+        req.onsuccess = () => { db = req.result; resolve(db); };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function idbGet(store, key) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, "readonly");
+        const req = tx.objectStore(store).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    function idbGetAll(store) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, "readonly");
+        const req = tx.objectStore(store).getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    function idbPut(store, val) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, "readwrite");
+        const req = tx.objectStore(store).put(val);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+    function idbDelete(store, key) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, "readwrite");
+        const req = tx.objectStore(store).delete(key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function deriveKey(password, salt) {
+      const enc = new TextEncoder();
+      const baseKey = await crypto.subtle.importKey(
+        "raw", enc.encode(password),
+        { name: "PBKDF2" }, false, ["deriveKey"]
+      );
+      return crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt, iterations: PBKDF2_ITERS, hash: "SHA-256" },
+        baseKey,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    async function isConfigured() {
+      await openDb();
+      const cfg = await idbGet("meta", "config");
+      return !!cfg;
+    }
+    function isUnlocked() { return !!masterKey; }
+
+    async function setup(password) {
+      if (!password || password.length < 6) throw new Error("Password must be at least 6 characters.");
+      await openDb();
+      const existing = await idbGet("meta", "config");
+      if (existing) throw new Error("Vault already exists. Use unlock instead.");
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const key = await deriveKey(password, salt);
+      // Encrypt a known plaintext so we can verify the password on subsequent unlocks
+      const checkIv = crypto.getRandomValues(new Uint8Array(12));
+      const checkPlain = new TextEncoder().encode("reverie-vault-v1-check");
+      const checkCt = await crypto.subtle.encrypt({ name: "AES-GCM", iv: checkIv }, key, checkPlain);
+      await idbPut("meta", {
+        key: "config",
+        salt: Array.from(salt),
+        check_iv: Array.from(checkIv),
+        check_ct: Array.from(new Uint8Array(checkCt)),
+        createdAt: Date.now(),
+      });
+      masterKey = key;
+      lastActivity = Date.now();
+    }
+
+    async function unlock(password) {
+      await openDb();
+      const cfg = await idbGet("meta", "config");
+      if (!cfg) throw new Error("No vault exists yet. Create one first.");
+      const salt = new Uint8Array(cfg.salt);
+      const key = await deriveKey(password, salt);
+      // Verify by decrypting the check ciphertext
+      try {
+        const checkIv = new Uint8Array(cfg.check_iv);
+        const checkCt = new Uint8Array(cfg.check_ct);
+        const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv: checkIv }, key, checkCt);
+        const text = new TextDecoder().decode(dec);
+        if (text !== "reverie-vault-v1-check") throw new Error("bad check");
+      } catch {
+        throw new Error("Incorrect password.");
+      }
+      masterKey = key;
+      lastActivity = Date.now();
+    }
+
+    function lock() { masterKey = null; }
+
+    function touchActivity() {
+      if (masterKey) lastActivity = Date.now();
+    }
+    function checkIdleTimeout() {
+      if (masterKey && Date.now() - lastActivity > VAULT_IDLE_TIMEOUT_MS) {
+        lock();
+        return true;
+      }
+      return false;
+    }
+    setInterval(checkIdleTimeout, 60_000);
+
+    async function destroyAll(password) {
+      // Verify password before destroying, to avoid accidents
+      await unlock(password); // throws if wrong
+      await openDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(["files", "meta"], "readwrite");
+        tx.objectStore("files").clear();
+        tx.objectStore("meta").clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      masterKey = null;
+    }
+
+    async function addFile(file) {
+      if (!masterKey) throw new Error("Vault is locked.");
+      if (file.size > 10 * 1024 * 1024) throw new Error("Files over 10 MB aren't supported in the vault.");
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const data = await file.arrayBuffer();
+      const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, masterKey, data);
+      const entry = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        name: file.name,
+        mime: file.type || "",
+        size: file.size,
+        addedAt: Date.now(),
+        iv: Array.from(iv),
+        ciphertext: new Uint8Array(ct),
+      };
+      await openDb();
+      await idbPut("files", entry);
+      lastActivity = Date.now();
+      return entry.id;
+    }
+
+    async function listFiles() {
+      await openDb();
+      const rows = await idbGetAll("files");
+      return rows.map(r => ({ id: r.id, name: r.name, mime: r.mime, size: r.size, addedAt: r.addedAt }))
+        .sort((a, b) => b.addedAt - a.addedAt);
+    }
+
+    async function readFile(id) {
+      if (!masterKey) throw new Error("Vault is locked.");
+      await openDb();
+      const row = await idbGet("files", id);
+      if (!row) throw new Error("File not found.");
+      const iv = new Uint8Array(row.iv);
+      const ct = row.ciphertext instanceof Uint8Array ? row.ciphertext : new Uint8Array(row.ciphertext);
+      const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, masterKey, ct);
+      lastActivity = Date.now();
+      return { name: row.name, mime: row.mime, size: row.size, data: plain };
+    }
+
+    async function removeFile(id) {
+      await openDb();
+      await idbDelete("files", id);
+    }
+
+    return {
+      isConfigured, isUnlocked, setup, unlock, lock, destroyAll,
+      addFile, listFiles, readFile, removeFile, touchActivity,
+    };
+  })();
+
+  // ── Vault UI ────────────────────────────────────────────────────
+  async function renderVaultSection() {
+    const statusEl = $("r-vault-status");
+    const actionsEl = $("r-vault-actions");
+    statusEl.innerHTML = ""; actionsEl.innerHTML = "";
+    let configured = false;
+    try { configured = await vault.isConfigured(); } catch { /* indexeddb unavailable */ }
+
+    const line = document.createElement("div");
+    line.className = "r-vault-status";
+    const dot = document.createElement("span"); dot.className = "r-vault-dot";
+    const text = document.createElement("span");
+    if (!configured) {
+      dot.classList.add("none");
+      text.textContent = "No vault yet.";
+    } else if (vault.isUnlocked()) {
+      dot.classList.add("open");
+      text.textContent = "Vault unlocked.";
+    } else {
+      dot.classList.add("locked");
+      text.textContent = "Vault locked.";
+    }
+    line.appendChild(dot); line.appendChild(text);
+    statusEl.appendChild(line);
+
+    if (!configured) {
+      const create = document.createElement("button");
+      create.className = "r-dict-add-btn";
+      create.textContent = "Create vault";
+      create.addEventListener("click", () => { closeModal("settings"); openVaultModal("setup"); });
+      actionsEl.appendChild(create);
+    } else if (vault.isUnlocked()) {
+      const browse = document.createElement("button");
+      browse.className = "r-dict-add-btn";
+      browse.textContent = "Browse files";
+      browse.addEventListener("click", () => { closeModal("settings"); openVaultModal("browse"); });
+      const lockBtn = document.createElement("button");
+      lockBtn.className = "r-header-btn";
+      lockBtn.textContent = "Lock now";
+      lockBtn.addEventListener("click", () => { vault.lock(); renderVaultSection(); });
+      actionsEl.appendChild(browse);
+      actionsEl.appendChild(lockBtn);
+    } else {
+      const unlock = document.createElement("button");
+      unlock.className = "r-dict-add-btn";
+      unlock.textContent = "Unlock";
+      unlock.addEventListener("click", () => { closeModal("settings"); openVaultModal("unlock"); });
+      actionsEl.appendChild(unlock);
+    }
+  }
+
+  async function openVaultModal(mode) {
+    const modal = $("r-vault-modal");
+    const body = $("r-vault-body");
+    const title = $("r-vault-title");
+    modal.setAttribute("aria-hidden", "false");
+    body.innerHTML = "";
+
+    if (mode === "setup") {
+      title.textContent = "Create a vault";
+      renderVaultSetup(body);
+    } else if (mode === "unlock") {
+      title.textContent = "Unlock vault";
+      renderVaultUnlock(body);
+    } else {
+      // browse (requires unlocked)
+      if (!vault.isUnlocked()) { renderVaultUnlock(body); title.textContent = "Unlock vault"; return; }
+      title.textContent = "Vault";
+      await renderVaultBrowse(body);
+    }
+  }
+
+  function renderVaultSetup(body) {
+    const wrap = document.createElement("div");
+    wrap.className = "r-vault-setup";
+    wrap.innerHTML = `
+      <p>Choose a password for your private vault. All files you add will be encrypted with AES-GCM and stored in your browser's IndexedDB.</p>
+      <div class="warning"><strong>This password cannot be recovered.</strong> Reverie has no reset, no email, no backup. If you forget it, the files are permanently unreadable — that's the cost of genuine local encryption. Write it down somewhere safe.</div>
+      <div class="r-vault-input-group">
+        <label>Password (at least 6 characters)</label>
+        <input type="password" id="r-vault-pw1" autocomplete="new-password" />
+        <label>Confirm password</label>
+        <input type="password" id="r-vault-pw2" autocomplete="new-password" />
+      </div>
+      <div class="r-vault-error" id="r-vault-err"></div>
+      <div class="r-vault-button-row">
+        <button class="r-header-btn" data-close="vault">Cancel</button>
+        <button class="r-dict-add-btn" id="r-vault-create-btn">Create vault</button>
+      </div>
+    `;
+    body.appendChild(wrap);
+    wrap.querySelector("[data-close]").addEventListener("click", () => closeModal("vault"));
+    const pw1 = body.querySelector("#r-vault-pw1");
+    const pw2 = body.querySelector("#r-vault-pw2");
+    const err = body.querySelector("#r-vault-err");
+    const doCreate = async () => {
+      err.textContent = "";
+      if (!pw1.value || pw1.value.length < 6) { err.textContent = "Password must be at least 6 characters."; return; }
+      if (pw1.value !== pw2.value) { err.textContent = "Passwords don't match."; return; }
+      body.querySelector("#r-vault-create-btn").disabled = true;
+      try {
+        await vault.setup(pw1.value);
+        pw1.value = pw2.value = "";
+        closeModal("vault");
+        await openVaultModal("browse");
+      } catch (e) {
+        err.textContent = e.message || String(e);
+        body.querySelector("#r-vault-create-btn").disabled = false;
+      }
+    };
+    body.querySelector("#r-vault-create-btn").addEventListener("click", doCreate);
+    [pw1, pw2].forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") doCreate(); }));
+    setTimeout(() => pw1.focus(), 80);
+  }
+
+  function renderVaultUnlock(body) {
+    const wrap = document.createElement("div");
+    wrap.className = "r-vault-unlock";
+    wrap.innerHTML = `
+      <p>Enter your vault password to unlock it. The password derives an encryption key in memory — nothing is stored.</p>
+      <div class="r-vault-input-group">
+        <label>Password</label>
+        <input type="password" id="r-vault-unlock-pw" autocomplete="current-password" />
+      </div>
+      <div class="r-vault-error" id="r-vault-err"></div>
+      <div class="r-vault-button-row">
+        <button class="r-header-btn" data-close="vault">Cancel</button>
+        <button class="r-dict-add-btn" id="r-vault-unlock-btn">Unlock</button>
+      </div>
+    `;
+    body.appendChild(wrap);
+    wrap.querySelector("[data-close]").addEventListener("click", () => closeModal("vault"));
+    const pw = body.querySelector("#r-vault-unlock-pw");
+    const err = body.querySelector("#r-vault-err");
+    const doUnlock = async () => {
+      err.textContent = "";
+      body.querySelector("#r-vault-unlock-btn").disabled = true;
+      try {
+        await vault.unlock(pw.value);
+        pw.value = "";
+        await openVaultModal("browse");
+      } catch (e) {
+        err.textContent = e.message || String(e);
+        body.querySelector("#r-vault-unlock-btn").disabled = false;
+      }
+    };
+    body.querySelector("#r-vault-unlock-btn").addEventListener("click", doUnlock);
+    pw.addEventListener("keydown", e => { if (e.key === "Enter") doUnlock(); });
+    setTimeout(() => pw.focus(), 80);
+  }
+
+  async function renderVaultBrowse(body) {
+    const files = await vault.listFiles();
+    const wrap = document.createElement("div");
+    wrap.className = "r-vault-browse";
+    wrap.innerHTML = `
+      <div class="r-vault-browse-head">
+        <div>
+          <button class="r-dict-add-btn" id="r-vault-add-btn">Add file</button>
+          <input type="file" id="r-vault-file-input" style="display:none;" />
+        </div>
+        <span class="count">${files.length} file${files.length === 1 ? "" : "s"} · encrypted locally</span>
+      </div>
+      <div class="r-vault-files" id="r-vault-files"></div>
+    `;
+    body.appendChild(wrap);
+    const input = wrap.querySelector("#r-vault-file-input");
+    wrap.querySelector("#r-vault-add-btn").addEventListener("click", () => input.click());
+    input.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      e.target.value = "";
+      try {
+        await vault.addFile(file);
+        await openVaultModal("browse"); // refresh
+      } catch (err) {
+        alert("Couldn't add file: " + (err.message || err));
+      }
+    });
+
+    const filesEl = wrap.querySelector("#r-vault-files");
+    if (files.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-vault-empty";
+      empty.textContent = "No files yet. Add one to get started.";
+      filesEl.appendChild(empty);
+      return;
+    }
+    for (const f of files) {
+      const row = document.createElement("div");
+      row.className = "r-vault-file";
+      const ext = (f.name.match(/\.[^.]+$/) || [""])[0].toLowerCase();
+      const icon = ext === ".pdf" ? "📄" : ext === ".docx" ? "📘" : f.mime?.startsWith("image/") ? "🖼️" : "📎";
+      const dateStr = new Date(f.addedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      row.innerHTML = `
+        <div class="r-vault-file-icon">${icon}</div>
+        <div class="r-vault-file-info">
+          <div class="r-vault-file-name"></div>
+          <div class="r-vault-file-meta">${formatBytes(f.size)} · added ${dateStr}</div>
+        </div>
+        <div class="r-vault-file-actions">
+          <button class="r-vault-file-action" data-act="attach">Attach</button>
+          <button class="r-vault-file-action" data-act="download">Download</button>
+          <button class="r-vault-file-action danger" data-act="remove">Remove</button>
+        </div>
+      `;
+      row.querySelector(".r-vault-file-name").textContent = f.name;
+      row.querySelector('[data-act="attach"]').addEventListener("click", async () => {
+        try {
+          const decrypted = await vault.readFile(f.id);
+          const blob = new Blob([decrypted.data], { type: decrypted.mime || "application/octet-stream" });
+          const file = new File([blob], decrypted.name, { type: decrypted.mime });
+          const parsed = await parseFile(file);
+          state.pendingFiles.push(parsed);
+          renderAttachedFiles();
+          closeModal("vault");
+        } catch (err) { alert("Couldn't attach: " + (err.message || err)); }
+      });
+      row.querySelector('[data-act="download"]').addEventListener("click", async () => {
+        try {
+          const decrypted = await vault.readFile(f.id);
+          const blob = new Blob([decrypted.data], { type: decrypted.mime || "application/octet-stream" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url; a.download = decrypted.name; a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (err) { alert("Couldn't download: " + (err.message || err)); }
+      });
+      row.querySelector('[data-act="remove"]').addEventListener("click", async () => {
+        if (!confirm(`Remove "${f.name}" from vault? The encrypted copy will be permanently deleted.`)) return;
+        await vault.removeFile(f.id);
+        await openVaultModal("browse");
+      });
+      filesEl.appendChild(row);
+    }
+  }
 
   showLoader();
   return { isEngineReady: () => !!engineState.engine };
@@ -4715,6 +5397,10 @@ const studio = (() => {
     filterList:   $("st-filter-list"),
     filterCount:  $("st-filter-panel-count"),
     clearFiltersBtn: $("st-clear-filters-btn"),
+    looksPanel:   $("st-looks-panel"),
+    looksGrid:    $("st-looks-grid"),
+    looksCount:   $("st-looks-count"),
+    looksSaveBtn: $("st-looks-save-btn"),
   };
 
   function onActivate() {
@@ -4725,6 +5411,7 @@ const studio = (() => {
     } else {
       els.input.disabled = false; els.sendBtn.disabled = false;
     }
+    renderLooksPanel();
     setTimeout(() => els.input.focus(), 60);
   }
 
@@ -4870,8 +5557,9 @@ const studio = (() => {
     if (state.cropBox) bits.push("cropped");
     const summary = bits.join(" · ") || "no changes";
     els.stepInfo.textContent = `${summary} · step ${state.historyIndex + 1}/${state.historyStack.length}`;
-    // Also refresh the filter stack panel
+    // Also refresh the filter stack and looks panels
     renderFilterStack();
+    renderLooksPanel();
   }
   els.undoBtn.addEventListener("click", undo);
   els.redoBtn.addEventListener("click", redo);
@@ -4914,6 +5602,190 @@ const studio = (() => {
     pushHistory();
     renderCanvas();
   });
+
+  // ── Saved looks (shape memory) ──────────────────────────────────
+  // A "look" captures the user's current canvas creative state:
+  //   { id, name, createdAt, filters, cropBox, ops, nextShapeId, ascii, thumb }
+  // Thumbs are small data URLs (~80x80 jpeg) so localStorage stays manageable.
+  const LOOKS_KEY = "reverie-studio-looks-v1";
+  const LOOKS_MAX = 30;
+  const THUMB_SIZE = 80;
+
+  const looksStore = {
+    read() {
+      try { return JSON.parse(localStorage.getItem(LOOKS_KEY) || "[]"); } catch { return []; }
+    },
+    write(list) {
+      try { localStorage.setItem(LOOKS_KEY, JSON.stringify(list)); }
+      catch (e) { console.warn("looks save failed", e); }
+    },
+    all() {
+      return this.read().slice().sort((a, b) => b.createdAt - a.createdAt);
+    },
+    save(look) {
+      const list = this.read();
+      list.push(look);
+      // FIFO eviction
+      while (list.length > LOOKS_MAX) list.shift();
+      this.write(list);
+    },
+    remove(id) {
+      this.write(this.read().filter(l => l.id !== id));
+    },
+    get(id) {
+      return this.read().find(l => l.id === id);
+    },
+  };
+
+  // Generate a small thumbnail of the current canvas for the looks gallery.
+  async function makeLookThumbnail() {
+    try {
+      if (state.ascii) {
+        // For ASCII, return a generic dark swatch with text icon — cheap and consistent
+        const c = document.createElement("canvas");
+        c.width = THUMB_SIZE; c.height = THUMB_SIZE;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#0a0806"; ctx.fillRect(0, 0, THUMB_SIZE, THUMB_SIZE);
+        ctx.fillStyle = "#83c5be"; ctx.font = "bold 22px monospace";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("ASCII", THUMB_SIZE/2, THUMB_SIZE/2);
+        return c.toDataURL("image/jpeg", 0.85);
+      }
+      if (!state.baseImageDataUrl) {
+        // Blank canvas with shapes — serialize SVG and render
+        const svgStr = new XMLSerializer().serializeToString(els.svg);
+        const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(svgBlob);
+        try {
+          const img = await loadImage(url);
+          const c = document.createElement("canvas");
+          c.width = THUMB_SIZE; c.height = THUMB_SIZE;
+          const ctx = c.getContext("2d");
+          ctx.fillStyle = "#fafafa"; ctx.fillRect(0, 0, THUMB_SIZE, THUMB_SIZE);
+          const scale = Math.min(THUMB_SIZE / img.width, THUMB_SIZE / img.height);
+          const dw = img.width * scale, dh = img.height * scale;
+          ctx.drawImage(img, (THUMB_SIZE-dw)/2, (THUMB_SIZE-dh)/2, dw, dh);
+          return c.toDataURL("image/jpeg", 0.8);
+        } finally { URL.revokeObjectURL(url); }
+      }
+      // Image with filters — use the processed image
+      const sourceDataUrl = state.processedImageCache || (state.filters.length ? await processBaseImage() : state.baseImageDataUrl);
+      const img = await loadImage(sourceDataUrl);
+      const c = document.createElement("canvas");
+      c.width = THUMB_SIZE; c.height = THUMB_SIZE;
+      const ctx = c.getContext("2d");
+      const scale = Math.max(THUMB_SIZE / img.width, THUMB_SIZE / img.height);
+      const dw = img.width * scale, dh = img.height * scale;
+      ctx.drawImage(img, (THUMB_SIZE-dw)/2, (THUMB_SIZE-dh)/2, dw, dh);
+      return c.toDataURL("image/jpeg", 0.8);
+    } catch (e) {
+      console.warn("thumb fail", e);
+      return null;
+    }
+  }
+
+  async function saveCurrentLook() {
+    // Prompt for name; default to a timestamped label
+    const defaultName = new Date().toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    const name = prompt("Name this look:", defaultName);
+    if (name == null) return; // cancelled
+    const trimmed = name.trim() || defaultName;
+    const thumb = await makeLookThumbnail();
+    const look = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: trimmed.slice(0, 40),
+      createdAt: Date.now(),
+      filters: JSON.parse(JSON.stringify(state.filters)),
+      cropBox: state.cropBox ? JSON.parse(JSON.stringify(state.cropBox)) : null,
+      ops: JSON.parse(JSON.stringify(state.ops)),
+      nextShapeId: state.nextShapeId,
+      ascii: state.ascii ? JSON.parse(JSON.stringify(state.ascii)) : null,
+      thumb,
+    };
+    looksStore.save(look);
+    renderLooksPanel();
+    addSystemMessage(`Saved "${look.name}" to your looks.`);
+  }
+
+  function applyLook(id) {
+    const look = looksStore.get(id);
+    if (!look) return;
+    if (!state.baseImageDataUrl && !state.ops.length && !state.ascii) {
+      // Nothing to apply to — warn
+      if (!confirm("This look will apply to an empty canvas. That's fine for shape-only looks, but image filters need an image. Continue?")) return;
+    }
+    state.filters = JSON.parse(JSON.stringify(look.filters || []));
+    // Only restore cropBox if current image can accommodate it
+    if (look.cropBox && state.baseImageW && state.baseImageH) {
+      const c = look.cropBox;
+      if (c.x + c.w <= state.baseImageW && c.y + c.h <= state.baseImageH) {
+        state.cropBox = JSON.parse(JSON.stringify(c));
+      } else { state.cropBox = null; }
+    } else { state.cropBox = null; }
+    state.ops = JSON.parse(JSON.stringify(look.ops || []));
+    state.nextShapeId = Math.max(state.nextShapeId, look.nextShapeId || 1);
+    state.ascii = look.ascii ? JSON.parse(JSON.stringify(look.ascii)) : null;
+    invalidateProcessedImage();
+    pushHistory();
+    renderCanvas();
+    addSystemMessage(`Applied look "${look.name}".`);
+  }
+
+  function renderLooksPanel() {
+    if (!els.looksPanel) return;
+    const looks = looksStore.all();
+    // Show the panel only when the user is actively working on something —
+    // otherwise it's just clutter on an empty canvas
+    const isWorking = state.baseImageDataUrl || state.ops.length > 0 || state.ascii;
+    const hasLooks = looks.length > 0;
+    if (!isWorking && !hasLooks) {
+      els.looksPanel.style.display = "none";
+      return;
+    }
+    els.looksPanel.style.display = "block";
+    els.looksCount.textContent = looks.length === 0 ? "Saved looks" : `${looks.length} saved look${looks.length === 1 ? "" : "s"}`;
+    els.looksSaveBtn.disabled = !isWorking;
+
+    els.looksGrid.innerHTML = "";
+    if (looks.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "st-looks-empty";
+      empty.style.gridColumn = "1 / -1";
+      empty.textContent = "Nothing saved yet. Hit + Save current to remember this canvas.";
+      els.looksGrid.appendChild(empty);
+      return;
+    }
+    for (const look of looks) {
+      const card = document.createElement("div");
+      card.className = "st-look-card";
+      card.title = `${look.name} · apply this look`;
+      const thumb = document.createElement(look.thumb ? "img" : "div");
+      thumb.className = "st-look-thumb" + (look.thumb ? "" : " empty");
+      if (look.thumb) thumb.src = look.thumb;
+      else thumb.textContent = "–";
+      card.appendChild(thumb);
+      const name = document.createElement("div");
+      name.className = "st-look-name";
+      name.textContent = look.name;
+      card.appendChild(name);
+      const remove = document.createElement("button");
+      remove.className = "st-look-remove";
+      remove.type = "button";
+      remove.innerHTML = "×";
+      remove.title = "Remove this look";
+      remove.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!confirm(`Remove "${look.name}"?`)) return;
+        looksStore.remove(look.id);
+        renderLooksPanel();
+      });
+      card.appendChild(remove);
+      card.addEventListener("click", () => applyLook(look.id));
+      els.looksGrid.appendChild(card);
+    }
+  }
+
+  els.looksSaveBtn.addEventListener("click", () => saveCurrentLook());
 
   // ── Live status indicator ───────────────────────────────────────
   // Phases mapped to user-facing labels. Order matters: the dots visually advance
