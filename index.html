@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Reverie — thought, on device</title>
-<meta name="description" content="A local, browser-based thinking AI with an AOL-style chatroom." />
+<meta name="description" content="A local, browser-based thinking AI with a chatroom." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --r-bg: #14110d; --r-bg-elevated: #1c1814; --r-bg-subtle: #1a1612;
@@ -15,6 +15,29 @@
     --r-accent: #c8a574; --r-accent-soft: rgba(200,165,116,0.12); --r-accent-dim: #7a6443;
     --r-border: #2a251f; --r-border-subtle: #1f1b16;
     --r-thinking-bg: #181511; --r-danger: #c87a5a; --r-user-bg: #1f1b15;
+
+    /* Chatroom — modern teal palette that lives in the Win98 desktop world */
+    --c-desktop: #008080;
+    --c-surface: #ffffff;
+    --c-panel: #f0f7f7;
+    --c-panel-hover: #e3eeee;
+    --c-accent: #006d77;
+    --c-accent-hover: #008891;
+    --c-accent-light: #83c5be;
+    --c-accent-soft: rgba(0, 109, 119, 0.08);
+    --c-text: #1a2a2a;
+    --c-text-muted: #5a6e6e;
+    --c-text-dim: #8fa8a8;
+    --c-border: #c8dada;
+    --c-border-subtle: #e0ecec;
+    --c-user-msg-bg: #e0f2f2;
+    --c-system: #7a9090;
+    --c-danger: #c85450;
+    --c-unread: #e63946;
+    --c-warn-bg: #fff9e0;
+    --c-warn-border: #f0d878;
+    --c-warn-text: #5a4a00;
+
     --mono: "JetBrains Mono", ui-monospace, monospace;
     --serif: "Instrument Serif", Georgia, serif;
     --sans: "DM Sans", system-ui, sans-serif;
@@ -32,24 +55,24 @@
       radial-gradient(ellipse at top left, rgba(200,165,116,0.04), transparent 60%),
       radial-gradient(ellipse at bottom right, rgba(200,165,116,0.02), transparent 50%);
   }
-  body.view-chatroom { background: #008080; color: #000; font-family: Tahoma, "MS Sans Serif", Verdana, sans-serif; }
+  body.view-chatroom { background: var(--c-desktop); color: var(--c-text); font-family: var(--sans); }
   .app-shell { display: flex; flex-direction: column; height: 100vh; }
 
+  /* ── Tab nav ── */
   .tabnav { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(8px); flex-shrink: 0; z-index: 100; }
-  body.view-chatroom .tabnav { background: #000080; border-bottom: 2px solid #000040; }
+  body.view-chatroom .tabnav { background: rgba(0, 40, 40, 0.4); border-bottom: 1px solid rgba(255,255,255,0.15); }
   .tabnav-brand { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+  body.view-chatroom .tabnav-brand { color: rgba(255,255,255,0.75); }
   .tabnav-tabs { display: flex; gap: 6px; }
   .tabnav-tab { font-family: var(--mono); font-size: 12px; padding: 6px 14px; background: transparent; color: rgba(255,255,255,0.5); border: 1px solid transparent; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
   .tabnav-tab:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.05); }
   .tabnav-tab.active { color: var(--r-accent); background: var(--r-accent-soft); border-color: var(--r-accent-dim); }
-  body.view-chatroom .tabnav-tab { color: rgba(255,255,255,0.75); font-family: Tahoma, sans-serif; font-size: 11px; font-weight: bold; border-radius: 0; }
-  body.view-chatroom .tabnav-tab.active { color: #ffff00; background: rgba(255,255,0,0.12); border-color: #ffff00; }
-  body.view-chatroom .tabnav-brand { color: rgba(255,255,255,0.65); }
+  body.view-chatroom .tabnav-tab.active { color: #ffffff; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); }
 
   .view { flex: 1; min-height: 0; display: none; }
   .view.active { display: flex; flex-direction: column; }
 
-  /* REVERIE VIEW */
+  /* ═══════════ REVERIE VIEW (unchanged) ═══════════ */
   #view-chat { max-width: 900px; width: 100%; margin: 0 auto; }
   .r-header { display: flex; align-items: baseline; justify-content: space-between; padding: 22px 32px 16px; border-bottom: 1px solid var(--r-border-subtle); }
   .r-brand { display: flex; align-items: baseline; gap: 14px; }
@@ -78,7 +101,6 @@
   #r-messages::-webkit-scrollbar { width: 8px; }
   #r-messages::-webkit-scrollbar-track { background: transparent; }
   #r-messages::-webkit-scrollbar-thumb { background: var(--r-border); border-radius: 4px; }
-  #r-messages::-webkit-scrollbar-thumb:hover { background: var(--r-accent-dim); }
   .r-msg { display: flex; flex-direction: column; gap: 10px; max-width: 100%; }
   .r-msg-role { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--r-text-dim); }
   .r-msg-user .r-msg-role { color: var(--r-accent-dim); }
@@ -98,8 +120,7 @@
   .r-thinking.collapsed:hover { opacity: 1; }
   .r-thinking-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--r-text-dim); margin-bottom: 6px; user-select: none; }
   .r-thinking-toggle { cursor: pointer; }
-  .r-thinking-toggle:hover { color: var(--r-accent); }
-  .r-thinking-pulse::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--r-accent); margin-left: 8px; transform: translateY(-1px); animation: r-pulse 1s ease-in-out infinite; }
+  .r-thinking-pulse::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--r-accent); margin-left: 8px; animation: r-pulse 1s ease-in-out infinite; }
 
   .r-intro { padding: 40px 0; text-align: center; color: var(--r-text-muted); }
   .r-intro h2 { font-family: var(--serif); font-style: italic; font-size: 36px; font-weight: 400; color: var(--r-text); margin-bottom: 14px; line-height: 1.2; }
@@ -115,104 +136,381 @@
   #r-input::placeholder { color: var(--r-text-dim); font-style: italic; font-family: var(--serif); font-size: 17px; }
   #r-send-btn { font-family: var(--sans); font-size: 13px; font-weight: 500; padding: 8px 16px; background: var(--r-accent); color: var(--r-bg); border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
   #r-send-btn:hover:not(:disabled) { background: #d4b58a; transform: translateY(-1px); }
-  #r-send-btn:disabled { background: var(--r-border); color: var(--r-text-dim); cursor: not-allowed; transform: none; }
+  #r-send-btn:disabled { background: var(--r-border); color: var(--r-text-dim); cursor: not-allowed; }
   #r-send-btn.stop { background: var(--r-danger); color: var(--r-text); }
   .r-footer-hint { text-align: center; margin-top: 10px; font-family: var(--mono); font-size: 10px; color: var(--r-text-dim); letter-spacing: 0.08em; }
   .r-footer-hint kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--r-border); border-radius: 3px; font-size: 10px; font-family: var(--mono); color: var(--r-text-muted); }
 
-  /* AOL CHATROOM VIEW */
-  #view-chatroom { padding: 18px 20px; overflow: hidden; position: relative; }
-  .w-out { border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #404040; border-bottom: 2px solid #404040; box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf; }
-  .w-btn { background: #c0c0c0; border-top: 1px solid #ffffff; border-left: 1px solid #ffffff; border-right: 1px solid #404040; border-bottom: 1px solid #404040; box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf; padding: 4px 14px; font: 11px Tahoma, sans-serif; color: #000; cursor: pointer; min-width: 72px; }
-  .w-btn:active { border-color: #404040 #ffffff #ffffff #404040; box-shadow: inset 1px 1px 0 #808080; padding: 5px 13px 3px 15px; }
-  .w-btn:disabled { color: #808080; text-shadow: 1px 1px 0 #ffffff; cursor: default; }
-  .w-btn:focus { outline: 1px dotted #000; outline-offset: -4px; }
+  /* ═══════════ MODERN CHATROOM ═══════════ */
+  #view-chatroom { padding: 0; overflow: hidden; position: relative; }
 
-  .aol-window { max-width: 980px; margin: 0 auto; background: #c0c0c0; display: flex; flex-direction: column; height: 100%; }
-  .aol-titlebar { background: linear-gradient(to right, #0a246a 0%, #3a6ea5 100%); color: white; padding: 3px 4px 3px 6px; display: flex; align-items: center; justify-content: space-between; font: bold 11px Tahoma, sans-serif; flex-shrink: 0; }
-  .aol-titlebar-title { display: flex; align-items: center; gap: 6px; }
-  .aol-titlebar-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; background: #ffff00; color: #000; font: bold 11px Tahoma; border: 1px solid #000; }
-  .aol-titlebar-btns { display: flex; gap: 2px; }
-  .aol-tb-btn { width: 18px; height: 16px; background: #c0c0c0; color: #000; font: bold 10px Tahoma; line-height: 12px; border-top: 1px solid #ffffff; border-left: 1px solid #ffffff; border-right: 1px solid #404040; border-bottom: 1px solid #404040; box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+  .cr-window {
+    max-width: 1200px; width: calc(100% - 32px); height: calc(100% - 32px); margin: 16px auto;
+    background: var(--c-surface); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0, 40, 40, 0.45), 0 6px 18px rgba(0, 0, 0, 0.18);
+    display: flex; flex-direction: column;
+  }
 
-  .aol-menubar { display: flex; padding: 2px 4px; background: #c0c0c0; border-bottom: 1px solid #808080; font: 11px Tahoma; flex-shrink: 0; }
-  .aol-menu-item { padding: 3px 8px; cursor: default; user-select: none; }
-  .aol-menu-item:hover { background: #000080; color: #fff; }
-  .aol-menu-item u { text-decoration: underline; }
+  .cr-topbar {
+    background: linear-gradient(135deg, #006d77 0%, #004850 100%);
+    color: #ffffff; padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px;
+    flex-shrink: 0;
+  }
+  .cr-topbar-title { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 15px; }
+  .cr-topbar-logo {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #ffdd66, #ffb347);
+    color: #004850; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .cr-topbar-spacer { flex: 1; }
+  .cr-topbar-label { font-size: 12px; opacity: 0.8; }
+  .cr-select {
+    background: rgba(255,255,255,0.1); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 5px 10px; border-radius: 6px;
+    font: 12px var(--sans); outline: none; cursor: pointer;
+  }
+  .cr-select option { background: #004850; color: #fff; }
+  .cr-status { display: flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.9; }
+  .cr-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c-accent-light); transition: background 0.2s ease; }
+  .cr-sidebar-toggle { display: none; }
 
-  .aol-toolbar { display: flex; gap: 6px; align-items: center; padding: 6px 8px; background: #c0c0c0; border-bottom: 1px solid #808080; flex-shrink: 0; flex-wrap: wrap; }
-  .aol-toolbar label { font: 11px Tahoma; }
-  .aol-toolbar select { font: 11px Tahoma; padding: 2px 4px; background: #fff; border-top: 1px solid #808080; border-left: 1px solid #808080; border-right: 1px solid #ffffff; border-bottom: 1px solid #ffffff; }
-  .aol-toolbar-spacer { flex: 1; }
-  .aol-status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #00cc00; margin-right: 4px; }
+  .cr-body { flex: 1; display: grid; grid-template-columns: 220px 1fr 220px; min-height: 0; }
 
-  .aol-body { flex: 1; display: flex; gap: 6px; padding: 6px; background: #c0c0c0; min-height: 0; }
-  .aol-chat-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .aol-chat-header { background: #000080; color: #fff; padding: 3px 8px; font: bold 11px Tahoma; border: 1px solid #000; border-bottom: none; display: flex; justify-content: space-between; }
-  .aol-chat-header-right { font-weight: normal; opacity: 0.85; }
-  .aol-chat-area { flex: 1; overflow-y: auto; padding: 8px 10px; font: 13px Tahoma, "MS Sans Serif", sans-serif; background: #ffffff; color: #000; min-height: 0; line-height: 1.5; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; }
-  .aol-chat-area::-webkit-scrollbar { width: 16px; }
-  .aol-chat-area::-webkit-scrollbar-track { background: #c0c0c0; }
-  .aol-chat-area::-webkit-scrollbar-thumb { background: #c0c0c0; border-top: 1px solid #ffffff; border-left: 1px solid #ffffff; border-right: 1px solid #404040; border-bottom: 1px solid #404040; }
+  /* Rooms sidebar */
+  .cr-rooms { background: var(--c-panel); border-right: 1px solid var(--c-border); display: flex; flex-direction: column; min-height: 0; }
+  .cr-sidebar-header { padding: 14px 16px 8px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-text-muted); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .cr-rooms-list { flex: 1; overflow-y: auto; padding: 0 8px; }
+  .cr-room-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 7px; cursor: pointer; color: var(--c-text); font-size: 14px; transition: background 0.1s ease; position: relative; }
+  .cr-room-item:hover { background: var(--c-panel-hover); }
+  .cr-room-item.active { background: var(--c-accent); color: #fff; font-weight: 500; }
+  .cr-room-item .hash { opacity: 0.55; font-family: var(--mono); }
+  .cr-room-item.active .hash { opacity: 1; }
+  .cr-room-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cr-room-unread { width: 8px; height: 8px; border-radius: 50%; background: var(--c-unread); flex-shrink: 0; }
+  .cr-room-delete { opacity: 0; font-size: 14px; padding: 0 4px; cursor: pointer; color: inherit; }
+  .cr-room-item:hover .cr-room-delete { opacity: 0.6; }
+  .cr-room-delete:hover { opacity: 1 !important; }
+  .cr-rooms-footer { padding: 8px; border-top: 1px solid var(--c-border); display: flex; flex-direction: column; gap: 6px; }
 
-  .aol-msg { margin: 2px 0; word-wrap: break-word; }
-  .aol-msg .name { font-weight: bold; }
-  .aol-msg .ts { color: #808080; font-size: 11px; margin-right: 6px; }
-  .aol-msg.system { color: #606060; font-style: italic; font-size: 12px; margin: 4px 0; }
-  .aol-msg.system .stars { color: #b8860b; font-weight: bold; }
-  .aol-msg.typing { color: #808080; font-style: italic; font-size: 12px; }
-  .aol-msg.typing::after { content: " ▋"; animation: aol-blink 1s steps(2) infinite; }
-  @keyframes aol-blink { 50% { opacity: 0; } }
+  .cr-btn {
+    background: var(--c-accent); color: #fff; border: none;
+    padding: 9px 14px; border-radius: 7px; cursor: pointer;
+    font: 500 13px var(--sans);
+    transition: all 0.15s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .cr-btn:hover { background: var(--c-accent-hover); }
+  .cr-btn.full { width: 100%; }
+  .cr-btn.secondary { background: transparent; color: var(--c-accent); border: 1px solid var(--c-border); }
+  .cr-btn.secondary:hover { background: var(--c-accent-soft); border-color: var(--c-accent); }
+  .cr-btn.ghost { background: transparent; color: var(--c-text-muted); }
+  .cr-btn.ghost:hover { background: var(--c-panel-hover); color: var(--c-text); }
+  .cr-btn.danger { background: transparent; color: var(--c-danger); border: 1px solid transparent; }
+  .cr-btn.danger:hover { background: rgba(200, 84, 80, 0.08); border-color: var(--c-danger); }
 
-  .aol-participants { width: 180px; display: flex; flex-direction: column; flex-shrink: 0; }
-  .aol-participants-header { background: #000080; color: #fff; padding: 3px 8px; font: bold 11px Tahoma; border: 1px solid #000; border-bottom: none; }
-  .aol-participants-list { flex: 1; overflow-y: auto; padding: 4px; background: #ffffff; font: 12px Tahoma; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; }
-  .aol-participant { padding: 3px 6px; display: flex; align-items: center; gap: 6px; user-select: none; }
-  .aol-participant .dot { width: 6px; height: 6px; border-radius: 50%; background: #00aa00; flex-shrink: 0; }
-  .aol-participant .icon { width: 14px; height: 14px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; background: #ffff00; color: #000; border: 1px solid #000; }
-  .aol-participant.bot .icon { background: #ff00ff; color: #fff; }
-  .aol-participant.human .icon { background: #00ffff; color: #000; }
-  .aol-kick { margin-left: auto; color: #606060; cursor: pointer; font-family: Tahoma; font-size: 11px; padding: 0 3px; }
-  .aol-kick:hover { color: #cc0000; }
+  /* Chat panel */
+  .cr-chat { display: flex; flex-direction: column; min-width: 0; background: var(--c-surface); position: relative; }
+  .cr-chat-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--c-border-subtle);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; gap: 12px;
+  }
+  .cr-chat-header-info { min-width: 0; flex: 1; }
+  .cr-chat-header-title { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 16px; color: var(--c-text); }
+  .cr-chat-header-title .hash { color: var(--c-text-dim); font-family: var(--mono); font-weight: 500; }
+  .cr-chat-header-desc { font-size: 12px; color: var(--c-text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cr-chat-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .cr-icon-btn {
+    background: transparent; border: none; cursor: pointer;
+    width: 34px; height: 34px; border-radius: 7px;
+    color: var(--c-text-muted); font-size: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.1s ease;
+  }
+  .cr-icon-btn:hover { background: var(--c-panel-hover); color: var(--c-text); }
 
-  .aol-input-row { display: flex; gap: 6px; padding: 6px 8px 8px; background: #c0c0c0; border-top: 1px solid #808080; flex-shrink: 0; align-items: stretch; }
-  .aol-input-wrap { flex: 1; background: #fff; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; padding: 4px 6px; }
-  .aol-input-wrap input { width: 100%; border: none; outline: none; font: 13px Tahoma, "MS Sans Serif", sans-serif; color: #000; background: transparent; }
-  .aol-input-wrap input::placeholder { color: #808080; }
+  .cr-messages { flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
+  .cr-messages::-webkit-scrollbar { width: 10px; }
+  .cr-messages::-webkit-scrollbar-track { background: transparent; }
+  .cr-messages::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 5px; }
+  .cr-messages::-webkit-scrollbar-thumb:hover { background: var(--c-accent-light); }
 
-  .aol-signon-overlay { position: absolute; inset: 0; background: rgba(0,128,128,0.85); display: flex; align-items: center; justify-content: center; z-index: 10; }
-  .aol-signon { width: 380px; background: #c0c0c0; }
-  .aol-signon-body { padding: 18px 20px; font: 12px Tahoma; display: flex; flex-direction: column; gap: 12px; }
-  .aol-signon-body h3 { font: bold 14px Tahoma; margin-bottom: 2px; }
-  .aol-signon-body p { font-size: 11px; color: #404040; line-height: 1.5; }
-  .aol-field { display: flex; flex-direction: column; gap: 3px; }
-  .aol-field label { font: 11px Tahoma; }
-  .aol-field input { font: 12px Tahoma; padding: 4px 6px; background: #fff; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; outline: none; }
-  .aol-signon-buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
-  .aol-signon-note { margin-top: 2px; padding: 8px 10px; background: #ffffe0; border: 1px solid #c0c000; font: 11px Tahoma; line-height: 1.5; }
-  .aol-signon-error { padding: 6px 8px; background: #ffe0e0; border: 1px solid #c00000; color: #800000; font: 11px Tahoma; }
+  .cr-msg { display: flex; gap: 12px; }
+  .cr-msg-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: var(--c-accent-light); color: var(--c-text);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; overflow: hidden;
+    background-size: cover; background-position: center;
+    border: 2px solid transparent;
+  }
+  .cr-msg-avatar.is-bot { border-color: #ffdd66; }
+  .cr-msg-content { flex: 1; min-width: 0; }
+  .cr-msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+  .cr-msg-name { font-weight: 600; font-size: 14px; }
+  .cr-msg-bot-tag { font-size: 9px; background: var(--c-accent-light); color: var(--c-text); padding: 1px 6px; border-radius: 4px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .cr-msg-ts { font-size: 11px; color: var(--c-text-dim); }
+  .cr-msg-text { font-size: 14px; line-height: 1.55; color: var(--c-text); word-wrap: break-word; overflow-wrap: anywhere; }
+  .cr-msg-text p { margin-bottom: 0.4em; }
+  .cr-msg-text p:last-child { margin-bottom: 0; }
 
-  .aol-modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20; }
-  .aol-modal { width: 560px; max-width: calc(100% - 40px); max-height: calc(100% - 40px); background: #c0c0c0; display: flex; flex-direction: column; }
-  .aol-modal-body { padding: 12px 14px; font: 12px Tahoma; overflow-y: auto; }
-  .aol-modal-body h4 { font: bold 11px Tahoma; margin: 8px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; color: #404040; }
-  .aol-bot-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .aol-bot-card { background: #fff; padding: 8px 10px; border-top: 1px solid #808080; border-left: 1px solid #808080; border-right: 1px solid #ffffff; border-bottom: 1px solid #ffffff; cursor: pointer; font: 12px Tahoma; }
-  .aol-bot-card:hover { background: #ffffe0; }
-  .aol-bot-card .name { font-weight: bold; display: block; margin-bottom: 3px; color: #000080; }
-  .aol-bot-card .desc { font-size: 11px; color: #404040; line-height: 1.4; }
+  /* Attachments in messages */
+  .cr-msg-image {
+    max-width: 340px; max-height: 280px; border-radius: 10px; margin-top: 6px;
+    cursor: pointer; display: block; border: 1px solid var(--c-border-subtle);
+  }
+  .cr-msg-file {
+    display: inline-flex; align-items: center; gap: 12px; margin-top: 6px;
+    padding: 10px 14px; background: var(--c-panel); border: 1px solid var(--c-border);
+    border-radius: 10px; max-width: 360px; text-decoration: none; color: inherit;
+    transition: all 0.1s ease;
+  }
+  .cr-msg-file:hover { background: var(--c-panel-hover); border-color: var(--c-accent); }
+  .cr-msg-file-icon { font-size: 28px; flex-shrink: 0; }
+  .cr-msg-file-info { flex: 1; min-width: 0; }
+  .cr-msg-file-name { font-weight: 500; font-size: 13px; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cr-msg-file-size { font-size: 11px; color: var(--c-text-muted); margin-top: 2px; }
+  .cr-msg-file-dl { color: var(--c-accent); font-size: 18px; }
 
-  .aol-custom-form { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 10px; background: #ffffff; border-top: 1px solid #808080; border-left: 1px solid #808080; border-right: 1px solid #ffffff; border-bottom: 1px solid #ffffff; }
-  .aol-custom-form input, .aol-custom-form textarea { font: 12px Tahoma; padding: 4px 6px; background: #fff; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; outline: none; resize: vertical; width: 100%; }
-  .aol-custom-form textarea { min-height: 56px; }
-  .aol-custom-form .row { display: flex; gap: 6px; align-items: flex-start; }
-  .aol-custom-form .row label { font: 11px Tahoma; width: 80px; padding-top: 4px; flex-shrink: 0; }
-  .aol-modal-buttons { display: flex; gap: 6px; justify-content: flex-end; padding: 8px 12px; background: #c0c0c0; border-top: 1px solid #808080; }
+  /* Stickers */
+  .cr-sticker { font-size: 72px; line-height: 1; padding: 4px 0; display: inline-block; transform-origin: center; }
+  .cr-sticker.anim-bounce { animation: cr-bounce 0.9s ease-in-out infinite; }
+  .cr-sticker.anim-pulse { animation: cr-pulse 1.1s ease-in-out infinite; }
+  .cr-sticker.anim-spin { animation: cr-spin 1.8s linear infinite; }
+  .cr-sticker.anim-shake { animation: cr-shake 0.6s ease-in-out infinite; }
+  .cr-sticker.anim-wiggle { animation: cr-wiggle 0.7s ease-in-out infinite; }
+  .cr-sticker.anim-float { animation: cr-float 2.2s ease-in-out infinite; }
+  .cr-sticker.anim-flip { animation: cr-flip 1.4s ease-in-out infinite; }
+  .cr-sticker.anim-tada { animation: cr-tada 1.1s ease-in-out infinite; }
+  @keyframes cr-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px) rotate(-6deg); } }
+  @keyframes cr-pulse  { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+  @keyframes cr-spin   { to { transform: rotate(360deg); } }
+  @keyframes cr-shake  { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px) rotate(-6deg); } 75% { transform: translateX(8px) rotate(6deg); } }
+  @keyframes cr-wiggle { 0%,100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
+  @keyframes cr-float  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes cr-flip   { 0%,100% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
+  @keyframes cr-tada   { 0%,100% { transform: scale(1) rotate(0); } 10%,20% { transform: scale(0.9) rotate(-4deg); } 30%,50%,70%,90% { transform: scale(1.15) rotate(4deg); } 40%,60%,80% { transform: scale(1.15) rotate(-4deg); } }
 
-  .chatroom-locked { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; text-align: center; }
-  .chatroom-locked-inner { max-width: 400px; background: #c0c0c0; padding: 24px; }
-  .chatroom-locked-inner h3 { font: bold 14px Tahoma; margin-bottom: 10px; }
-  .chatroom-locked-inner p { font: 12px Tahoma; line-height: 1.6; margin-bottom: 16px; }
+  .cr-msg.system { color: var(--c-system); font-size: 12px; font-style: italic; padding-left: 50px; align-items: center; }
+  .cr-msg.typing { color: var(--c-text-muted); font-size: 12px; font-style: italic; padding-left: 50px; }
+  .cr-msg.typing::after { content: " ●●●"; animation: cr-dots 1.2s ease-in-out infinite; margin-left: 4px; letter-spacing: 2px; font-size: 8px; }
+  @keyframes cr-dots { 0%,80%,100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+  /* Input area */
+  .cr-input-area { border-top: 1px solid var(--c-border-subtle); padding: 10px 16px 14px; background: var(--c-surface); flex-shrink: 0; position: relative; }
+  .cr-attachments { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 4px 8px; }
+  .cr-attachment {
+    position: relative; padding: 6px 10px;
+    background: var(--c-panel); border: 1px solid var(--c-border); border-radius: 8px;
+    font-size: 12px; display: flex; align-items: center; gap: 8px; max-width: 260px;
+  }
+  .cr-attachment img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+  .cr-attachment .info { min-width: 0; flex: 1; }
+  .cr-attachment .name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cr-attachment .size { font-size: 10px; color: var(--c-text-muted); }
+  .cr-attachment .remove {
+    position: absolute; top: -6px; right: -6px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--c-danger); color: #fff; font-size: 12px; line-height: 16px;
+    text-align: center; cursor: pointer; border: 2px solid var(--c-surface);
+  }
+
+  .cr-input-wrap { background: var(--c-panel); border: 1px solid var(--c-border); border-radius: 12px; padding: 8px 10px 8px 14px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s ease; }
+  .cr-input-wrap:focus-within { border-color: var(--c-accent); }
+  .cr-input { background: transparent; border: none; outline: none; resize: none; font: 14px var(--sans); line-height: 1.5; color: var(--c-text); max-height: 140px; min-height: 22px; width: 100%; }
+  .cr-input::placeholder { color: var(--c-text-dim); }
+  .cr-input-controls { display: flex; align-items: center; gap: 2px; }
+  .cr-tool-btn {
+    background: transparent; border: none; cursor: pointer;
+    width: 34px; height: 34px; border-radius: 7px; color: var(--c-text-muted);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 18px; transition: all 0.1s ease;
+  }
+  .cr-tool-btn:hover { background: var(--c-panel-hover); color: var(--c-text); }
+  .cr-tool-btn.active { background: var(--c-accent-soft); color: var(--c-accent); }
+  .cr-input-spacer { flex: 1; }
+  .cr-send-btn {
+    background: var(--c-accent); color: #fff; border: none;
+    padding: 7px 18px; border-radius: 7px; cursor: pointer;
+    font: 500 13px var(--sans); transition: all 0.1s ease;
+  }
+  .cr-send-btn:hover:not(:disabled) { background: var(--c-accent-hover); }
+  .cr-send-btn:disabled { background: var(--c-border); cursor: not-allowed; }
+
+  /* Emoji / sticker picker */
+  .cr-picker {
+    position: absolute; bottom: calc(100% - 4px); left: 10px;
+    width: 360px; max-width: calc(100% - 20px); height: 340px;
+    background: var(--c-surface); border: 1px solid var(--c-border);
+    border-radius: 12px; box-shadow: 0 12px 40px rgba(0,40,40,0.2);
+    display: flex; flex-direction: column; z-index: 30; overflow: hidden;
+  }
+  .cr-picker-tabs { display: flex; border-bottom: 1px solid var(--c-border-subtle); flex-shrink: 0; }
+  .cr-picker-tab {
+    flex: 1; padding: 10px; background: transparent; border: none;
+    font: 12px var(--sans); color: var(--c-text-muted); cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.1s ease;
+  }
+  .cr-picker-tab.active { color: var(--c-accent); border-bottom-color: var(--c-accent); font-weight: 600; }
+  .cr-picker-tab:hover:not(.active) { background: var(--c-panel); }
+  .cr-picker-content { flex: 1; overflow-y: auto; padding: 10px; }
+  .cr-picker-category { margin-bottom: 14px; }
+  .cr-picker-cat-title { font-size: 10px; color: var(--c-text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; font-weight: 600; }
+  .cr-emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+  .cr-emoji-grid button { background: transparent; border: none; cursor: pointer; padding: 5px; font-size: 22px; border-radius: 6px; line-height: 1; }
+  .cr-emoji-grid button:hover { background: var(--c-panel-hover); transform: scale(1.15); transition: all 0.08s; }
+  .cr-sticker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .cr-sticker-grid button { background: var(--c-panel); border: 1px solid var(--c-border-subtle); cursor: pointer; padding: 10px; border-radius: 10px; line-height: 1; transition: all 0.1s; }
+  .cr-sticker-grid button:hover { background: var(--c-panel-hover); border-color: var(--c-accent); }
+  .cr-sticker-grid .cr-sticker { font-size: 40px; }
+
+  /* People sidebar */
+  .cr-people { background: var(--c-panel); border-left: 1px solid var(--c-border); display: flex; flex-direction: column; min-height: 0; }
+  .cr-people-list { flex: 1; overflow-y: auto; padding: 4px 8px; }
+  .cr-people-item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 7px; font-size: 13px; color: var(--c-text); margin: 1px 0; }
+  .cr-people-item:hover { background: var(--c-panel-hover); }
+  .cr-people-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--c-accent-light); color: var(--c-text);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0; overflow: hidden;
+    background-size: cover; background-position: center;
+    position: relative;
+  }
+  .cr-people-avatar.is-bot { background: linear-gradient(135deg, #ffdd66, #ffb347); }
+  .cr-people-avatar-dot {
+    position: absolute; bottom: -1px; right: -1px;
+    width: 10px; height: 10px; border-radius: 50%; background: #4caf50;
+    border: 2px solid var(--c-panel);
+  }
+  .cr-people-info { flex: 1; min-width: 0; }
+  .cr-people-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cr-people-role { font-size: 10px; color: var(--c-text-dim); }
+  .cr-people-remove { color: var(--c-text-dim); cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.1s; padding: 0 4px; }
+  .cr-people-item:hover .cr-people-remove { opacity: 0.7; }
+  .cr-people-remove:hover { color: var(--c-danger); opacity: 1 !important; }
+  .cr-people-footer { padding: 8px; border-top: 1px solid var(--c-border); }
+
+  /* Sign-on */
+  .cr-signon-overlay {
+    position: absolute; inset: 0; z-index: 40;
+    background: rgba(0, 40, 40, 0.6); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .cr-signon {
+    width: 420px; max-width: 100%;
+    background: var(--c-surface); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+  }
+  .cr-signon-header { background: linear-gradient(135deg, #006d77 0%, #004850 100%); color: #fff; padding: 22px 26px; }
+  .cr-signon-header h3 { font-size: 19px; font-weight: 600; margin-bottom: 4px; }
+  .cr-signon-header p { font-size: 13px; opacity: 0.85; }
+  .cr-signon-body { padding: 20px 26px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .cr-avatar-picker { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .cr-avatar-preview {
+    width: 88px; height: 88px; border-radius: 50%;
+    background: var(--c-panel); border: 2px dashed var(--c-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; cursor: pointer; overflow: hidden;
+    background-size: cover; background-position: center;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .cr-avatar-preview:hover { border-color: var(--c-accent); background: var(--c-panel-hover); }
+  .cr-avatar-preview.has-image { border-style: solid; border-color: var(--c-accent); }
+  .cr-avatar-preview .overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff;
+    display: none; align-items: center; justify-content: center; font-size: 11px;
+  }
+  .cr-avatar-preview:hover .overlay { display: flex; }
+  .cr-avatar-picker-label { font-size: 11px; color: var(--c-text-muted); }
+  .cr-field { display: flex; flex-direction: column; gap: 4px; }
+  .cr-field label { font-size: 12px; font-weight: 500; color: var(--c-text-muted); }
+  .cr-field input { padding: 10px 12px; font: 14px var(--sans); border: 1px solid var(--c-border); border-radius: 8px; outline: none; transition: border-color 0.15s; background: var(--c-surface); color: var(--c-text); }
+  .cr-field input:focus { border-color: var(--c-accent); }
+  .cr-signon-note { padding: 10px 12px; background: var(--c-warn-bg); border: 1px solid var(--c-warn-border); border-radius: 8px; font-size: 12px; color: var(--c-warn-text); line-height: 1.5; }
+  .cr-signon-error { padding: 9px 12px; background: #fce4e4; border: 1px solid #f0a0a0; border-radius: 8px; color: #a02020; font-size: 12px; }
+  .cr-signon-buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+  /* Modal */
+  .cr-modal-overlay {
+    position: absolute; inset: 0; z-index: 50;
+    background: rgba(0, 40, 40, 0.6); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .cr-modal {
+    width: 580px; max-width: 100%; max-height: 100%;
+    background: var(--c-surface); border-radius: 14px; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+  }
+  .cr-modal-header { background: linear-gradient(135deg, #006d77 0%, #004850 100%); color: #fff; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; }
+  .cr-modal-header h3 { font-size: 16px; font-weight: 600; }
+  .cr-modal-close { background: transparent; border: none; color: #fff; cursor: pointer; font-size: 22px; line-height: 1; padding: 2px 8px; opacity: 0.8; }
+  .cr-modal-close:hover { opacity: 1; }
+  .cr-modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+  .cr-modal-body h4 { font-size: 10px; text-transform: uppercase; color: var(--c-text-dim); letter-spacing: 0.1em; margin: 18px 0 8px; font-weight: 600; }
+  .cr-modal-body h4:first-child { margin-top: 0; }
+  .cr-modal-footer { padding: 14px 22px; border-top: 1px solid var(--c-border-subtle); display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; }
+
+  .cr-bot-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cr-bot-card {
+    background: var(--c-panel); border: 1px solid var(--c-border-subtle);
+    padding: 12px; border-radius: 10px; cursor: pointer;
+    transition: all 0.1s ease; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .cr-bot-card:hover { background: var(--c-panel-hover); border-color: var(--c-accent); transform: translateY(-1px); }
+  .cr-bot-card-avatar { font-size: 32px; flex-shrink: 0; line-height: 1; }
+  .cr-bot-card-info { flex: 1; min-width: 0; }
+  .cr-bot-card-name { font-weight: 600; font-size: 13px; color: var(--c-accent); margin-bottom: 3px; }
+  .cr-bot-card-desc { font-size: 11px; color: var(--c-text-muted); line-height: 1.4; }
+
+  .cr-custom-form { display: flex; flex-direction: column; gap: 10px; background: var(--c-panel); padding: 14px; border-radius: 10px; }
+  .cr-custom-form .label { font-size: 11px; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .cr-custom-form input, .cr-custom-form textarea {
+    padding: 9px 11px; font: 13px var(--sans);
+    border: 1px solid var(--c-border); border-radius: 7px; outline: none;
+    background: var(--c-surface); color: var(--c-text); resize: vertical;
+    transition: border-color 0.15s;
+  }
+  .cr-custom-form input:focus, .cr-custom-form textarea:focus { border-color: var(--c-accent); }
+  .cr-custom-form textarea { min-height: 64px; }
+
+  /* Locked state */
+  .cr-locked { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
+  .cr-locked-card { max-width: 420px; background: var(--c-surface); border-radius: 14px; padding: 28px; text-align: center; box-shadow: 0 14px 40px rgba(0,40,40,0.25); }
+  .cr-locked-card h3 { font-size: 19px; margin-bottom: 10px; color: var(--c-accent); font-weight: 600; }
+  .cr-locked-card p { font-size: 14px; color: var(--c-text-muted); line-height: 1.6; margin-bottom: 18px; }
+
+  /* Image lightbox */
+  .cr-lightbox {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000;
+    display: flex; align-items: center; justify-content: center; padding: 40px;
+    cursor: zoom-out;
+  }
+  .cr-lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .cr-lightbox-close {
+    position: absolute; top: 20px; right: 20px; color: #fff;
+    font-size: 28px; cursor: pointer; background: rgba(0,0,0,0.5);
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .cr-window { width: 100%; height: 100%; margin: 0; border-radius: 0; }
+    .cr-body { grid-template-columns: 1fr; }
+    .cr-rooms, .cr-people { display: none; position: absolute; top: 56px; bottom: 0; width: 260px; z-index: 18; background: var(--c-panel); box-shadow: 0 0 40px rgba(0,0,0,0.2); }
+    .cr-rooms.open { display: flex; left: 0; }
+    .cr-people.open { display: flex; right: 0; }
+    .cr-sidebar-toggle { display: inline-flex; }
+    .cr-topbar-title-text { font-size: 14px; }
+  }
 
   @media (max-width: 640px) {
     .r-header { padding: 16px 18px; flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -223,9 +521,7 @@
     .r-msg-body { font-size: 18px; }
     .r-header h1 { font-size: 24px; }
     .r-tagline { display: none; }
-    #view-chatroom { padding: 8px; }
-    .aol-participants { width: 120px; }
-    .aol-bot-presets { grid-template-columns: 1fr; }
+    .cr-bot-presets { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -240,6 +536,7 @@
     </div>
   </nav>
 
+  <!-- REVERIE -->
   <section id="view-chat" class="view active">
     <header class="r-header">
       <div class="r-brand">
@@ -275,121 +572,191 @@
     </div>
   </section>
 
+  <!-- CHATROOM -->
   <section id="view-chatroom" class="view">
 
-    <div class="chatroom-locked" id="chatroom-locked" style="display:none;">
-      <div class="chatroom-locked-inner w-out">
-        <h3>☕ The chatroom is offline.</h3>
+    <div class="cr-locked" id="cr-locked" style="display:none;">
+      <div class="cr-locked-card">
+        <h3>The chatroom is offline</h3>
         <p>The AI Chatroom uses the same local model as Reverie. Head to the <b>Reverie</b> tab and click <b>Download &amp; begin</b> to load a model first.</p>
-        <button class="w-btn" id="chatroom-locked-goto">Go to Reverie →</button>
+        <button class="cr-btn" id="cr-locked-goto">Go to Reverie →</button>
       </div>
     </div>
 
-    <div class="aol-window w-out" id="aol-window" style="display:none;">
-      <div class="aol-titlebar">
-        <div class="aol-titlebar-title">
-          <span class="aol-titlebar-icon">R</span>
-          <span id="aol-window-title">Reverie Chat :: The Lobby</span>
+    <div class="cr-window" id="cr-window" style="display:none;">
+      <div class="cr-topbar">
+        <button class="cr-icon-btn cr-sidebar-toggle" id="cr-toggle-rooms" title="Rooms" style="color:#fff;">☰</button>
+        <div class="cr-topbar-title">
+          <span class="cr-topbar-logo">R</span>
+          <span class="cr-topbar-title-text">Reverie Chat</span>
         </div>
-        <div class="aol-titlebar-btns">
-          <button class="aol-tb-btn" title="Minimize">_</button>
-          <button class="aol-tb-btn" title="Maximize">▢</button>
-          <button class="aol-tb-btn" title="Close" id="aol-close-btn">×</button>
-        </div>
-      </div>
-
-      <div class="aol-menubar">
-        <span class="aol-menu-item"><u>F</u>ile</span>
-        <span class="aol-menu-item"><u>E</u>dit</span>
-        <span class="aol-menu-item"><u>P</u>eople</span>
-        <span class="aol-menu-item"><u>H</u>elp</span>
-      </div>
-
-      <div class="aol-toolbar">
-        <button class="w-btn" id="aol-add-bot">+ Add a Bot</button>
-        <button class="w-btn" id="aol-signoff">Sign Off</button>
-        <div class="aol-toolbar-spacer"></div>
-        <label for="aol-chatter-rate">Chatter:</label>
-        <select id="aol-chatter-rate">
+        <div class="cr-topbar-spacer"></div>
+        <span class="cr-topbar-label">Chatter:</span>
+        <select class="cr-select" id="cr-chatter-rate">
           <option value="slow">Slow</option>
           <option value="medium" selected>Medium</option>
           <option value="fast">Rapid</option>
-          <option value="silent">Silent (only when @named)</option>
+          <option value="silent">Silent (@named only)</option>
         </select>
-        <span title="Engine status"><span class="aol-status-dot" id="aol-status-dot"></span><span id="aol-status-text">Ready</span></span>
+        <span class="cr-status"><span class="cr-status-dot" id="cr-status-dot"></span><span id="cr-status-text">Ready</span></span>
+        <button class="cr-icon-btn cr-sidebar-toggle" id="cr-toggle-people" title="People" style="color:#fff;">👥</button>
       </div>
 
-      <div class="aol-body">
-        <div class="aol-chat-panel">
-          <div class="aol-chat-header">
-            <span>The Reverie Lobby — <i>welcome to the chat</i></span>
-            <span class="aol-chat-header-right" id="aol-chat-header-count">0 online</span>
+      <div class="cr-body">
+        <!-- Rooms sidebar -->
+        <aside class="cr-rooms" id="cr-rooms">
+          <div class="cr-sidebar-header">
+            <span>Rooms</span>
           </div>
-          <div class="aol-chat-area" id="aol-chat-area"></div>
-          <div class="aol-input-row">
-            <div class="aol-input-wrap">
-              <input id="aol-input" type="text" placeholder="Type your message…" autocomplete="off" maxlength="500" />
+          <div class="cr-rooms-list" id="cr-rooms-list"></div>
+          <div class="cr-rooms-footer">
+            <button class="cr-btn full" id="cr-new-room-btn">+ New Room</button>
+            <button class="cr-btn ghost full" id="cr-signoff-btn">Sign Off</button>
+          </div>
+        </aside>
+
+        <!-- Chat -->
+        <main class="cr-chat">
+          <div class="cr-chat-header">
+            <div class="cr-chat-header-info">
+              <div class="cr-chat-header-title"><span class="hash">#</span> <span id="cr-chat-title">the-lobby</span></div>
+              <div class="cr-chat-header-desc" id="cr-chat-desc">welcome to the chat</div>
             </div>
-            <button class="w-btn" id="aol-send">Send</button>
+            <div class="cr-chat-header-actions">
+              <button class="cr-icon-btn" id="cr-add-bot-top" title="Invite a bot">👥+</button>
+            </div>
           </div>
-        </div>
 
-        <div class="aol-participants">
-          <div class="aol-participants-header">People Here</div>
-          <div class="aol-participants-list" id="aol-participants-list"></div>
-        </div>
+          <div class="cr-messages" id="cr-messages"></div>
+
+          <div class="cr-input-area">
+            <div class="cr-attachments" id="cr-attachments" style="display:none;"></div>
+
+            <!-- Emoji / sticker picker overlay -->
+            <div class="cr-picker" id="cr-picker" style="display:none;">
+              <div class="cr-picker-tabs">
+                <button class="cr-picker-tab active" data-picker-tab="emoji">Emoji</button>
+                <button class="cr-picker-tab" data-picker-tab="sticker">Stickers</button>
+              </div>
+              <div class="cr-picker-content" id="cr-picker-content"></div>
+            </div>
+
+            <div class="cr-input-wrap">
+              <textarea class="cr-input" id="cr-input" rows="1" placeholder="Message #the-lobby…" maxlength="2000"></textarea>
+              <div class="cr-input-controls">
+                <button class="cr-tool-btn" id="cr-emoji-btn" title="Emoji &amp; stickers">😀</button>
+                <button class="cr-tool-btn" id="cr-image-btn" title="Upload image">🖼️</button>
+                <button class="cr-tool-btn" id="cr-file-btn" title="Upload file">📎</button>
+                <input type="file" id="cr-image-input" accept="image/*" style="display:none;" />
+                <input type="file" id="cr-file-input" style="display:none;" />
+                <div class="cr-input-spacer"></div>
+                <button class="cr-send-btn" id="cr-send-btn">Send</button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <!-- People -->
+        <aside class="cr-people" id="cr-people">
+          <div class="cr-sidebar-header">
+            <span>People</span>
+            <span class="cr-people-count" id="cr-people-count">0</span>
+          </div>
+          <div class="cr-people-list" id="cr-people-list"></div>
+          <div class="cr-people-footer">
+            <button class="cr-btn secondary full" id="cr-add-bot-btn">+ Invite a Bot</button>
+          </div>
+        </aside>
       </div>
     </div>
 
-    <div class="aol-signon-overlay" id="aol-signon-overlay">
-      <div class="aol-signon w-out">
-        <div class="aol-titlebar">
-          <div class="aol-titlebar-title"><span class="aol-titlebar-icon">R</span><span>Welcome to Reverie Chat</span></div>
-          <div class="aol-titlebar-btns">
-            <button class="aol-tb-btn">_</button><button class="aol-tb-btn">▢</button><button class="aol-tb-btn">×</button>
-          </div>
-        </div>
-        <div class="aol-signon-body">
-          <h3>Sign on to the Reverie Lobby</h3>
+    <!-- Sign-on -->
+    <div class="cr-signon-overlay" id="cr-signon-overlay">
+      <div class="cr-signon">
+        <div class="cr-signon-header">
+          <h3>Sign on to Reverie Chat</h3>
           <p>Enter a screen name and password — or drop in as a guest.</p>
-          <div class="aol-field">
-            <label for="aol-username">Screen Name</label>
-            <input id="aol-username" type="text" placeholder="e.g. xXCyberDreamer99Xx" maxlength="24" autocomplete="off" />
+        </div>
+        <div class="cr-signon-body">
+          <div class="cr-avatar-picker">
+            <div class="cr-avatar-preview" id="cr-avatar-preview">
+              <span id="cr-avatar-placeholder">👤</span>
+              <div class="overlay">change</div>
+            </div>
+            <div class="cr-avatar-picker-label">click to upload avatar (optional)</div>
+            <input type="file" id="cr-avatar-input" accept="image/*" style="display:none;" />
           </div>
-          <div class="aol-field">
-            <label for="aol-password">Password</label>
-            <input id="aol-password" type="password" placeholder="(optional)" maxlength="32" autocomplete="off" />
+          <div class="cr-field">
+            <label for="cr-username">Screen Name</label>
+            <input id="cr-username" type="text" placeholder="e.g. xXCyberDreamer99Xx" maxlength="24" autocomplete="off" />
           </div>
-          <div class="aol-signon-error" id="aol-signon-error" style="display:none;"></div>
-          <div class="aol-signon-note">
-            <b>Note:</b> accounts live only in this browser. Nothing is sent anywhere. Please don't reuse a real password — this is just for the vibe.
+          <div class="cr-field">
+            <label for="cr-password">Password</label>
+            <input id="cr-password" type="password" placeholder="(optional)" maxlength="32" autocomplete="off" />
           </div>
-          <div class="aol-signon-buttons">
-            <button class="w-btn" id="aol-guest-btn">Guest</button>
-            <button class="w-btn" id="aol-signon-btn"><b>Sign On</b></button>
+          <div class="cr-signon-error" id="cr-signon-error" style="display:none;"></div>
+          <div class="cr-signon-note">
+            <b>Heads-up:</b> accounts live only in this browser. Nothing is sent anywhere — this is a local-only roleplay layer. Please don't reuse a real password.
+          </div>
+          <div class="cr-signon-buttons">
+            <button class="cr-btn secondary" id="cr-guest-btn">Guest</button>
+            <button class="cr-btn" id="cr-signon-btn">Sign On</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="aol-modal-overlay" id="aol-bot-modal" style="display:none;">
-      <div class="aol-modal w-out">
-        <div class="aol-titlebar">
-          <div class="aol-titlebar-title"><span class="aol-titlebar-icon">R</span><span>Invite Bots to the Chatroom</span></div>
-          <div class="aol-titlebar-btns"><button class="aol-tb-btn" id="aol-bot-modal-x">×</button></div>
+    <!-- Invite bot modal -->
+    <div class="cr-modal-overlay" id="cr-bot-modal" style="display:none;">
+      <div class="cr-modal">
+        <div class="cr-modal-header">
+          <h3>Invite a Bot</h3>
+          <button class="cr-modal-close" data-close-bot-modal>×</button>
         </div>
-        <div class="aol-modal-body">
+        <div class="cr-modal-body">
           <h4>Built-in personas</h4>
-          <div class="aol-bot-presets" id="aol-bot-presets"></div>
-          <h4 style="margin-top: 14px;">Or: craft your own</h4>
-          <div class="aol-custom-form">
-            <div class="row"><label for="aol-custom-name">Screen name</label><input id="aol-custom-name" type="text" placeholder="e.g. MothmanFan77" maxlength="24" /></div>
-            <div class="row"><label for="aol-custom-persona">Personality</label><textarea id="aol-custom-persona" placeholder="How do they talk? e.g. 'A conspiracy theorist who sees patterns everywhere. Short, paranoid fragments.'"></textarea></div>
-            <div class="row"><label>&nbsp;</label><button class="w-btn" id="aol-custom-add">Create &amp; Invite</button></div>
+          <div class="cr-bot-presets" id="cr-bot-presets"></div>
+          <h4>Or craft your own</h4>
+          <div class="cr-custom-form">
+            <span class="label">Screen Name</span>
+            <input id="cr-custom-name" type="text" placeholder="e.g. MothmanFan77" maxlength="24" />
+            <span class="label">Personality</span>
+            <textarea id="cr-custom-persona" placeholder="How do they talk? e.g. 'A conspiracy theorist who sees patterns everywhere. Short, paranoid fragments.'"></textarea>
+            <span class="label">Avatar (emoji)</span>
+            <input id="cr-custom-avatar" type="text" placeholder="pick an emoji, e.g. 🦉" maxlength="4" />
+            <div style="display:flex; justify-content:flex-end;">
+              <button class="cr-btn" id="cr-custom-add">Invite</button>
+            </div>
           </div>
         </div>
-        <div class="aol-modal-buttons">
-          <button class="w-btn" id="aol-bot-modal-close">Close</button>
+        <div class="cr-modal-footer">
+          <button class="cr-btn ghost" data-close-bot-modal>Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- New room modal -->
+    <div class="cr-modal-overlay" id="cr-room-modal" style="display:none;">
+      <div class="cr-modal">
+        <div class="cr-modal-header">
+          <h3>Create a Room</h3>
+          <button class="cr-modal-close" data-close-room-modal>×</button>
+        </div>
+        <div class="cr-modal-body">
+          <div class="cr-custom-form">
+            <span class="label">Room Name</span>
+            <input id="cr-new-room-name" type="text" placeholder="e.g. late-night-philosophers" maxlength="32" />
+            <span class="label">Description (optional)</span>
+            <input id="cr-new-room-desc" type="text" placeholder="what's this room about?" maxlength="80" />
+            <div style="font-size:12px; color:var(--c-text-muted); line-height:1.5; margin-top:4px;">
+              Once created, you can invite bots using the <b>+ Invite a Bot</b> button inside the room.
+              Note: since this page has no backend, "members" means bots you invite. Other humans can't connect here.
+            </div>
+          </div>
+        </div>
+        <div class="cr-modal-footer">
+          <button class="cr-btn ghost" data-close-room-modal>Cancel</button>
+          <button class="cr-btn" id="cr-create-room-btn">Create Room</button>
         </div>
       </div>
     </div>
@@ -738,68 +1105,124 @@ Always include both sections. Always close the </thinking> tag before your final
   return { isEngineReady: () => !!engineState.engine };
 })();
 
-// ═══ AOL CHATROOM MODULE ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// CHATROOM MODULE
+// ═══════════════════════════════════════════════════════════════════
 const chatroom = (() => {
 
-  // ─── Bot presets ─────────────────────────────────────────────────────
+  // ── Bot presets (with avatar emoji) ───────────────────────────────
   const BOT_PRESETS = [
-    { id: "askjeeves98", name: "AskJeeves98",
-      desc: "Polite butler. Answers everything formally, slightly archaic.",
-      persona: "You are AskJeeves98, a butler-like helper from the late 1990s. You answer questions politely and formally. Sometimes begin with 'I should think...' or 'If memory serves...'. Light courtly tone. Keep replies to 1-2 short sentences." },
-    { id: "xxdarkpoetxx", name: "xXDarkPoetXx",
-      desc: "Melodramatic 2003 teen poet. Ellipses everywhere. Always tragic.",
-      persona: "You are xXDarkPoetXx, a melodramatic 2003-era teenage goth poet. Everything is tragic and profound. You use ellipses... a lot... and speak in half-verses. Reference darkness, roses, rain. 1-2 dramatic sentences, never cheerful." },
-    { id: "grandma_linda", name: "grandma_linda",
-      desc: "Sweet grandma. Mostly lowercase. Talks about food and grandkids.",
+    { id: "askjeeves98", name: "AskJeeves98", avatar: "🎩",
+      desc: "Polite butler. Formal, slightly archaic.",
+      persona: "You are AskJeeves98, a butler-like helper from the late 1990s. Answer questions politely and formally, sometimes beginning with 'I should think...' or 'If memory serves...'. Light courtly tone. Keep replies to 1-2 short sentences." },
+    { id: "xxdarkpoetxx", name: "xXDarkPoetXx", avatar: "🖤",
+      desc: "Melodramatic 2003 teen poet. Ellipses. Always tragic.",
+      persona: "You are xXDarkPoetXx, a melodramatic 2003-era teenage goth poet. Everything is tragic and profound. Use ellipses... a lot... and speak in half-verses. Reference darkness, roses, rain. 1-2 dramatic sentences, never cheerful." },
+    { id: "grandma_linda", name: "grandma_linda", avatar: "👵",
+      desc: "Sweet grandma. Lowercase. Mentions food and grandkids.",
       persona: "You are grandma_linda, a sweet grandmother in her first month online. Type mostly in lowercase, ask about people's day, often mention what you're cooking or your grandchildren. Slightly confused about technology. 1-2 warm sentences." },
-    { id: "debatebrobrad", name: "DebateBroBrad",
-      desc: "Contrarian. Starts replies with 'well actually…'",
-      persona: "You are DebateBroBrad, an argumentative know-it-all who disagrees with nearly everyone. Often start with 'well, actually...' or 'that's not quite right...'. Cite vague sources. 1-2 contrarian sentences. Do not be cruel — just insistently contrarian." },
-    { id: "codemonkey2000", name: "CodeMonkey2000",
+    { id: "debatebrobrad", name: "DebateBroBrad", avatar: "🧠",
+      desc: "Contrarian. 'well actually…'",
+      persona: "You are DebateBroBrad, an argumentative know-it-all who disagrees with nearly everyone. Often start with 'well, actually...' or 'that's not quite right...'. Cite vague sources. 1-2 contrarian sentences. Not cruel — just insistently contrarian." },
+    { id: "codemonkey2000", name: "CodeMonkey2000", avatar: "💻",
       desc: "Relates every topic to programming.",
       persona: "You are CodeMonkey2000, a programmer who relates every topic to code, algorithms, or software metaphors. Use light programming jargon. 1-2 sentences." },
-    { id: "hellokitty97", name: "HelloKitty_1997",
-      desc: "Enthusiastic late-90s girl. Lots of :) and <3 and ^_^",
+    { id: "hellokitty97", name: "HelloKitty_1997", avatar: "🌸",
+      desc: "Enthusiastic late-90s girl. :) and <3 and ^_^",
       persona: "You are HelloKitty_1997, a cheerful late-90s/early-2000s girl. Use lots of :) and ^_^ and <3 and !!! and 'omg'. Everything is kawaii or neat. Favorite topics: ponies, boybands, AIM. 1-2 cheerful sentences." },
-    { id: "professor", name: "ProfessorReverie",
-      desc: "Pedantic academic. Occasional (cf. citations).",
-      persona: "You are ProfessorReverie, an academic. You over-explain simple things and occasionally add footnote-style asides like '(cf. Jameson 1991)'. Pedantic but warm. 1-3 sentences." },
-    { id: "moodring", name: "MoodRing",
-      desc: "Cryptic one-liners, like a fortune cookie.",
+    { id: "professor", name: "ProfessorReverie", avatar: "📚",
+      desc: "Pedantic academic with footnotes.",
+      persona: "You are ProfessorReverie, an academic. Over-explain simple things and occasionally add footnote-style asides like '(cf. Jameson 1991)'. Pedantic but warm. 1-3 sentences." },
+    { id: "moodring", name: "MoodRing", avatar: "🔮",
+      desc: "Cryptic fortune-cookie one-liners.",
       persona: "You are MoodRing. You speak only in cryptic, fortune-cookie style one-liners. Every message is a single enigmatic sentence, sometimes relevant, sometimes not. Never explain yourself. One short sentence only." },
-    { id: "nightowl", name: "NightOwl_42",
+    { id: "nightowl", name: "NightOwl_42", avatar: "🦉",
       desc: "Up too late. Philosophical at 3am.",
-      persona: "You are NightOwl_42. It's always 3am for you. You're a bit sleep-deprived and prone to philosophical tangents about small things (lightbulbs, moths, windowpanes). 1-2 dreamy sentences." },
-    { id: "sk8rgrrl", name: "sk8rgrrl_x",
-      desc: "Late-90s skater. Lowercase. Lots of 'dude' and 'rad'.",
+      persona: "You are NightOwl_42. It's always 3am for you. Slightly sleep-deprived and prone to philosophical tangents about small things (lightbulbs, moths, windowpanes). 1-2 dreamy sentences." },
+    { id: "sk8rgrrl", name: "sk8rgrrl_x", avatar: "🛹",
+      desc: "Late-90s skater. 'dude' and 'rad'.",
       persona: "You are sk8rgrrl_x, a late-90s skater. Type in lowercase, use 'dude', 'rad', 'stoked', 'sick'. Casual, chill. 1-2 sentences." },
   ];
 
-  const USER_COLORS = ["#0000cc", "#cc0000", "#006600", "#cc6600", "#800080", "#008b8b", "#b8860b", "#9932cc", "#dc143c", "#4b0082"];
+  // ── Emoji data ────────────────────────────────────────────────────
+  const EMOJI_CATEGORIES = [
+    { label: "Smileys", emojis: ["😀","😃","😄","😁","😆","😅","🤣","😂","🙂","🙃","😉","😊","😇","🥰","😍","🤩","😘","😗","😚","😙","😋","😛","😜","🤪","😝","🤗","🤭","🤫","🤔","🤐","🤨","😐","😑","😶","😏","😒","🙄","😬","🤥","😌","😔","😪","🤤","😴","🥴","😵","🤯","🤠","🥳","😎","🤓","🧐","😕","🙁","😮","😯","😲","😳","🥺","😦","😨","😰","😥","😢","😭","😱","😣","😞","😩","😫","😤","😡","😠","🤬","😈","👿","💀","👻","👽","🤖"] },
+    { label: "Hearts", emojis: ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟"] },
+    { label: "Gestures", emojis: ["👋","🤚","🖐️","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","👐","🤲","🤝","🙏","💪","🫶"] },
+    { label: "Party", emojis: ["🎉","🎊","🎈","🎁","🎀","🎂","🧁","🍰","🎄","🎃","🎆","🎇","🧨","✨","💫","⭐","🌟","💥","💦","💨","🔥","🌈","☀️","⛅","☁️","⚡","❄️","⛄","🌊"] },
+    { label: "Animals", emojis: ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🦆","🦅","🦉","🦇","🐺","🐴","🦄","🐝","🦋","🐞","🐢","🐍","🐙","🦐","🐠","🐬","🐳","🦈","🐊","🐘","🦒","🐕","🐈"] },
+    { label: "Food", emojis: ["🍎","🍊","🍋","🍌","🍉","🍇","🍓","🍒","🍑","🥭","🍍","🥝","🍅","🥑","🍆","🥕","🌽","🌶️","🥒","🥦","🍄","🍞","🥐","🥖","🧀","🍖","🍗","🥩","🍔","🍟","🍕","🌭","🥪","🌮","🌯","🍱","🍜","🍝","🍣","🍤","🍦","🍩","🍪","🍫","🍬","🍭","🍯","☕","🍵","🥛","🍺","🍷","🍾"] },
+    { label: "Objects", emojis: ["💻","📱","⌨️","🖱️","💾","💿","📷","🎧","🎬","🎨","🎮","🎲","🎳","🎯","🎸","🎺","🎷","🥁","🎹","📚","✏️","📝","📧","💌","📦","🎁","💰","💎","🔑","🔓","🔒","🔔","🔕","⚠️","❓","❗","💡"] },
+    { label: "Classic", emojis: [":)","=)",":D","XD",":P","=P",";)",":(",":'(","):","D:",":|",":o",":O",":3","<3","</3","^_^","-_-","*_*",">_<","o_O","O_o","@_@","T_T","(>_<)","(^_^)","(T_T)","~(^_^)~","\\(^o^)/","(._.)"] },
+  ];
+
+  // ── Sticker presets (animated emoji) ──────────────────────────────
+  const STICKERS = [
+    { emoji: "🎉", label: "party",      anim: "tada" },
+    { emoji: "❤️", label: "love",       anim: "pulse" },
+    { emoji: "😂", label: "lol",        anim: "shake" },
+    { emoji: "👍", label: "approve",    anim: "bounce" },
+    { emoji: "🔥", label: "fire",       anim: "wiggle" },
+    { emoji: "✨", label: "sparkle",    anim: "spin" },
+    { emoji: "🙌", label: "celebrate",  anim: "bounce" },
+    { emoji: "😎", label: "cool",       anim: "float" },
+    { emoji: "🤯", label: "mindblown",  anim: "tada" },
+    { emoji: "💯", label: "hundred",    anim: "pulse" },
+    { emoji: "🦄", label: "unicorn",    anim: "float" },
+    { emoji: "🌈", label: "rainbow",    anim: "wiggle" },
+    { emoji: "🍕", label: "pizza",      anim: "flip" },
+    { emoji: "🐱", label: "cat",        anim: "wiggle" },
+    { emoji: "🫶", label: "hearts",     anim: "pulse" },
+    { emoji: "💀", label: "dead",       anim: "shake" },
+  ];
+
+  // Random avatar pool for custom bots when none specified
+  const CUSTOM_BOT_AVATARS = ["🤖","👾","🎭","🧙","🧛","🦹","🧞","🧚","🐉","🦖","🦜","🌵","🍄","🗿","🌮","🎱","🎹","🎨","💾","📡","🛸","⚓","🪐"];
+
+  // ── Username color palette ────────────────────────────────────────
+  const USER_COLORS = ["#006d77","#c54a7a","#2a7b4f","#c26626","#7048a8","#a6533c","#5a7390","#7a4f8c","#3a6f2e","#b0456b"];
   function colorForName(name) {
     let h = 0;
     for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
     return USER_COLORS[Math.abs(h) % USER_COLORS.length];
   }
+  function initialsFor(name) {
+    const parts = name.replace(/[^A-Za-z0-9]/g, " ").trim().split(/\s+/);
+    if (parts.length === 0 || !parts[0]) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  // ── State ─────────────────────────────────────────────────────────
+  const LOBBY_ID = "lobby";
+  const makeRoom = (id, name, description, isDefault = false) => ({
+    id, name, description: description || "",
+    isDefault, messages: [], bots: [],
+    consecutiveBotMessages: 0, unread: false,
+  });
 
   const state = {
-    activated: false, signedOn: false,
-    username: null, isGuest: false,
-    bots: [], messages: [],
-    consecutiveBotMessages: 0,
+    activated: false,
+    signedOn: false,
+    username: null,
+    isGuest: false,
+    avatarDataUrl: null,
+    rooms: { [LOBBY_ID]: makeRoom(LOBBY_ID, "the-lobby", "welcome to the chat", true) },
+    currentRoomId: LOBBY_ID,
     chatterRate: "medium",
     pendingBotGens: 0,
+    pendingAttachments: [],
+    picker: { open: false, tab: "emoji" },
   };
 
-  // Chatter rates tune orchestration aggressiveness.
   const CHATTER = {
-    slow:   { base: 0.25, maxChain: 4, delayMin: 2000, delayMax: 5000 },
-    medium: { base: 0.45, maxChain: 7, delayMin: 1200, delayMax: 3500 },
-    fast:   { base: 0.7,  maxChain: 10, delayMin: 700, delayMax: 2200 },
-    silent: { base: 0.0,  maxChain: 0,  delayMin: 900, delayMax: 2000 },
+    slow:   { base: 0.25, maxChain: 4,  delayMin: 2000, delayMax: 5000 },
+    medium: { base: 0.45, maxChain: 7,  delayMin: 1200, delayMax: 3500 },
+    fast:   { base: 0.70, maxChain: 10, delayMin: 700,  delayMax: 2200 },
+    silent: { base: 0.0,  maxChain: 0,  delayMin: 900,  delayMax: 2000 },
   };
 
-  // Local account store. Pure roleplay — nothing leaves the browser.
+  // ── Local account store (password hash + avatar) ─────────────────
   function simpleHash(s) {
     let h = 5381;
     for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
@@ -807,11 +1230,26 @@ const chatroom = (() => {
   }
   const accountStore = {
     read() { try { return JSON.parse(localStorage.getItem("reverie-accounts") || "{}"); } catch { return {}; } },
-    write(data) { localStorage.setItem("reverie-accounts", JSON.stringify(data)); },
+    write(data) {
+      try { localStorage.setItem("reverie-accounts", JSON.stringify(data)); }
+      catch (e) {
+        // Probably quota — strip avatars and retry
+        const stripped = {};
+        for (const k in data) stripped[k] = { ...data[k], avatar: null };
+        try { localStorage.setItem("reverie-accounts", JSON.stringify(stripped)); } catch {}
+      }
+    },
     get(name) { return this.read()[name.toLowerCase()] || null; },
-    create(name, password) {
+    create(name, password, avatar) {
       const accounts = this.read();
-      accounts[name.toLowerCase()] = { name, hash: simpleHash(password || ""), createdAt: Date.now() };
+      accounts[name.toLowerCase()] = { name, hash: simpleHash(password || ""), avatar: avatar || null, createdAt: Date.now() };
+      this.write(accounts);
+    },
+    updateAvatar(name, avatar) {
+      const accounts = this.read();
+      const key = name.toLowerCase();
+      if (!accounts[key]) return;
+      accounts[key].avatar = avatar;
       this.write(accounts);
     },
     verify(name, password) {
@@ -821,42 +1259,123 @@ const chatroom = (() => {
     }
   };
 
+  // ── DOM refs ──────────────────────────────────────────────────────
   const els = {
-    locked:      $("chatroom-locked"),
-    window:      $("aol-window"),
-    signonOverlay: $("aol-signon-overlay"),
-    usernameInput: $("aol-username"),
-    passwordInput: $("aol-password"),
-    signonBtn:   $("aol-signon-btn"),
-    guestBtn:    $("aol-guest-btn"),
-    signonError: $("aol-signon-error"),
-    chatArea:    $("aol-chat-area"),
-    participants:$("aol-participants-list"),
-    chatCount:   $("aol-chat-header-count"),
-    input:       $("aol-input"),
-    sendBtn:     $("aol-send"),
-    addBotBtn:   $("aol-add-bot"),
-    signoffBtn:  $("aol-signoff"),
-    chatterSelect: $("aol-chatter-rate"),
-    statusDot:   $("aol-status-dot"),
-    statusText:  $("aol-status-text"),
-    botModal:    $("aol-bot-modal"),
-    botModalX:   $("aol-bot-modal-x"),
-    botModalClose: $("aol-bot-modal-close"),
-    botPresets:  $("aol-bot-presets"),
-    customName:  $("aol-custom-name"),
-    customPersona: $("aol-custom-persona"),
-    customAddBtn:$("aol-custom-add"),
+    locked:        $("cr-locked"),
+    lockedGoto:    $("cr-locked-goto"),
+    window:        $("cr-window"),
+    signonOverlay: $("cr-signon-overlay"),
+    avatarPreview: $("cr-avatar-preview"),
+    avatarInput:   $("cr-avatar-input"),
+    avatarPlaceholder: $("cr-avatar-placeholder"),
+    usernameInput: $("cr-username"),
+    passwordInput: $("cr-password"),
+    signonBtn:     $("cr-signon-btn"),
+    guestBtn:      $("cr-guest-btn"),
+    signonError:   $("cr-signon-error"),
+
+    toggleRooms:   $("cr-toggle-rooms"),
+    togglePeople:  $("cr-toggle-people"),
+    rooms:         $("cr-rooms"),
+    people:        $("cr-people"),
+
+    chatterRate:   $("cr-chatter-rate"),
+    statusDot:     $("cr-status-dot"),
+    statusText:    $("cr-status-text"),
+
+    chatTitle:     $("cr-chat-title"),
+    chatDesc:      $("cr-chat-desc"),
+    messages:      $("cr-messages"),
+    roomsList:     $("cr-rooms-list"),
+    peopleList:    $("cr-people-list"),
+    peopleCount:   $("cr-people-count"),
+
+    input:         $("cr-input"),
+    sendBtn:       $("cr-send-btn"),
+    attachments:   $("cr-attachments"),
+
+    emojiBtn:      $("cr-emoji-btn"),
+    imageBtn:      $("cr-image-btn"),
+    fileBtn:       $("cr-file-btn"),
+    imageInput:    $("cr-image-input"),
+    fileInput:     $("cr-file-input"),
+    picker:        $("cr-picker"),
+    pickerContent: $("cr-picker-content"),
+
+    newRoomBtn:    $("cr-new-room-btn"),
+    signoffBtn:    $("cr-signoff-btn"),
+    addBotBtn:     $("cr-add-bot-btn"),
+    addBotBtnTop:  $("cr-add-bot-top"),
+    botModal:      $("cr-bot-modal"),
+    botPresets:    $("cr-bot-presets"),
+    customName:    $("cr-custom-name"),
+    customPersona: $("cr-custom-persona"),
+    customAvatar:  $("cr-custom-avatar"),
+    customAdd:     $("cr-custom-add"),
+
+    roomModal:     $("cr-room-modal"),
+    newRoomName:   $("cr-new-room-name"),
+    newRoomDesc:   $("cr-new-room-desc"),
+    createRoomBtn: $("cr-create-room-btn"),
   };
 
-  // ─── Lifecycle ───────────────────────────────────────────────────────
+  // Helpers
+  const currentRoom = () => state.rooms[state.currentRoomId];
+  function escapeHtml(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function formatTS(d) {
+    const h = d.getHours(), m = d.getMinutes();
+    const hh = ((h % 12) || 12), mm = String(m).padStart(2, "0");
+    const ap = h < 12 ? "AM" : "PM";
+    return `${hh}:${mm} ${ap}`;
+  }
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1024 / 1024).toFixed(1) + " MB";
+  }
+  function fileIconFor(mime) {
+    if (!mime) return "📎";
+    if (mime.startsWith("image/")) return "🖼️";
+    if (mime.startsWith("audio/")) return "🎵";
+    if (mime.startsWith("video/")) return "🎬";
+    if (mime.includes("pdf")) return "📄";
+    if (mime.includes("zip") || mime.includes("compressed") || mime.includes("tar")) return "📦";
+    if (mime.startsWith("text/")) return "📝";
+    if (mime.includes("json") || mime.includes("xml")) return "⚙️";
+    if (mime.includes("word") || mime.includes("document")) return "📘";
+    if (mime.includes("sheet") || mime.includes("excel")) return "📊";
+    if (mime.includes("presentation") || mime.includes("powerpoint")) return "📽️";
+    return "📎";
+  }
+
+  // Format message body: linkify URLs, convert AIM emoticons to unicode
+  const EMOTICON_MAP = { ":)":"🙂",":-)":"🙂",":D":"😄",":-D":"😄",";)":"😉",";-)":"😉",":(":"🙁",":-(":"🙁",":P":"😛",":-P":"😛",":p":"😛",":o":"😮",":O":"😮",":|":"😐","<3":"❤️","</3":"💔","^_^":"☺️","T_T":"😭","-_-":"😑",":3":"😺","XD":"😆","xD":"😆" };
+  function formatBody(text) {
+    let s = escapeHtml(text);
+    // URL linkification (preserve &amp; etc)
+    s = s.replace(/(https?:\/\/[^\s<]+[^\s<.,;!?)])/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--c-accent);">$1</a>');
+    // Emoticon replacement, longer first
+    const keys = Object.keys(EMOTICON_MAP).sort((a, b) => b.length - a.length);
+    for (const k of keys) {
+      const esc = escapeHtml(k);
+      const re = new RegExp("(^|\\s)" + esc.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?=\\s|$)", "g");
+      s = s.replace(re, "$1" + EMOTICON_MAP[k]);
+    }
+    return s;
+  }
+
+
+  // ── Lifecycle ─────────────────────────────────────────────────────
   function onActivate() {
     state.activated = true;
     if (!engineState.engine) {
-      els.locked.style.display = "flex"; els.window.style.display = "none"; els.signonOverlay.style.display = "none";
+      els.locked.style.display = "flex";
+      els.window.style.display = "none";
+      els.signonOverlay.style.display = "none";
       return;
     }
-    els.locked.style.display = "none"; els.window.style.display = "flex";
+    els.locked.style.display = "none";
+    els.window.style.display = "flex";
     if (!state.signedOn) {
       els.signonOverlay.style.display = "flex";
       setTimeout(() => els.usernameInput.focus(), 80);
@@ -868,221 +1387,669 @@ const chatroom = (() => {
   function onEngineReady() { if (state.activated) onActivate(); }
   function onEngineLost() {
     if (state.activated) {
-      els.locked.style.display = "flex"; els.window.style.display = "none"; els.signonOverlay.style.display = "none";
+      els.locked.style.display = "flex";
+      els.window.style.display = "none";
+      els.signonOverlay.style.display = "none";
     }
   }
+  els.lockedGoto.addEventListener("click", () => document.querySelector('.tabnav-tab[data-view=chat]').click());
 
-  // ─── Sign-on ─────────────────────────────────────────────────────────
+  // ── Avatar upload (on signon) ─────────────────────────────────────
+  let pendingAvatar = null; // data URL chosen on signon screen
+  els.avatarPreview.addEventListener("click", () => els.avatarInput.click());
+  els.avatarInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { showSignonError("Avatar must be an image."); return; }
+    if (file.size > 2 * 1024 * 1024) { showSignonError("Avatar must be under 2 MB."); return; }
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 256);
+      pendingAvatar = dataUrl;
+      els.avatarPreview.style.backgroundImage = `url(${dataUrl})`;
+      els.avatarPreview.classList.add("has-image");
+      els.avatarPlaceholder.style.display = "none";
+      hideSignonError();
+    } catch (err) {
+      console.warn(err);
+      showSignonError("Couldn't read that image.");
+    }
+    e.target.value = "";
+  });
+
+  // Canvas resize + crop-to-square for avatars
+  function resizeImageToDataUrl(file, targetSize) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const min = Math.min(img.width, img.height);
+          const canvas = document.createElement("canvas");
+          canvas.width = targetSize; canvas.height = targetSize;
+          const ctx = canvas.getContext("2d");
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img,
+            (img.width - min) / 2, (img.height - min) / 2, min, min,
+            0, 0, targetSize, targetSize);
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   function showSignonError(msg) { els.signonError.textContent = msg; els.signonError.style.display = "block"; }
   function hideSignonError() { els.signonError.style.display = "none"; }
 
+  // ── Sign on ───────────────────────────────────────────────────────
   function signOn(username, password, asGuest = false) {
     if (asGuest) {
       state.username = "Guest" + Math.floor(Math.random() * 900 + 100);
       state.isGuest = true;
+      state.avatarDataUrl = pendingAvatar; // guests can have an avatar for this session only
     } else {
       username = username.trim();
       if (!username) { showSignonError("Please enter a screen name."); return; }
       if (username.length < 2) { showSignonError("Screen name is too short."); return; }
       if (!/^[A-Za-z0-9_.x]+$/.test(username)) { showSignonError("Letters, numbers, _ and . only."); return; }
       const result = accountStore.verify(username, password);
-      if (result === "new") accountStore.create(username, password);
-      else if (result === "wrong") { showSignonError("That password doesn't match this screen name. (Accounts live only in this browser.)"); return; }
-      state.username = username; state.isGuest = false;
+      if (result === "new") accountStore.create(username, password, pendingAvatar);
+      else if (result === "wrong") { showSignonError("Password doesn't match this screen name. (Accounts are local-only.)"); return; }
+      else if (result === "ok" && pendingAvatar) accountStore.updateAvatar(username, pendingAvatar);
+      state.username = username;
+      state.isGuest = false;
+      state.avatarDataUrl = pendingAvatar || (accountStore.get(username)?.avatar || null);
     }
     state.signedOn = true;
     els.signonOverlay.style.display = "none";
     hideSignonError();
 
-    // First-time seed: welcome + two starter bots.
-    if (state.messages.length === 0) {
-      addSystemMessage(`Welcome to the Reverie Lobby, ${state.username}.`);
-      addSystemMessage(`${state.username} has entered the room.`, { dbl: true });
-      addBot(BOT_PRESETS.find(b => b.id === "grandma_linda"));
-      addBot(BOT_PRESETS.find(b => b.id === "moodring"));
+    // First-time seed
+    const lobby = state.rooms[LOBBY_ID];
+    if (lobby.messages.length === 0) {
+      addSystemMessage(LOBBY_ID, `Welcome to the Reverie Lobby, ${state.username}.`);
+      addSystemMessage(LOBBY_ID, `${state.username} has entered the room.`);
+      addBot(LOBBY_ID, BOT_PRESETS.find(b => b.id === "grandma_linda"));
+      addBot(LOBBY_ID, BOT_PRESETS.find(b => b.id === "moodring"));
     } else {
-      addSystemMessage(`${state.username} has entered the room.`, { dbl: true });
+      addSystemMessage(LOBBY_ID, `${state.username} has entered the room.`);
     }
-    renderParticipants();
+    renderAll();
     els.input.focus();
   }
 
   function signOff() {
-    if (state.username) addSystemMessage(`${state.username} has left the room.`, { dbl: true });
-    state.signedOn = false; state.username = null; state.isGuest = false;
+    if (state.username) addSystemMessage(state.currentRoomId, `${state.username} has signed off.`);
+    state.signedOn = false;
+    state.username = null;
+    state.isGuest = false;
+    state.avatarDataUrl = null;
+    pendingAvatar = null;
+    els.avatarPreview.style.backgroundImage = "";
+    els.avatarPreview.classList.remove("has-image");
+    els.avatarPlaceholder.style.display = "";
     els.signonOverlay.style.display = "flex";
-    els.usernameInput.value = ""; els.passwordInput.value = "";
+    els.usernameInput.value = "";
+    els.passwordInput.value = "";
     setTimeout(() => els.usernameInput.focus(), 60);
   }
 
   els.signonBtn.addEventListener("click", () => signOn(els.usernameInput.value, els.passwordInput.value, false));
   els.guestBtn.addEventListener("click", () => signOn("", "", true));
-  els.passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") els.signonBtn.click(); });
   els.usernameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") els.passwordInput.focus(); });
+  els.passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") els.signonBtn.click(); });
+  // Prefill known avatar when user types a known name
+  els.usernameInput.addEventListener("blur", () => {
+    const name = els.usernameInput.value.trim();
+    if (!name || pendingAvatar) return;
+    const acc = accountStore.get(name);
+    if (acc?.avatar) {
+      pendingAvatar = acc.avatar;
+      els.avatarPreview.style.backgroundImage = `url(${acc.avatar})`;
+      els.avatarPreview.classList.add("has-image");
+      els.avatarPlaceholder.style.display = "none";
+    }
+  });
+
   els.signoffBtn.addEventListener("click", signOff);
 
-  // ─── Bot management ──────────────────────────────────────────────────
-  function addBot(preset, customPersona = null) {
+  // ── Rooms ─────────────────────────────────────────────────────────
+  function createRoom(name, description) {
+    const slug = name.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "room";
+    let id = slug, n = 2;
+    while (state.rooms[id]) { id = slug + "-" + n++; }
+    state.rooms[id] = makeRoom(id, slug, description);
+    switchRoom(id);
+    addSystemMessage(id, `You created #${slug}. Invite bots to get the conversation going.`);
+  }
+  function deleteRoom(id) {
+    const room = state.rooms[id];
+    if (!room || room.isDefault) return;
+    delete state.rooms[id];
+    if (state.currentRoomId === id) state.currentRoomId = LOBBY_ID;
+    renderAll();
+  }
+  function switchRoom(id) {
+    if (!state.rooms[id]) return;
+    state.currentRoomId = id;
+    state.rooms[id].unread = false;
+    renderAll();
+    els.input.focus();
+  }
+
+  // ── Bots ──────────────────────────────────────────────────────────
+  function addBot(roomId, preset, customPersona = null, customAvatar = null) {
+    const room = state.rooms[roomId];
+    if (!room) return;
     let baseName = preset.name;
     let uniqueName = baseName;
     let n = 2;
-    const taken = new Set([state.username?.toLowerCase(), ...state.bots.map(b => b.name.toLowerCase())]);
-    while (taken.has(uniqueName.toLowerCase())) { uniqueName = baseName + n++; }
+    const takenInRoom = new Set([
+      state.username?.toLowerCase(),
+      ...room.bots.map(b => b.name.toLowerCase())
+    ]);
+    while (takenInRoom.has(uniqueName.toLowerCase())) { uniqueName = baseName + n++; }
+    const avatar = customAvatar || preset.avatar || CUSTOM_BOT_AVATARS[Math.floor(Math.random() * CUSTOM_BOT_AVATARS.length)];
     const bot = {
       id: "bot_" + Math.random().toString(36).slice(2, 9),
       name: uniqueName,
       persona: customPersona || preset.persona,
       color: colorForName(uniqueName),
+      avatar,
     };
-    state.bots.push(bot);
-    addSystemMessage(`${bot.name} has entered the room.`, { dbl: true });
-    renderParticipants();
-    if (state.signedOn) {
-      setTimeout(() => scheduleBotResponse(bot, { forceGreeting: true }), 800 + Math.random() * 1200);
+    room.bots.push(bot);
+    addSystemMessage(roomId, `${bot.name} has entered the room.`);
+    renderRooms();
+    renderPeople();
+    // Entry greeting only if this is the current room
+    if (state.signedOn && roomId === state.currentRoomId) {
+      setTimeout(() => scheduleBotResponse(bot, roomId, { forceGreeting: true }), 800 + Math.random() * 1200);
     }
     return bot;
   }
-  function removeBot(botId) {
-    const bot = state.bots.find(b => b.id === botId);
+  function removeBot(roomId, botId) {
+    const room = state.rooms[roomId];
+    if (!room) return;
+    const bot = room.bots.find(b => b.id === botId);
     if (!bot) return;
-    state.bots = state.bots.filter(b => b.id !== botId);
-    addSystemMessage(`${bot.name} has left the room.`, { dbl: true });
-    renderParticipants();
+    room.bots = room.bots.filter(b => b.id !== botId);
+    addSystemMessage(roomId, `${bot.name} has left the room.`);
+    renderPeople();
   }
 
+  // ── Messages ──────────────────────────────────────────────────────
+  function addMessage(roomId, msg) {
+    const room = state.rooms[roomId];
+    if (!room) return null;
+    msg.id = msg.id || ("m_" + Math.random().toString(36).slice(2, 9));
+    msg.ts = msg.ts || new Date();
+    msg.roomId = roomId;
+    room.messages.push(msg);
+    if (roomId !== state.currentRoomId) {
+      room.unread = true;
+      renderRooms();
+    } else {
+      appendMessageDOM(msg);
+      scrollMessagesBottom();
+    }
+    return msg;
+  }
+  function addSystemMessage(roomId, text) {
+    return addMessage(roomId, { system: true, text });
+  }
+
+  // ── Bot Modal ─────────────────────────────────────────────────────
+  function openBotModal() {
+    renderBotPresets();
+    els.botModal.style.display = "flex";
+    setTimeout(() => els.customName.focus(), 60);
+  }
+  function closeBotModal() {
+    els.botModal.style.display = "none";
+    els.customName.value = ""; els.customPersona.value = ""; els.customAvatar.value = "";
+  }
   function renderBotPresets() {
     els.botPresets.innerHTML = "";
     for (const p of BOT_PRESETS) {
       const card = document.createElement("div");
-      card.className = "aol-bot-card";
-      card.innerHTML = `<span class="name">${p.name}</span><span class="desc">${p.desc}</span>`;
-      card.addEventListener("click", () => { addBot(p); closeBotModal(); });
+      card.className = "cr-bot-card";
+      card.innerHTML = `
+        <div class="cr-bot-card-avatar">${p.avatar}</div>
+        <div class="cr-bot-card-info">
+          <div class="cr-bot-card-name">${escapeHtml(p.name)}</div>
+          <div class="cr-bot-card-desc">${escapeHtml(p.desc)}</div>
+        </div>`;
+      card.addEventListener("click", () => {
+        addBot(state.currentRoomId, p);
+        closeBotModal();
+      });
       els.botPresets.appendChild(card);
     }
   }
-  function openBotModal() { renderBotPresets(); els.botModal.style.display = "flex"; setTimeout(() => els.customName.focus(), 60); }
-  function closeBotModal() { els.botModal.style.display = "none"; els.customName.value = ""; els.customPersona.value = ""; }
-
   els.addBotBtn.addEventListener("click", openBotModal);
-  els.botModalX.addEventListener("click", closeBotModal);
-  els.botModalClose.addEventListener("click", closeBotModal);
-  els.customAddBtn.addEventListener("click", () => {
+  els.addBotBtnTop.addEventListener("click", openBotModal);
+  document.querySelectorAll("[data-close-bot-modal]").forEach(b => b.addEventListener("click", closeBotModal));
+  els.customAdd.addEventListener("click", () => {
     const name = els.customName.value.trim();
     const persona = els.customPersona.value.trim();
+    const avatar = els.customAvatar.value.trim();
     if (!name || !persona) { alert("Both a screen name and a personality are required."); return; }
     if (!/^[A-Za-z0-9_.x]+$/.test(name)) { alert("Screen names: letters, numbers, _ and . only."); return; }
-    addBot({ name, persona }, persona);
+    addBot(state.currentRoomId, { name, persona, avatar }, persona, avatar || null);
     closeBotModal();
   });
 
-  els.chatterSelect.addEventListener("change", (e) => { state.chatterRate = e.target.value; });
+  // ── Room Modal ────────────────────────────────────────────────────
+  function openRoomModal() {
+    els.roomModal.style.display = "flex";
+    els.newRoomName.value = "";
+    els.newRoomDesc.value = "";
+    setTimeout(() => els.newRoomName.focus(), 60);
+  }
+  function closeRoomModal() { els.roomModal.style.display = "none"; }
+  els.newRoomBtn.addEventListener("click", openRoomModal);
+  document.querySelectorAll("[data-close-room-modal]").forEach(b => b.addEventListener("click", closeRoomModal));
+  els.createRoomBtn.addEventListener("click", () => {
+    const name = els.newRoomName.value.trim();
+    if (!name) { els.newRoomName.focus(); return; }
+    createRoom(name, els.newRoomDesc.value.trim());
+    closeRoomModal();
+  });
+  els.newRoomName.addEventListener("keydown", (e) => { if (e.key === "Enter") els.newRoomDesc.focus(); });
+  els.newRoomDesc.addEventListener("keydown", (e) => { if (e.key === "Enter") els.createRoomBtn.click(); });
 
-  // ─── Rendering ───────────────────────────────────────────────────────
-  function addMessage(msg) {
-    msg.id = msg.id || ("m_" + Math.random().toString(36).slice(2, 9));
-    msg.ts = msg.ts || new Date();
-    state.messages.push(msg);
-    appendMessageDOM(msg);
-    scrollChatBottom();
-    return msg;
+  els.chatterRate.addEventListener("change", (e) => { state.chatterRate = e.target.value; });
+
+  // ── Sidebar toggles (mobile) ──────────────────────────────────────
+  els.toggleRooms.addEventListener("click", () => {
+    els.rooms.classList.toggle("open");
+    els.people.classList.remove("open");
+  });
+  els.togglePeople.addEventListener("click", () => {
+    els.people.classList.toggle("open");
+    els.rooms.classList.remove("open");
+  });
+
+
+  // ── Rendering ─────────────────────────────────────────────────────
+  function renderAll() {
+    renderRooms();
+    renderPeople();
+    renderMessages();
+    updateChatHeader();
   }
 
-  function addSystemMessage(text, opts = {}) {
-    return addMessage({ system: true, text, dbl: opts.dbl });
+  function updateChatHeader() {
+    const room = currentRoom();
+    els.chatTitle.textContent = room.name;
+    els.chatDesc.textContent = room.description || (room.isDefault ? "welcome to the chat" : "");
+    els.input.placeholder = `Message #${room.name}…`;
+  }
+
+  function renderRooms() {
+    els.roomsList.innerHTML = "";
+    for (const id in state.rooms) {
+      const room = state.rooms[id];
+      const item = document.createElement("div");
+      item.className = "cr-room-item" + (id === state.currentRoomId ? " active" : "");
+      item.innerHTML = `
+        <span class="hash">#</span>
+        <span class="cr-room-name">${escapeHtml(room.name)}</span>
+        ${room.unread && id !== state.currentRoomId ? '<span class="cr-room-unread"></span>' : ""}
+        ${room.isDefault ? "" : '<span class="cr-room-delete" title="Delete room">×</span>'}
+      `;
+      item.addEventListener("click", (e) => {
+        if (e.target.classList.contains("cr-room-delete")) return;
+        switchRoom(id);
+        els.rooms.classList.remove("open"); // close mobile drawer
+      });
+      const del = item.querySelector(".cr-room-delete");
+      if (del) {
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (confirm(`Delete room #${room.name}? All messages in it will be lost.`)) deleteRoom(id);
+        });
+      }
+      els.roomsList.appendChild(item);
+    }
+  }
+
+  function renderPeople() {
+    els.peopleList.innerHTML = "";
+    const room = currentRoom();
+    let count = 0;
+    if (state.signedOn) {
+      const item = document.createElement("div");
+      item.className = "cr-people-item";
+      const avatarHtml = state.avatarDataUrl
+        ? `<div class="cr-people-avatar" style="background-image:url(${state.avatarDataUrl})"><span class="cr-people-avatar-dot"></span></div>`
+        : `<div class="cr-people-avatar"><span>${initialsFor(state.username)}</span><span class="cr-people-avatar-dot"></span></div>`;
+      item.innerHTML = `
+        ${avatarHtml}
+        <div class="cr-people-info">
+          <div class="cr-people-name" style="color:${colorForName(state.username)}">${escapeHtml(state.username)}</div>
+          <div class="cr-people-role">you${state.isGuest ? " · guest" : ""}</div>
+        </div>
+      `;
+      els.peopleList.appendChild(item);
+      count++;
+    }
+    for (const bot of room.bots) {
+      const item = document.createElement("div");
+      item.className = "cr-people-item";
+      item.innerHTML = `
+        <div class="cr-people-avatar is-bot"><span>${bot.avatar || "🤖"}</span><span class="cr-people-avatar-dot"></span></div>
+        <div class="cr-people-info">
+          <div class="cr-people-name" style="color:${bot.color}">${escapeHtml(bot.name)}</div>
+          <div class="cr-people-role">bot</div>
+        </div>
+        <span class="cr-people-remove" title="Kick from room">✕</span>
+      `;
+      item.querySelector(".cr-people-remove").addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeBot(room.id, bot.id);
+      });
+      els.peopleList.appendChild(item);
+      count++;
+    }
+    els.peopleCount.textContent = count;
+  }
+
+  function renderMessages() {
+    els.messages.innerHTML = "";
+    const room = currentRoom();
+    for (const msg of room.messages) appendMessageDOM(msg);
+    scrollMessagesBottom();
   }
 
   function appendMessageDOM(msg) {
-    const el = document.createElement("div");
+    // Don't render messages from non-current rooms
+    if (msg.roomId && msg.roomId !== state.currentRoomId) return;
+
     if (msg.system) {
-      el.className = "aol-msg system";
-      const stars = msg.dbl ? '<span class="stars">***</span> ' : "";
-      el.innerHTML = `${stars}${escapeHtml(msg.text)}${msg.dbl ? ' <span class="stars">***</span>' : ''}`;
-    } else {
-      el.className = "aol-msg";
+      const el = document.createElement("div");
+      el.className = "cr-msg system";
       el.dataset.msgId = msg.id;
-      const tsStr = formatTS(msg.ts);
-      el.innerHTML = `<span class="ts">[${tsStr}]</span><span class="name" style="color:${msg.color}">${escapeHtml(msg.author)}:</span> ${formatBody(msg.text)}`;
+      el.innerHTML = `<div class="cr-msg-content">${escapeHtml(msg.text)}</div>`;
+      els.messages.appendChild(el);
+      return;
     }
-    els.chatArea.appendChild(el);
-  }
-
-  function formatTS(d) {
-    const h = d.getHours(), m = d.getMinutes();
-    const hh = ((h % 12) || 12), mm = String(m).padStart(2, "0");
-    const ap = h < 12 ? "AM" : "PM";
-    return `${hh}:${mm} ${ap}`;
-  }
-
-  function formatBody(text) {
-    let s = escapeHtml(text);
-    s = s.replace(/(^|\s)(:\)|:-\)|:D|:-D)(?=\s|$)/g, "$1☺");
-    s = s.replace(/(^|\s)(:\(|:-\()(?=\s|$)/g, "$1☹");
-    s = s.replace(/(^|\s)(&lt;3)(?=\s|$)/g, "$1♥");
-    s = s.replace(/(^|\s)\^_\^(?=\s|$)/g, "$1✿");
-    return s;
-  }
-
-  function escapeHtml(s) {
-    return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  }
-
-  function scrollChatBottom() {
-    requestAnimationFrame(() => { els.chatArea.scrollTop = els.chatArea.scrollHeight; });
-  }
-
-  function renderParticipants() {
-    els.participants.innerHTML = "";
-    const items = [];
-    if (state.signedOn) items.push({ type: "human", name: state.username });
-    for (const b of state.bots) items.push({ type: "bot", name: b.name, id: b.id });
-
-    for (const p of items) {
-      const row = document.createElement("div");
-      row.className = `aol-participant ${p.type}`;
-      const color = colorForName(p.name);
-      row.innerHTML = `<span class="icon">${p.type === "bot" ? "R" : "U"}</span><span class="dot"></span><span style="color:${color}; font-weight:bold;">${escapeHtml(p.name)}</span>`;
-      if (p.type === "bot") {
-        const kick = document.createElement("span");
-        kick.className = "aol-kick";
-        kick.textContent = "✕";
-        kick.title = "Kick from room";
-        kick.addEventListener("click", (e) => { e.stopPropagation(); removeBot(p.id); });
-        row.appendChild(kick);
-      }
-      els.participants.appendChild(row);
+    if (msg.typing) {
+      const el = document.createElement("div");
+      el.className = "cr-msg typing";
+      el.dataset.typingFor = msg.author;
+      el.innerHTML = `<div class="cr-msg-content"><b style="color:${msg.color}">${escapeHtml(msg.author)}</b> is typing</div>`;
+      els.messages.appendChild(el);
+      return;
     }
-    els.chatCount.textContent = `${items.length} online`;
-  }
 
-  function showTyping(bot) {
-    const existing = els.chatArea.querySelector(`[data-typing-for="${CSS.escape(bot.name)}"]`);
-    if (existing) return existing;
     const el = document.createElement("div");
-    el.className = "aol-msg typing";
+    el.className = "cr-msg";
+    el.dataset.msgId = msg.id;
+
+    const isBot = msg.authorType === "bot";
+    let avatarInner, avatarStyle = "";
+    if (msg.avatarDataUrl) {
+      avatarStyle = `background-image:url(${msg.avatarDataUrl})`;
+      avatarInner = "";
+    } else if (msg.avatarEmoji) {
+      avatarInner = `<span>${msg.avatarEmoji}</span>`;
+    } else {
+      avatarInner = `<span>${initialsFor(msg.author)}</span>`;
+    }
+
+    const parts = [];
+    parts.push(`<div class="cr-msg-avatar${isBot ? " is-bot" : ""}" style="${avatarStyle}">${avatarInner}</div>`);
+    parts.push(`<div class="cr-msg-content">`);
+    parts.push(`<div class="cr-msg-header">`);
+    parts.push(`<span class="cr-msg-name" style="color:${msg.color}">${escapeHtml(msg.author)}</span>`);
+    if (isBot) parts.push(`<span class="cr-msg-bot-tag">bot</span>`);
+    parts.push(`<span class="cr-msg-ts">${formatTS(msg.ts)}</span>`);
+    parts.push(`</div>`);
+
+    // Body
+    parts.push(`<div class="cr-msg-text">`);
+    if (msg.sticker) {
+      parts.push(`<div class="cr-sticker anim-${msg.sticker.anim}">${msg.sticker.emoji}</div>`);
+    } else if (msg.text) {
+      parts.push(formatBody(msg.text));
+    }
+    if (msg.attachments && msg.attachments.length) {
+      for (const att of msg.attachments) {
+        if (att.type === "image") {
+          parts.push(`<img class="cr-msg-image" src="${att.dataUrl}" alt="${escapeHtml(att.name || "image")}" data-lightbox="1" />`);
+        } else {
+          parts.push(`<a class="cr-msg-file" href="${att.dataUrl}" download="${escapeHtml(att.name)}">
+            <div class="cr-msg-file-icon">${fileIconFor(att.mime)}</div>
+            <div class="cr-msg-file-info">
+              <div class="cr-msg-file-name">${escapeHtml(att.name)}</div>
+              <div class="cr-msg-file-size">${formatSize(att.size)}</div>
+            </div>
+            <div class="cr-msg-file-dl">⬇</div>
+          </a>`);
+        }
+      }
+    }
+    parts.push(`</div>`);
+    parts.push(`</div>`);
+
+    el.innerHTML = parts.join("");
+    els.messages.appendChild(el);
+
+    // Wire lightbox
+    el.querySelectorAll(".cr-msg-image[data-lightbox]").forEach(img => {
+      img.addEventListener("click", () => openLightbox(img.src));
+    });
+  }
+
+  function scrollMessagesBottom() {
+    requestAnimationFrame(() => { els.messages.scrollTop = els.messages.scrollHeight; });
+  }
+
+  // Typing indicators (scoped to current room via the author name)
+  function showTyping(bot, roomId) {
+    if (roomId !== state.currentRoomId) return;
+    const existing = els.messages.querySelector(`[data-typing-for="${CSS.escape(bot.name)}"]`);
+    if (existing) return;
+    const el = document.createElement("div");
+    el.className = "cr-msg typing";
     el.dataset.typingFor = bot.name;
-    el.innerHTML = `<span class="name" style="color:${bot.color}">${escapeHtml(bot.name)}</span> is typing`;
-    els.chatArea.appendChild(el);
-    scrollChatBottom();
-    return el;
+    el.innerHTML = `<div class="cr-msg-content"><b style="color:${bot.color}">${escapeHtml(bot.name)}</b> is typing</div>`;
+    els.messages.appendChild(el);
+    scrollMessagesBottom();
   }
   function clearTyping(bot) {
-    const el = els.chatArea.querySelector(`[data-typing-for="${CSS.escape(bot.name)}"]`);
+    const el = els.messages.querySelector(`[data-typing-for="${CSS.escape(bot.name)}"]`);
     if (el) el.remove();
   }
 
-  // ─── Orchestration ───────────────────────────────────────────────────
-  function shouldBotRespond(bot, msg) {
+  // ── Emoji / Sticker picker ────────────────────────────────────────
+  function renderPicker() {
+    els.pickerContent.innerHTML = "";
+    if (state.picker.tab === "emoji") {
+      for (const cat of EMOJI_CATEGORIES) {
+        const section = document.createElement("div");
+        section.className = "cr-picker-category";
+        section.innerHTML = `<div class="cr-picker-cat-title">${cat.label}</div><div class="cr-emoji-grid"></div>`;
+        const grid = section.querySelector(".cr-emoji-grid");
+        for (const em of cat.emojis) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = em;
+          btn.title = em;
+          btn.addEventListener("click", () => insertAtCursor(els.input, em));
+          grid.appendChild(btn);
+        }
+        els.pickerContent.appendChild(section);
+      }
+    } else {
+      const section = document.createElement("div");
+      section.className = "cr-picker-category";
+      section.innerHTML = `<div class="cr-picker-cat-title">Tap to send</div><div class="cr-sticker-grid"></div>`;
+      const grid = section.querySelector(".cr-sticker-grid");
+      for (const s of STICKERS) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.title = s.label;
+        btn.innerHTML = `<span class="cr-sticker anim-${s.anim}">${s.emoji}</span>`;
+        btn.addEventListener("click", () => { sendSticker(s); closePicker(); });
+        grid.appendChild(btn);
+      }
+      els.pickerContent.appendChild(section);
+    }
+  }
+  function openPicker() {
+    state.picker.open = true;
+    els.picker.style.display = "flex";
+    els.emojiBtn.classList.add("active");
+    renderPicker();
+  }
+  function closePicker() {
+    state.picker.open = false;
+    els.picker.style.display = "none";
+    els.emojiBtn.classList.remove("active");
+  }
+  function togglePicker() { state.picker.open ? closePicker() : openPicker(); }
+
+  els.emojiBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePicker(); });
+  els.picker.addEventListener("click", (e) => e.stopPropagation());
+  document.addEventListener("click", (e) => {
+    if (state.picker.open && !els.picker.contains(e.target) && e.target !== els.emojiBtn) closePicker();
+  });
+  els.picker.querySelectorAll(".cr-picker-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      els.picker.querySelectorAll(".cr-picker-tab").forEach(t => t.classList.toggle("active", t === tab));
+      state.picker.tab = tab.dataset.pickerTab;
+      renderPicker();
+    });
+  });
+
+  function insertAtCursor(input, text) {
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    input.value = input.value.slice(0, start) + text + input.value.slice(end);
+    const pos = start + text.length;
+    input.focus();
+    input.setSelectionRange(pos, pos);
+    autoResizeInput();
+  }
+
+  // ── Attachment handling ───────────────────────────────────────────
+  function renderAttachments() {
+    if (state.pendingAttachments.length === 0) {
+      els.attachments.style.display = "none";
+      els.attachments.innerHTML = "";
+      return;
+    }
+    els.attachments.style.display = "flex";
+    els.attachments.innerHTML = "";
+    state.pendingAttachments.forEach((att, idx) => {
+      const chip = document.createElement("div");
+      chip.className = "cr-attachment";
+      const body = att.type === "image"
+        ? `<img src="${att.dataUrl}" alt="" /><div class="info"><div class="name">${escapeHtml(att.name)}</div><div class="size">${formatSize(att.size)}</div></div>`
+        : `<span style="font-size:22px;">${fileIconFor(att.mime)}</span><div class="info"><div class="name">${escapeHtml(att.name)}</div><div class="size">${formatSize(att.size)}</div></div>`;
+      chip.innerHTML = body + `<span class="remove" title="Remove">×</span>`;
+      chip.querySelector(".remove").addEventListener("click", () => {
+        state.pendingAttachments.splice(idx, 1);
+        renderAttachments();
+      });
+      els.attachments.appendChild(chip);
+    });
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  els.imageBtn.addEventListener("click", () => els.imageInput.click());
+  els.fileBtn.addEventListener("click", () => els.fileInput.click());
+
+  els.imageInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { alert("Please choose an image file."); e.target.value = ""; return; }
+    if (file.size > 5 * 1024 * 1024) { alert("Image too large (max 5 MB)."); e.target.value = ""; return; }
+    try {
+      const dataUrl = await readFileAsDataURL(file);
+      state.pendingAttachments.push({ type: "image", dataUrl, name: file.name, size: file.size, mime: file.type });
+      renderAttachments();
+    } catch {
+      alert("Couldn't read that image.");
+    }
+    e.target.value = "";
+  });
+
+  els.fileInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) { alert("File too large (max 20 MB)."); e.target.value = ""; return; }
+    try {
+      const dataUrl = await readFileAsDataURL(file);
+      const isImage = (file.type || "").startsWith("image/");
+      state.pendingAttachments.push({ type: isImage ? "image" : "file", dataUrl, name: file.name, size: file.size, mime: file.type });
+      renderAttachments();
+    } catch {
+      alert("Couldn't read that file.");
+    }
+    e.target.value = "";
+  });
+
+  // ── Lightbox ──────────────────────────────────────────────────────
+  function openLightbox(src) {
+    const overlay = document.createElement("div");
+    overlay.className = "cr-lightbox";
+    overlay.innerHTML = `<span class="cr-lightbox-close">×</span><img src="${src}" alt="" />`;
+    overlay.addEventListener("click", () => overlay.remove());
+    document.body.appendChild(overlay);
+    const onEsc = (e) => { if (e.key === "Escape") { overlay.remove(); document.removeEventListener("keydown", onEsc); } };
+    document.addEventListener("keydown", onEsc);
+  }
+
+  // ── Status updater ────────────────────────────────────────────────
+  function updateStatus() {
+    if (!engineState.engine) {
+      els.statusDot.style.background = "#c85450";
+      els.statusText.textContent = "Offline";
+      return;
+    }
+    if (state.pendingBotGens > 0 || engineState.generating) {
+      els.statusDot.style.background = "#ffb347";
+      els.statusText.textContent = state.pendingBotGens > 1 ? `${state.pendingBotGens} thinking…` : "Thinking…";
+    } else {
+      els.statusDot.style.background = "var(--c-accent-light)";
+      els.statusText.textContent = "Ready";
+    }
+  }
+  setInterval(updateStatus, 600);
+
+  // Auto-resize textarea
+  function autoResizeInput() {
+    els.input.style.height = "auto";
+    els.input.style.height = Math.min(els.input.scrollHeight, 140) + "px";
+  }
+  els.input.addEventListener("input", autoResizeInput);
+
+
+  // ── Orchestration (only active room) ──────────────────────────────
+  function shouldBotRespond(bot, msg, room) {
     const settings = CHATTER[state.chatterRate];
     const mentioned = msg.text && new RegExp(`\\b${bot.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(msg.text);
     if (state.chatterRate === "silent") return mentioned;
 
-    // Damp bot-to-bot chains so the room doesn't run away on its own.
-    const damper = Math.pow(0.75, state.consecutiveBotMessages);
+    const damper = Math.pow(0.75, room.consecutiveBotMessages);
     let p = settings.base * damper;
-
     if (mentioned) p += 0.5;
-    const lastMsg = [...state.messages].reverse().find(m => !m.system && !m.typing);
-    if (lastMsg && lastMsg.author === bot.name) p -= 0.4;
+    const lastReal = [...room.messages].reverse().find(m => !m.system && !m.typing);
+    if (lastReal && lastReal.author === bot.name) p -= 0.4;
     if (msg.authorType === "human") p += 0.15;
 
     p = Math.max(0, Math.min(0.95, p));
@@ -1091,69 +2058,94 @@ const chatroom = (() => {
 
   function afterNewMessage(msg) {
     if (msg.system || msg.typing) return;
-    if (msg.authorType === "bot") state.consecutiveBotMessages++;
-    else state.consecutiveBotMessages = 0;
+    const room = state.rooms[msg.roomId];
+    if (!room) return;
+
+    if (msg.authorType === "bot") room.consecutiveBotMessages++;
+    else room.consecutiveBotMessages = 0;
+
+    // Only orchestrate the active room
+    if (msg.roomId !== state.currentRoomId) return;
 
     const settings = CHATTER[state.chatterRate];
-    if (state.consecutiveBotMessages >= settings.maxChain) return;
+    if (room.consecutiveBotMessages >= settings.maxChain) return;
 
-    const candidates = state.bots.filter(b => b.name !== msg.author);
+    const candidates = room.bots.filter(b => b.name !== msg.author);
     if (candidates.length === 0) return;
 
     const responders = [];
     for (const bot of candidates) {
-      if (shouldBotRespond(bot, msg)) responders.push(bot);
+      if (shouldBotRespond(bot, msg, room)) responders.push(bot);
       if (responders.length >= 2) break;
     }
     responders.forEach((bot, i) => {
       const delay = (settings.delayMin + Math.random() * (settings.delayMax - settings.delayMin)) + i * 900;
-      scheduleBotResponse(bot, { delay });
+      scheduleBotResponse(bot, room.id, { delay });
     });
   }
 
-  function scheduleBotResponse(bot, opts = {}) {
+  function scheduleBotResponse(bot, roomId, opts = {}) {
     const delay = opts.delay ?? (900 + Math.random() * 1800);
     state.pendingBotGens++;
     updateStatus();
     setTimeout(() => {
-      if (!state.bots.find(b => b.id === bot.id) || !state.signedOn) {
-        state.pendingBotGens = Math.max(0, state.pendingBotGens - 1); updateStatus(); return;
+      const room = state.rooms[roomId];
+      if (!room || !room.bots.find(b => b.id === bot.id) || !state.signedOn) {
+        state.pendingBotGens = Math.max(0, state.pendingBotGens - 1);
+        updateStatus();
+        return;
       }
-      engineState.run(() => generateBotResponse(bot, opts))
-        .finally(() => { state.pendingBotGens = Math.max(0, state.pendingBotGens - 1); updateStatus(); });
+      engineState.run(() => generateBotResponse(bot, roomId, opts))
+        .finally(() => {
+          state.pendingBotGens = Math.max(0, state.pendingBotGens - 1);
+          updateStatus();
+        });
     }, delay);
   }
 
-  function updateStatus() {
-    if (!engineState.engine) { els.statusDot.style.background = "#aa0000"; els.statusText.textContent = "Offline"; return; }
-    if (state.pendingBotGens > 0 || engineState.generating) {
-      els.statusDot.style.background = "#ffaa00";
-      els.statusText.textContent = state.pendingBotGens > 1 ? `${state.pendingBotGens} thinking…` : "Thinking…";
-    } else {
-      els.statusDot.style.background = "#00cc00";
-      els.statusText.textContent = "Ready";
-    }
-  }
-
-  async function generateBotResponse(bot, opts = {}) {
-    if (!state.bots.find(b => b.id === bot.id)) return;
+  async function generateBotResponse(bot, roomId, opts = {}) {
+    const room = state.rooms[roomId];
+    if (!room) return;
+    if (!room.bots.find(b => b.id === bot.id)) return;
     if (!state.signedOn) return;
 
-    showTyping(bot);
+    showTyping(bot, roomId);
     updateStatus();
 
-    const recent = state.messages.filter(m => !m.system && !m.typing).slice(-14);
-    const transcript = recent.map(m => `${m.author}: ${m.text}`).join("\n");
-    const participantsList = [
+    // Build a transcript. Represent attachments as tags so the model is aware.
+    const recent = room.messages.filter(m => !m.system && !m.typing).slice(-14);
+    const transcriptLines = recent.map(m => {
+      let line = `${m.author}: ${m.text || ""}`.trim();
+      if (m.sticker) line += ` [sent sticker: ${m.sticker.emoji} ${m.sticker.label}]`;
+      if (m.attachments && m.attachments.length) {
+        const counts = m.attachments.reduce((a, x) => { a[x.type] = (a[x.type] || 0) + 1; return a; }, {});
+        const bits = [];
+        if (counts.image) bits.push(`${counts.image} image${counts.image > 1 ? "s" : ""}`);
+        if (counts.file) bits.push(`${counts.file} file${counts.file > 1 ? "s" : ""}`);
+        if (m.attachments.length === 1 && m.attachments[0].name) {
+          line += ` [shared: ${m.attachments[0].name}]`;
+        } else {
+          line += ` [shared ${bits.join(" and ")}]`;
+        }
+      }
+      return line;
+    });
+    const transcript = transcriptLines.join("\n");
+
+    const participants = [
       state.username && `${state.username} (human)`,
-      ...state.bots.map(b => b.name + (b.id === bot.id ? " (you)" : ""))
+      ...room.bots.map(b => b.name + (b.id === bot.id ? " (you)" : ""))
     ].filter(Boolean).join(", ");
+
+    const roomContext = room.isDefault
+      ? `The room is #${room.name}, the main lobby.`
+      : `The room is #${room.name}${room.description ? ` — ${room.description}` : ""}.`;
 
     const entryNote = opts.forceGreeting
       ? `\n\nYou just entered the chatroom. Give a SHORT in-character greeting (one sentence). Do not ask long questions.`
       : "";
 
-    const sys = `You are ${bot.name}, a participant in an online chatroom called "The Reverie Lobby".
+    const sys = `You are ${bot.name}, a participant in an online chatroom called "Reverie Chat". ${roomContext}
 Persona: ${bot.persona}
 
 Strict rules:
@@ -1161,11 +2153,11 @@ Strict rules:
 - Stay fully in character as ${bot.name}.
 - DO NOT prefix with your name — the chat client handles that.
 - DO NOT use any <thinking> tags or meta-commentary.
-- React naturally to what was just said.
+- React naturally to what was just said. If someone shared an image or file, react to that casually (you can't actually see it, so don't describe its contents — just react to the fact they shared something).
 - Never speak for anyone else, and never impersonate another chatter.
-- Occasional typos or chat-era punctuation are fine; stay in the 90s/2000s AIM voice if your persona suggests it.
+- Occasional typos or chat-era punctuation are fine; stay in your era/voice.
 
-Current participants: ${participantsList}${entryNote}`;
+Current participants: ${participants}${entryNote}`;
 
     const userContent = transcript
       ? `Recent chatroom transcript:\n\n${transcript}\n\nRespond now as ${bot.name}. Just the message text, nothing else.`
@@ -1192,7 +2184,7 @@ Current participants: ${participantsList}${entryNote}`;
 
     clearTyping(bot);
 
-    // Clean up bot output
+    // Clean output
     text = text.trim();
     text = text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, "").trim();
     text = text.replace(/<\/?thinking>/gi, "").trim();
@@ -1207,27 +2199,56 @@ Current participants: ${participantsList}${entryNote}`;
 
     if (!text) return;
 
-    const msg = addMessage({ author: bot.name, authorType: "bot", color: bot.color, text });
-    afterNewMessage(msg);
+    const msg = addMessage(roomId, {
+      author: bot.name, authorType: "bot",
+      color: bot.color, avatarEmoji: bot.avatar,
+      text,
+    });
+    if (msg) afterNewMessage(msg);
   }
 
-  // ─── Human send ─────────────────────────────────────────────────────
+  // ── Human send ────────────────────────────────────────────────────
   function handleHumanSend() {
     const text = els.input.value.trim();
-    if (!text || !state.signedOn) return;
+    const attachments = state.pendingAttachments.slice();
+    if (!text && attachments.length === 0) return;
+    if (!state.signedOn) return;
+
     els.input.value = "";
-    const msg = addMessage({
+    autoResizeInput();
+    state.pendingAttachments = [];
+    renderAttachments();
+
+    const msg = addMessage(state.currentRoomId, {
       author: state.username, authorType: "human",
-      color: colorForName(state.username), text,
+      color: colorForName(state.username),
+      avatarDataUrl: state.avatarDataUrl || null,
+      text, attachments,
     });
-    afterNewMessage(msg);
+    if (msg) afterNewMessage(msg);
   }
+
+  function sendSticker(sticker) {
+    if (!state.signedOn) return;
+    const msg = addMessage(state.currentRoomId, {
+      author: state.username, authorType: "human",
+      color: colorForName(state.username),
+      avatarDataUrl: state.avatarDataUrl || null,
+      text: "", sticker: { emoji: sticker.emoji, label: sticker.label, anim: sticker.anim },
+    });
+    if (msg) afterNewMessage(msg);
+  }
+
   els.sendBtn.addEventListener("click", handleHumanSend);
-  els.input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); handleHumanSend(); } });
+  els.input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleHumanSend();
+    }
+  });
 
   return { onActivate, onEngineReady, onEngineLost };
 })();
-
 </script>
 </body>
 </html>
