@@ -187,6 +187,322 @@
     margin-left: 2px; font: 10px var(--mono); color: var(--r-text-dim);
   }
 
+  /* Header control buttons */
+  .r-header-btn {
+    background: transparent;
+    border: 1px solid var(--r-border);
+    color: var(--r-text-muted);
+    padding: 5px 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    font: 11px var(--sans);
+    transition: all 0.12s ease;
+  }
+  .r-header-btn:hover { border-color: var(--r-accent-dim); color: var(--r-text); }
+
+  /* Live network indicator (offline-first pro mode) */
+  .r-net-indicator {
+    display: none;
+    margin-left: 8px;
+    padding: 2px 7px 2px 16px;
+    border-radius: 10px;
+    font: 500 9.5px var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    position: relative;
+    border: 1px solid transparent;
+    user-select: none;
+    vertical-align: middle;
+  }
+  .r-net-indicator.visible { display: inline-block; }
+  .r-net-indicator::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+  }
+  .r-net-indicator.local-only { color: #81b29a; border-color: rgba(129,178,154,0.3); background: rgba(129,178,154,0.06); }
+  .r-net-indicator.local-only::before { animation: r-net-breathe 3s ease-in-out infinite; }
+  @keyframes r-net-breathe { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
+  .r-net-indicator.network-active { color: #c8a574; border-color: rgba(200,165,116,0.3); background: rgba(200,165,116,0.06); }
+
+  /* Modal system */
+  .r-modal {
+    position: fixed; inset: 0;
+    display: none;
+    z-index: 200;
+    align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+  .r-modal[aria-hidden="false"] { display: flex; opacity: 1; }
+  .r-modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(10, 8, 6, 0.7);
+    backdrop-filter: blur(6px);
+  }
+  .r-modal-panel {
+    position: relative;
+    background: var(--r-bg-elevated);
+    border: 1px solid var(--r-border);
+    border-radius: 12px;
+    width: min(480px, calc(100vw - 40px));
+    max-height: calc(100vh - 80px);
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: r-modal-in 0.22s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+  .r-modal-panel-wide { width: min(720px, calc(100vw - 40px)); }
+  @keyframes r-modal-in {
+    from { transform: translateY(8px) scale(0.98); opacity: 0; }
+    to   { transform: translateY(0)   scale(1);    opacity: 1; }
+  }
+  .r-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--r-border-subtle);
+  }
+  .r-modal-header h2 {
+    font: 400 20px var(--serif);
+    color: var(--r-text);
+    letter-spacing: -0.01em;
+  }
+  .r-modal-close {
+    background: transparent; border: none;
+    color: var(--r-text-dim);
+    font-size: 22px; line-height: 1;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 5px;
+    transition: all 0.12s;
+  }
+  .r-modal-close:hover { background: var(--r-bg-subtle); color: var(--r-text); }
+  .r-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px 22px;
+  }
+  .r-modal-body::-webkit-scrollbar { width: 6px; }
+  .r-modal-body::-webkit-scrollbar-thumb { background: var(--r-border); border-radius: 3px; }
+
+  /* Settings sections */
+  .r-settings-section {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--r-border-subtle);
+  }
+  .r-settings-section:last-child { border-bottom: none; }
+  .r-settings-section-head h3 {
+    font: 500 14px var(--sans);
+    color: var(--r-text);
+    margin-bottom: 4px;
+  }
+  .r-settings-hint {
+    font: 12px/1.55 var(--sans);
+    color: var(--r-text-muted);
+    margin-bottom: 12px;
+  }
+
+  /* Toggle switch */
+  .r-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .r-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .r-toggle-track {
+    display: inline-block;
+    width: 34px; height: 18px;
+    background: var(--r-border);
+    border-radius: 999px;
+    position: relative;
+    transition: background 0.18s ease;
+  }
+  .r-toggle-thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: var(--r-bg-elevated);
+    border-radius: 50%;
+    transition: left 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .r-toggle input:checked + .r-toggle-track { background: var(--r-accent); }
+  .r-toggle input:checked + .r-toggle-track .r-toggle-thumb { left: 18px; }
+  .r-toggle-label { font: 13px var(--sans); color: var(--r-text); }
+
+  /* Personal dictionary */
+  .r-dict-list {
+    display: flex; flex-direction: column; gap: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+  }
+  .r-dict-entry {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 7px 10px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 7px;
+    font-size: 12px;
+  }
+  .r-dict-term {
+    font: 500 12px var(--mono);
+    color: var(--r-accent);
+    flex-shrink: 0;
+    min-width: 80px;
+    max-width: 140px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .r-dict-def {
+    flex: 1;
+    color: var(--r-text-muted);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  .r-dict-remove {
+    background: transparent; border: none;
+    color: var(--r-text-dim);
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 16px;
+    line-height: 1;
+    border-radius: 4px;
+  }
+  .r-dict-remove:hover { color: var(--r-danger); }
+  .r-dict-empty {
+    font: italic 12px var(--serif);
+    color: var(--r-text-dim);
+    padding: 10px;
+    text-align: center;
+  }
+  .r-dict-add {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto;
+    gap: 6px;
+  }
+  .r-dict-add input {
+    background: var(--r-bg);
+    border: 1px solid var(--r-border);
+    color: var(--r-text);
+    padding: 7px 9px;
+    border-radius: 6px;
+    font: 12px var(--sans);
+    outline: none;
+    transition: border-color 0.12s;
+  }
+  .r-dict-add input:focus { border-color: var(--r-accent-dim); }
+  .r-dict-add-btn {
+    background: var(--r-accent);
+    color: var(--r-bg);
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font: 500 12px var(--sans);
+    transition: opacity 0.12s;
+  }
+  .r-dict-add-btn:hover { opacity: 0.88; }
+  .r-dict-add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .r-dict-count {
+    font: 10px var(--mono);
+    color: var(--r-text-dim);
+    letter-spacing: 0.05em;
+    margin-top: 8px;
+    text-align: right;
+  }
+
+  /* History modal */
+  .r-history-search {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--r-border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .r-history-search input {
+    flex: 1;
+    background: var(--r-bg);
+    border: 1px solid var(--r-border);
+    color: var(--r-text);
+    padding: 7px 11px;
+    border-radius: 6px;
+    font: 13px var(--sans);
+    outline: none;
+  }
+  .r-history-search input:focus { border-color: var(--r-accent-dim); }
+  .r-history-meta {
+    font: 10px var(--mono);
+    color: var(--r-text-dim);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+  .r-history-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .r-history-topic {
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    color: var(--r-text-muted);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font: 11px var(--sans);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .r-history-topic:hover { border-color: var(--r-accent-dim); color: var(--r-text); }
+  .r-history-topic.active { background: var(--r-accent); color: var(--r-bg); border-color: var(--r-accent); }
+  .r-history-topic .count { opacity: 0.6; margin-left: 4px; font-size: 10px; }
+  .r-history-results { display: flex; flex-direction: column; gap: 8px; }
+  .r-history-item {
+    padding: 10px 12px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .r-history-item:hover { border-color: var(--r-accent-dim); background: var(--r-bg-elevated); }
+  .r-history-item-q {
+    font: 500 13px var(--sans);
+    color: var(--r-text);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .r-history-item-a {
+    font: 12px/1.45 var(--serif);
+    color: var(--r-text-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .r-history-item-meta {
+    display: flex;
+    gap: 8px;
+    font: 10px var(--mono);
+    color: var(--r-text-dim);
+    margin-top: 6px;
+    letter-spacing: 0.03em;
+  }
+  .r-history-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--r-text-dim);
+    font: italic 13px var(--serif);
+  }
+
   /* ═══════════ STUDIO ═══════════ */
   body.view-studio {
     background: #1a1612;
@@ -1149,12 +1465,74 @@
         <span class="r-mark" id="r-mark"></span>
         <h1>Reverie</h1>
         <span class="r-tagline">thought, on device</span>
+        <span class="r-net-indicator" id="r-net-indicator" title="" aria-hidden="true"></span>
       </div>
       <div class="r-controls">
         <select id="model-select" title="Model"></select>
+        <button id="r-history-btn" title="Search past conversations" class="r-header-btn">History</button>
+        <button id="r-settings-btn" title="Settings" class="r-header-btn">Settings</button>
         <button id="r-clear-btn" title="Clear conversation">Clear</button>
       </div>
     </header>
+
+    <!-- Settings modal -->
+    <div id="r-settings-modal" class="r-modal" aria-hidden="true">
+      <div class="r-modal-backdrop" data-close="settings"></div>
+      <div class="r-modal-panel">
+        <div class="r-modal-header">
+          <h2>Settings</h2>
+          <button class="r-modal-close" data-close="settings" aria-label="Close">×</button>
+        </div>
+        <div class="r-modal-body">
+
+          <section class="r-settings-section">
+            <div class="r-settings-section-head">
+              <h3>Offline-first mode</h3>
+              <p class="r-settings-hint">Displays a live indicator showing whether the network is active. All inference is already local; this surfaces the truth about connectivity.</p>
+            </div>
+            <label class="r-toggle">
+              <input type="checkbox" id="r-pref-offline-badge" />
+              <span class="r-toggle-track"><span class="r-toggle-thumb"></span></span>
+              <span class="r-toggle-label">Show network indicator</span>
+            </label>
+          </section>
+
+          <section class="r-settings-section">
+            <div class="r-settings-section-head">
+              <h3>Personal dictionary</h3>
+              <p class="r-settings-hint">Private glossary of people, projects, acronyms, and terms that matter to you. Reverie will reference these when relevant. Stored on your device only.</p>
+            </div>
+            <div class="r-dict-list" id="r-dict-list"></div>
+            <div class="r-dict-add">
+              <input type="text" id="r-dict-term" placeholder="term" maxlength="60" />
+              <input type="text" id="r-dict-def" placeholder="short definition or context" maxlength="240" />
+              <button class="r-dict-add-btn" id="r-dict-add-btn">Add</button>
+            </div>
+            <div class="r-dict-count" id="r-dict-count"></div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- History modal -->
+    <div id="r-history-modal" class="r-modal" aria-hidden="true">
+      <div class="r-modal-backdrop" data-close="history"></div>
+      <div class="r-modal-panel r-modal-panel-wide">
+        <div class="r-modal-header">
+          <h2>History</h2>
+          <button class="r-modal-close" data-close="history" aria-label="Close">×</button>
+        </div>
+        <div class="r-history-search">
+          <input type="search" id="r-history-search" placeholder="search past conversations…" />
+          <span class="r-history-meta" id="r-history-meta"></span>
+        </div>
+        <div class="r-modal-body">
+          <div class="r-history-topics" id="r-history-topics"></div>
+          <div class="r-history-results" id="r-history-results"></div>
+        </div>
+      </div>
+    </div>
 
     <div id="r-loader" class="r-loader">
       <div class="r-loader-inner">
@@ -1875,6 +2253,18 @@ Always include both sections. Always close the </thinking> tag before your final
   function buildSystemPrompt(currentUserText, attachedFiles) {
     let prompt = SYSTEM_PROMPT;
 
+    // Personal dictionary (glossary): only inject entries that might be relevant.
+    // Relevance = exact word match (case-insensitive) of the term in the user's prompt.
+    // If no matches, skip entirely to keep prompts lean.
+    const relevantDict = dictStore.findRelevant(currentUserText);
+    if (relevantDict.length > 0) {
+      prompt += `\n\n---\nGlossary (user's personal dictionary — these terms appear in their message):\n`;
+      for (const e of relevantDict) {
+        prompt += `- ${e.term}: ${e.def}\n`;
+      }
+      prompt += `Use these silently for context. Don't mention the glossary exists.`;
+    }
+
     // Preference conditioning (retrieval-augmented personalization)
     const { liked, disliked } = retrieveRelevantPrefs(currentUserText, 2);
     const hasPrefs = liked.length > 0 || disliked.length > 0;
@@ -1903,7 +2293,6 @@ Always include both sections. Always close the </thinking> tag before your final
         if (f.kind === "text") {
           prompt += `\n\n=== FILE: ${f.name} (${formatBytes(f.size)}, ${f.type || "text"}) ===\n${f.content}\n=== END OF FILE: ${f.name} ===`;
         } else if (f.kind === "image") {
-          // Vision is not available in this text-only model — be honest with both model and user.
           prompt += `\n\n=== FILE: ${f.name} (image, ${formatBytes(f.size)}) ===\n[The user attached an image. This local model cannot see image contents. Acknowledge the attachment and ask the user to describe what's in the image if they want you to reason about it.]\n=== END OF FILE ===`;
         } else {
           prompt += `\n\n=== FILE: ${f.name} (${formatBytes(f.size)}) — could not be parsed ===`;
@@ -1994,6 +2383,8 @@ Always include both sections. Always close the </thinking> tag before your final
       // Now that the response is complete, assign a vote key so feedback is collectable
       if ((assistant.content || "").trim()) {
         assistant._voteKey = hashKey(userEntryText, assistant.content);
+        // Save to history for the "Who said what" memory view
+        historyStore.record(userEntryText, assistant.content);
       }
       renderMessages(); els.input.focus();
     }
@@ -2160,6 +2551,329 @@ Always include both sections. Always close the </thinking> tag before your final
       }
     }
   });
+
+  // ── Dictionary store ────────────────────────────────────────────
+  // Personal glossary of terms + definitions. Entries are injected into the
+  // system prompt when Reverie detects them in the user's message.
+  const DICT_KEY = "reverie-dictionary-v1";
+  const DICT_MAX_ENTRIES = 50;
+  const dictStore = {
+    read() {
+      try { return JSON.parse(localStorage.getItem(DICT_KEY) || "[]"); } catch { return []; }
+    },
+    write(list) {
+      try { localStorage.setItem(DICT_KEY, JSON.stringify(list)); } catch (e) { console.warn("dict quota", e); }
+    },
+    add(term, def) {
+      const list = this.read();
+      const existing = list.findIndex(e => e.term.toLowerCase() === term.toLowerCase());
+      const entry = { term: term.trim(), def: def.trim(), updatedAt: Date.now() };
+      if (existing >= 0) list[existing] = entry;
+      else list.push(entry);
+      if (list.length > DICT_MAX_ENTRIES) list.shift();
+      this.write(list);
+      return list;
+    },
+    remove(term) {
+      const list = this.read().filter(e => e.term.toLowerCase() !== term.toLowerCase());
+      this.write(list);
+      return list;
+    },
+    all() { return this.read().slice().sort((a, b) => a.term.localeCompare(b.term)); },
+    // Return entries whose term appears as a word in the user's text (case-insensitive).
+    // Matching is whole-word so "AI" doesn't match "said"; also supports multi-word terms.
+    findRelevant(userText) {
+      if (!userText) return [];
+      const list = this.read();
+      if (list.length === 0) return [];
+      const lower = userText.toLowerCase();
+      const matches = [];
+      for (const e of list) {
+        const t = e.term.toLowerCase();
+        if (!t) continue;
+        // Multi-word terms: simple substring. Single-word: whole-word boundary.
+        if (t.includes(" ")) {
+          if (lower.includes(t)) matches.push(e);
+        } else {
+          // Word boundary match to avoid partial-hits
+          const re = new RegExp(`\\b${t.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}\\b`, "i");
+          if (re.test(userText)) matches.push(e);
+        }
+      }
+      return matches;
+    },
+  };
+
+  // ── History store ───────────────────────────────────────────────
+  // Records (user prompt, assistant response, timestamp, extracted topic keywords)
+  // for each completed turn. Used by the History modal to enable search + topic grouping.
+  const HIST_KEY = "reverie-history-v1";
+  const HIST_MAX = 500; // cap to avoid localStorage bloat
+  const TOPIC_STOPWORDS = new Set([
+    "the","a","an","and","or","but","is","are","was","were","be","been","being","am",
+    "to","of","in","on","at","for","with","by","from","as","it","this","that","these","those",
+    "i","you","he","she","we","they","my","your","our","their","his","her","its",
+    "what","which","who","whom","how","why","when","where","whose",
+    "do","does","did","doing","done","can","could","should","would","will","shall","may","might","must",
+    "not","no","yes","if","then","else","so","too","also","just","very","really","quite",
+    "have","has","had","having","having","get","got","getting",
+    "me","us","them","him","her","myself","yourself","ourselves",
+    "about","into","onto","out","up","down","off","over","under","after","before","during","while",
+    "one","two","three","some","any","all","each","every","many","much","few","several",
+    "like","want","need","know","think","see","say","make","go","come","take","give",
+    "more","most","less","least","other","another","same","such","own","than","both","either","neither",
+    "there","here","now","then","always","never","often","sometimes","usually",
+  ]);
+  const historyStore = {
+    read() {
+      try { return JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); } catch { return []; }
+    },
+    write(list) {
+      try { localStorage.setItem(HIST_KEY, JSON.stringify(list)); }
+      catch (e) {
+        // Quota exceeded — trim aggressively and retry
+        try { localStorage.setItem(HIST_KEY, JSON.stringify(list.slice(-Math.floor(HIST_MAX / 2)))); }
+        catch (e2) { console.warn("history save failed", e2); }
+      }
+    },
+    record(userPrompt, assistantResponse) {
+      const list = this.read();
+      const entry = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        q: (userPrompt || "").slice(0, 1000),
+        a: (assistantResponse || "").slice(0, 4000),
+        at: Date.now(),
+        topics: extractTopics(userPrompt + " " + assistantResponse, 5),
+      };
+      list.push(entry);
+      if (list.length > HIST_MAX) list.splice(0, list.length - HIST_MAX);
+      this.write(list);
+    },
+    all() { return this.read(); },
+    search(query) {
+      const q = (query || "").trim().toLowerCase();
+      if (!q) return this.read().slice().reverse();
+      const terms = q.split(/\s+/).filter(Boolean);
+      return this.read().filter(e => {
+        const hay = (e.q + " " + e.a).toLowerCase();
+        return terms.every(t => hay.includes(t));
+      }).reverse();
+    },
+    clear() { this.write([]); },
+  };
+
+  // Extract topic keywords from text: distinctive non-stopword tokens by frequency.
+  function extractTopics(text, n) {
+    const tokens = (text || "").toLowerCase().match(/[a-z][a-z'-]{2,}/g) || [];
+    const counts = {};
+    for (const t of tokens) {
+      if (TOPIC_STOPWORDS.has(t)) continue;
+      if (t.length < 4) continue;
+      counts[t] = (counts[t] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, n || 5)
+      .map(([word]) => word);
+  }
+
+  // ── Offline-first indicator ─────────────────────────────────────
+  const PREF_KEY_OFFLINE = "reverie-pref-offline-indicator";
+  const prefs = {
+    offlineBadge() {
+      try { return localStorage.getItem(PREF_KEY_OFFLINE) === "1"; } catch { return false; }
+    },
+    setOfflineBadge(on) {
+      try { localStorage.setItem(PREF_KEY_OFFLINE, on ? "1" : "0"); } catch {}
+    },
+  };
+
+  const netEl = $("r-net-indicator");
+  function refreshNetIndicator() {
+    if (!prefs.offlineBadge()) { netEl.classList.remove("visible"); return; }
+    netEl.classList.add("visible");
+    const online = typeof navigator.onLine === "boolean" ? navigator.onLine : true;
+    if (online) {
+      netEl.classList.add("network-active");
+      netEl.classList.remove("local-only");
+      netEl.textContent = "network active";
+      netEl.title = "You are online. Inference runs locally, but the browser can reach the network.";
+    } else {
+      netEl.classList.add("local-only");
+      netEl.classList.remove("network-active");
+      netEl.textContent = "local · offline";
+      netEl.title = "You are offline. Everything runs on your device.";
+    }
+  }
+  window.addEventListener("online", refreshNetIndicator);
+  window.addEventListener("offline", refreshNetIndicator);
+  refreshNetIndicator();
+
+  // ── Modal wiring ────────────────────────────────────────────────
+  function openModal(which) {
+    const modal = $(`r-${which}-modal`);
+    if (!modal) return;
+    modal.setAttribute("aria-hidden", "false");
+    if (which === "settings") renderSettings();
+    if (which === "history") renderHistory();
+  }
+  function closeModal(which) {
+    const modal = $(`r-${which}-modal`);
+    if (!modal) return;
+    modal.setAttribute("aria-hidden", "true");
+  }
+  document.querySelectorAll("[data-close]").forEach(el => {
+    el.addEventListener("click", () => closeModal(el.dataset.close));
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.querySelectorAll('.r-modal[aria-hidden="false"]').forEach(m => {
+        m.setAttribute("aria-hidden", "true");
+      });
+    }
+  });
+
+  // ── Settings modal rendering ────────────────────────────────────
+  function renderSettings() {
+    // Offline toggle
+    const tog = $("r-pref-offline-badge");
+    tog.checked = prefs.offlineBadge();
+    tog.onchange = () => {
+      prefs.setOfflineBadge(tog.checked);
+      refreshNetIndicator();
+    };
+    renderDictList();
+  }
+
+  function renderDictList() {
+    const listEl = $("r-dict-list");
+    const countEl = $("r-dict-count");
+    const entries = dictStore.all();
+    listEl.innerHTML = "";
+    if (entries.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-dict-empty";
+      empty.textContent = "No entries yet. Add people, projects, acronyms, terms.";
+      listEl.appendChild(empty);
+    } else {
+      for (const e of entries) {
+        const row = document.createElement("div");
+        row.className = "r-dict-entry";
+        row.innerHTML = `<span class="r-dict-term"></span><span class="r-dict-def"></span><button class="r-dict-remove" title="Remove">×</button>`;
+        row.querySelector(".r-dict-term").textContent = e.term;
+        row.querySelector(".r-dict-def").textContent = e.def;
+        row.querySelector(".r-dict-remove").addEventListener("click", () => {
+          dictStore.remove(e.term);
+          renderDictList();
+        });
+        listEl.appendChild(row);
+      }
+    }
+    countEl.textContent = `${entries.length} / ${DICT_MAX_ENTRIES} entries`;
+  }
+
+  $("r-dict-add-btn").addEventListener("click", () => {
+    const termEl = $("r-dict-term");
+    const defEl = $("r-dict-def");
+    const term = termEl.value.trim();
+    const def = defEl.value.trim();
+    if (!term || !def) return;
+    dictStore.add(term, def);
+    termEl.value = ""; defEl.value = "";
+    renderDictList();
+    termEl.focus();
+  });
+  // Enter to add
+  [$("r-dict-term"), $("r-dict-def")].forEach(inp => {
+    inp.addEventListener("keydown", e => {
+      if (e.key === "Enter") { e.preventDefault(); $("r-dict-add-btn").click(); }
+    });
+  });
+
+  // ── History modal rendering ─────────────────────────────────────
+  let activeTopicFilter = null;
+  function renderHistory() {
+    const searchEl = $("r-history-search");
+    searchEl.oninput = () => renderHistoryResults();
+    activeTopicFilter = null;
+    searchEl.value = "";
+    renderHistoryTopics();
+    renderHistoryResults();
+    setTimeout(() => searchEl.focus(), 60);
+  }
+
+  function renderHistoryTopics() {
+    const topicsEl = $("r-history-topics");
+    topicsEl.innerHTML = "";
+    const entries = historyStore.all();
+    const counts = {};
+    for (const e of entries) {
+      for (const t of (e.topics || [])) counts[t] = (counts[t] || 0) + 1;
+    }
+    // Only show topics that appear in 2+ conversations — avoids singletons cluttering the list
+    const topics = Object.entries(counts)
+      .filter(([, c]) => c >= 2)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 14);
+    if (topics.length === 0) return;
+    for (const [topic, count] of topics) {
+      const chip = document.createElement("button");
+      chip.className = "r-history-topic" + (activeTopicFilter === topic ? " active" : "");
+      chip.innerHTML = `${topic}<span class="count">${count}</span>`;
+      chip.addEventListener("click", () => {
+        activeTopicFilter = activeTopicFilter === topic ? null : topic;
+        renderHistoryTopics();
+        renderHistoryResults();
+      });
+      topicsEl.appendChild(chip);
+    }
+  }
+
+  function renderHistoryResults() {
+    const resultsEl = $("r-history-results");
+    const metaEl = $("r-history-meta");
+    const query = $("r-history-search").value.trim();
+    let entries = historyStore.search(query);
+    if (activeTopicFilter) {
+      entries = entries.filter(e => (e.topics || []).includes(activeTopicFilter));
+    }
+    resultsEl.innerHTML = "";
+    metaEl.textContent = entries.length === 0
+      ? (historyStore.all().length === 0 ? "no history yet" : "no matches")
+      : `${entries.length} of ${historyStore.all().length}`;
+    if (entries.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-history-empty";
+      empty.textContent = historyStore.all().length === 0
+        ? "Conversations you have with Reverie will appear here — searchable, grouped by topic, all local to your device."
+        : "No conversations match your search.";
+      resultsEl.appendChild(empty);
+      return;
+    }
+    for (const e of entries) {
+      const item = document.createElement("div");
+      item.className = "r-history-item";
+      const q = document.createElement("div"); q.className = "r-history-item-q"; q.textContent = e.q;
+      const a = document.createElement("div"); a.className = "r-history-item-a"; a.textContent = e.a;
+      const meta = document.createElement("div"); meta.className = "r-history-item-meta";
+      const dateStr = new Date(e.at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      meta.innerHTML = `<span>${dateStr}</span>` + (e.topics && e.topics.length ? `<span>· ${e.topics.slice(0, 3).join(", ")}</span>` : "");
+      item.appendChild(q); item.appendChild(a); item.appendChild(meta);
+      item.addEventListener("click", () => {
+        // Load this conversation pair back into the active chat
+        const userMsg = { role: "user", content: e.q };
+        const asstMsg = { role: "assistant", content: e.a, _thinkingCollapsed: true, _thinkingStreaming: false, _userPrompt: e.q, _voteKey: hashKey(e.q, e.a) };
+        state.messages.push(userMsg, asstMsg);
+        renderMessages();
+        closeModal("history");
+      });
+      resultsEl.appendChild(item);
+    }
+  }
+
+  // ── Header button wiring ────────────────────────────────────────
+  $("r-settings-btn").addEventListener("click", () => openModal("settings"));
+  $("r-history-btn").addEventListener("click", () => openModal("history"));
 
   showLoader();
   return { isEngineReady: () => !!engineState.engine };
