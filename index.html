@@ -262,8 +262,43 @@
   .st-msg.error { color: var(--r-danger); font-size: 12px; padding: 6px 10px; background: rgba(200, 122, 90, 0.08); border: 1px solid rgba(200, 122, 90, 0.25); border-radius: 7px; }
   .st-msg .ops { font: 11px var(--mono); color: var(--r-text-dim); margin-top: 6px; padding: 6px 8px; background: var(--r-bg-subtle); border-radius: 5px; white-space: pre-wrap; max-height: 120px; overflow-y: auto; }
   .st-intro { color: var(--r-text-muted); font-size: 13px; }
-  .st-intro ul { margin: 8px 0 0 18px; padding: 0; }
+  .st-intro ul { margin: 6px 0 0 16px; padding: 0; }
   .st-intro li { margin-bottom: 4px; font-size: 12px; color: var(--r-text-dim); }
+  .st-intro-group { margin-top: 12px; }
+  .st-intro-label { font: 500 10px var(--mono); color: var(--r-accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+
+  .st-filter-panel {
+    padding: 10px 12px;
+    background: var(--r-bg-subtle);
+    border-bottom: 1px solid var(--r-border-subtle);
+  }
+  .st-filter-panel-title {
+    display: flex; align-items: center; justify-content: space-between;
+    font: 500 10px var(--mono); color: var(--r-text-muted);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;
+  }
+  .st-filter-list { display: flex; flex-direction: column; gap: 4px; }
+  .st-filter-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 8px; background: var(--r-bg-elevated);
+    border: 1px solid var(--r-border-subtle); border-radius: 6px;
+    font: 12px var(--sans); color: var(--r-text);
+  }
+  .st-filter-item .name { font-weight: 500; color: var(--r-accent); }
+  .st-filter-item .params { font: 10px var(--mono); color: var(--r-text-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .st-filter-item button {
+    background: transparent; border: none; color: var(--r-text-dim);
+    cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 14px; line-height: 1;
+  }
+  .st-filter-item button:hover { background: var(--r-bg-subtle); color: var(--r-danger); }
+
+  .st-mini-btn {
+    background: transparent; border: 1px solid var(--r-border);
+    color: var(--r-text-muted); cursor: pointer;
+    padding: 2px 8px; border-radius: 4px; font: 10px var(--sans);
+    text-transform: none; letter-spacing: 0;
+  }
+  .st-mini-btn:hover { color: var(--r-danger); border-color: var(--r-danger); }
 
   .st-input-wrap { padding: 10px; border-top: 1px solid var(--r-border-subtle); display: flex; gap: 6px; align-items: flex-end; }
   .st-input-wrap textarea {
@@ -907,7 +942,7 @@
                 <button class="st-btn primary" id="st-upload-btn-2">Upload image</button>
                 <button class="st-btn secondary" id="st-blank-btn-2">Blank canvas</button>
               </div>
-              <div class="st-note"><b>How this works:</b> the local model can't see pixels of uploaded images. It composes vector shapes (circles, rectangles, text, paths) on an overlay on top of your image. Ask it to add things, draw things, annotate, frame, or mark up. If you want placement relative to image content, describe what's in the image.</div>
+              <div class="st-note"><b>How this works:</b> the local model can direct two kinds of changes. It can <b>transform your photo</b> as a whole — apply filters, presets (polaroid, noir, moody-forest, cyberpunk…), crop, adjust tone, color, and grain. And it can <b>add vector overlays on top</b> — shapes, frames, labels, annotations. What it cannot do is see or edit specific pixels of your photo (change just the sky, recolor a particular person, remove objects). For placement-sensitive overlays, describe what's in the image.</div>
             </div>
             <svg id="st-canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" style="display:none;"></svg>
           </div>
@@ -924,16 +959,37 @@
             <span>Direction</span>
             <span class="st-status" id="st-status"></span>
           </div>
+
+          <div class="st-filter-panel" id="st-filter-panel" style="display:none;">
+            <div class="st-filter-panel-title">
+              <span id="st-filter-panel-count">0 filters applied</span>
+              <button class="st-mini-btn" id="st-clear-filters-btn" title="Remove all filters">Clear</button>
+            </div>
+            <div class="st-filter-list" id="st-filter-list"></div>
+          </div>
+
           <div class="st-messages" id="st-messages">
             <div class="st-intro">
-              <p>Tell the AI what you want to change. Try:</p>
-              <ul>
-                <li>"Add three orange circles across the top"</li>
-                <li>"Draw a crescent moon in the upper right"</li>
-                <li>"Make all the circles bigger"</li>
-                <li>"Change the color palette to warm autumn tones"</li>
-                <li>"Add a handwritten label that says 'morning'"</li>
-              </ul>
+              <p>Tell the AI what you want. It can transform a photo or build a composition from scratch.</p>
+              <div class="st-intro-group">
+                <div class="st-intro-label">Photo transforms</div>
+                <ul>
+                  <li>"Make this black & white with strong contrast"</li>
+                  <li>"Give it a moody forest look"</li>
+                  <li>"Apply the polaroid-1975 preset"</li>
+                  <li>"Add warmth and a soft vignette"</li>
+                  <li>"Pixelate it and posterize the colors"</li>
+                </ul>
+              </div>
+              <div class="st-intro-group">
+                <div class="st-intro-label">Overlays &amp; composition</div>
+                <ul>
+                  <li>"Add three orange circles across the top"</li>
+                  <li>"Draw a thick frame around the whole image"</li>
+                  <li>"Write 'summer 1998' in the bottom-left corner"</li>
+                  <li>"Add a crescent moon in the upper right"</li>
+                </ul>
+              </div>
             </div>
           </div>
           <div class="st-input-wrap">
@@ -3594,11 +3650,14 @@ const studio = (() => {
   const CANVAS_W = 800, CANVAS_H = 600;
   const state = {
     active: false,
-    baseImageDataUrl: null, // null if blank canvas
-    baseImageW: null, baseImageH: null,
-    ops: [],        // current ops, in render order
-    historyStack: [], // snapshots of ops; most recent = last element
-    historyIndex: -1, // pointer into historyStack; -1 means "nothing yet"
+    baseImageDataUrl: null,       // original, unmodified upload (or null for blank)
+    baseImageW: null, baseImageH: null, // original image dimensions
+    cropBox: null,                 // {x,y,w,h} in original-image coords, or null for no crop
+    filters: [],                   // [{name, params}] stack applied to base image
+    processedImageCache: null,     // memoized processed dataURL
+    ops: [],                       // vector shape ops (on top of processed image)
+    historyStack: [],              // snapshots of {filters, cropBox, ops}; most recent last
+    historyIndex: -1,
     nextShapeId: 1,
     messages: [],
     working: false,
@@ -3623,6 +3682,10 @@ const studio = (() => {
     input:        $("st-input"),
     sendBtn:      $("st-send-btn"),
     status:       $("st-status"),
+    filterPanel:  $("st-filter-panel"),
+    filterList:   $("st-filter-list"),
+    filterCount:  $("st-filter-panel-count"),
+    clearFiltersBtn: $("st-clear-filters-btn"),
   };
 
   function onActivate() {
@@ -3642,6 +3705,9 @@ const studio = (() => {
     state.baseImageW = CANVAS_W; state.baseImageH = CANVAS_H;
     els.svg.setAttribute("viewBox", `0 0 ${CANVAS_W} ${CANVAS_H}`);
     state.ops = [];
+    state.filters = [];
+    state.cropBox = null;
+    state.processedImageCache = null;
     resetHistory();
     renderCanvas();
     showCanvas();
@@ -3654,7 +3720,6 @@ const studio = (() => {
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        // Fit into CANVAS_W × CANVAS_H while preserving aspect
         const ratio = img.width / img.height;
         let w, h;
         if (ratio > CANVAS_W / CANVAS_H) { w = CANVAS_W; h = Math.round(CANVAS_W / ratio); }
@@ -3663,11 +3728,14 @@ const studio = (() => {
         state.baseImageW = w; state.baseImageH = h;
         els.svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
         state.ops = [];
+        state.filters = [];
+        state.cropBox = null;
+        state.processedImageCache = null;
         resetHistory();
         renderCanvas();
         showCanvas();
         enableInput();
-        addSystemMessage(`Image loaded (${file.name}). Reminder: the local model can't see its pixels — it can only add vector shapes on top. Try things like "add a thick black frame", "draw arrows pointing to things I'll describe", "add stars scattered across the sky", "write a caption at the bottom". Describe what's in the image if you want placement to match the scene.`);
+        addSystemMessage(`Image loaded (${file.name}). Now you can: apply filters and presets ("make it moody", "cartoonize it", "black and white"), crop it, or add vector overlays on top ("add a frame", "write a caption"). If you want overlays placed relative to scene content, describe what's in the image.`);
       };
       img.onerror = () => alert("Couldn't read that image.");
       img.src = reader.result;
@@ -3697,37 +3765,49 @@ const studio = (() => {
   });
 
   // ── History ─────────────────────────────────────────────────────
+  function snapshot() {
+    return JSON.parse(JSON.stringify({
+      ops: state.ops,
+      filters: state.filters,
+      cropBox: state.cropBox,
+    }));
+  }
+  function restoreSnapshot(snap) {
+    state.ops = JSON.parse(JSON.stringify(snap.ops || []));
+    state.filters = JSON.parse(JSON.stringify(snap.filters || []));
+    state.cropBox = snap.cropBox ? JSON.parse(JSON.stringify(snap.cropBox)) : null;
+    state.processedImageCache = null; // must re-derive
+  }
   function pushHistory() {
-    // Drop anything after the current pointer (standard undo/redo behavior)
     state.historyStack = state.historyStack.slice(0, state.historyIndex + 1);
-    state.historyStack.push(JSON.parse(JSON.stringify(state.ops)));
+    state.historyStack.push(snapshot());
     if (state.historyStack.length > 40) state.historyStack.shift();
     state.historyIndex = state.historyStack.length - 1;
     updateHistoryUI();
   }
   function resetHistory() {
-    state.historyStack = [JSON.parse(JSON.stringify(state.ops))];
+    state.historyStack = [snapshot()];
     state.historyIndex = 0;
     updateHistoryUI();
   }
   function undo() {
     if (state.historyIndex <= 0) return;
     state.historyIndex--;
-    state.ops = JSON.parse(JSON.stringify(state.historyStack[state.historyIndex]));
+    restoreSnapshot(state.historyStack[state.historyIndex]);
     renderCanvas();
     updateHistoryUI();
   }
   function redo() {
     if (state.historyIndex >= state.historyStack.length - 1) return;
     state.historyIndex++;
-    state.ops = JSON.parse(JSON.stringify(state.historyStack[state.historyIndex]));
+    restoreSnapshot(state.historyStack[state.historyIndex]);
     renderCanvas();
     updateHistoryUI();
   }
   function resetToStart() {
     if (state.historyStack.length === 0) return;
     state.historyIndex = 0;
-    state.ops = JSON.parse(JSON.stringify(state.historyStack[0]));
+    restoreSnapshot(state.historyStack[0]);
     renderCanvas();
     updateHistoryUI();
   }
@@ -3736,40 +3816,353 @@ const studio = (() => {
     els.redoBtn.disabled = state.historyIndex >= state.historyStack.length - 1;
     els.resetBtn.disabled = state.historyStack.length <= 1;
     const shapeCount = state.ops.length;
-    els.stepInfo.textContent = `${shapeCount} element${shapeCount === 1 ? "" : "s"} · step ${state.historyIndex + 1}/${state.historyStack.length}`;
+    const filterCount = state.filters.length;
+    const bits = [];
+    if (shapeCount) bits.push(`${shapeCount} shape${shapeCount === 1 ? "" : "s"}`);
+    if (filterCount) bits.push(`${filterCount} filter${filterCount === 1 ? "" : "s"}`);
+    if (state.cropBox) bits.push("cropped");
+    const summary = bits.join(" · ") || "no changes";
+    els.stepInfo.textContent = `${summary} · step ${state.historyIndex + 1}/${state.historyStack.length}`;
+    // Also refresh the filter stack panel
+    renderFilterStack();
   }
   els.undoBtn.addEventListener("click", undo);
   els.redoBtn.addEventListener("click", redo);
   els.resetBtn.addEventListener("click", resetToStart);
 
+  // ── Filter stack UI panel ───────────────────────────────────────
+  function renderFilterStack() {
+    if (!els.filterPanel) return;
+    const n = state.filters.length;
+    if (n === 0) {
+      els.filterPanel.style.display = "none";
+      els.filterList.innerHTML = "";
+      return;
+    }
+    els.filterPanel.style.display = "block";
+    els.filterCount.textContent = `${n} filter${n === 1 ? "" : "s"} applied`;
+    els.filterList.innerHTML = "";
+    state.filters.forEach((f, i) => {
+      const row = document.createElement("div");
+      row.className = "st-filter-item";
+      const paramStr = (f.params && Object.keys(f.params).length)
+        ? Object.entries(f.params).map(([k, v]) => `${k}=${v}`).join(" ")
+        : "";
+      row.innerHTML = `<span class="name">${escapeForAttr(f.name)}</span><span class="params">${escapeForAttr(paramStr)}</span><button title="Remove this filter">×</button>`;
+      row.querySelector("button").addEventListener("click", () => {
+        state.filters.splice(i, 1);
+        invalidateProcessedImage();
+        pushHistory();
+        renderCanvas();
+      });
+      els.filterList.appendChild(row);
+    });
+  }
+  function escapeForAttr(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  els.clearFiltersBtn.addEventListener("click", () => {
+    if (state.filters.length === 0) return;
+    state.filters = [];
+    invalidateProcessedImage();
+    pushHistory();
+    renderCanvas();
+  });
+
   // ── Rendering ───────────────────────────────────────────────────
+  // The SVG canvas composites: (processed base image) → (vector shapes on top).
+  // The processed base image is recomputed whenever filters or cropBox change.
+  // renderCanvas is sync; if the processed image isn't ready yet we kick off
+  // an async rebuild and re-render when done.
   function renderCanvas() {
     const svgNs = "http://www.w3.org/2000/svg";
+    const viewW = state.cropBox ? state.cropBox.w : state.baseImageW;
+    const viewH = state.cropBox ? state.cropBox.h : state.baseImageH;
+    els.svg.setAttribute("viewBox", `0 0 ${viewW} ${viewH}`);
     while (els.svg.firstChild) els.svg.removeChild(els.svg.firstChild);
 
-    // Base image layer
     if (state.baseImageDataUrl) {
-      const img = document.createElementNS(svgNs, "image");
-      img.setAttributeNS("http://www.w3.org/1999/xlink", "href", state.baseImageDataUrl);
-      img.setAttribute("href", state.baseImageDataUrl);
-      img.setAttribute("x", "0"); img.setAttribute("y", "0");
-      img.setAttribute("width", state.baseImageW); img.setAttribute("height", state.baseImageH);
-      els.svg.appendChild(img);
+      const needsProcessing = state.filters.length > 0 || !!state.cropBox;
+      if (needsProcessing && !state.processedImageCache) {
+        // Start processing; show the raw image meanwhile to avoid flashes
+        processBaseImage().then(() => renderCanvas()).catch(err => console.warn("filter error", err));
+      }
+      const href = state.processedImageCache || state.baseImageDataUrl;
+      const imgEl = document.createElementNS(svgNs, "image");
+      imgEl.setAttributeNS("http://www.w3.org/1999/xlink", "href", href);
+      imgEl.setAttribute("href", href);
+      imgEl.setAttribute("x", "0"); imgEl.setAttribute("y", "0");
+      imgEl.setAttribute("width", viewW); imgEl.setAttribute("height", viewH);
+      els.svg.appendChild(imgEl);
     } else {
-      // White background for blank canvas
       const bg = document.createElementNS(svgNs, "rect");
       bg.setAttribute("x", "0"); bg.setAttribute("y", "0");
-      bg.setAttribute("width", state.baseImageW); bg.setAttribute("height", state.baseImageH);
+      bg.setAttribute("width", viewW); bg.setAttribute("height", viewH);
       bg.setAttribute("fill", "#fafafa");
       els.svg.appendChild(bg);
     }
 
-    // Render each op
     for (const op of state.ops) {
       const node = shapeToSvg(op, svgNs);
       if (node) els.svg.appendChild(node);
     }
   }
+
+  // ── Filter engine ───────────────────────────────────────────────
+  // Applies the filter stack + crop to the base image, producing a PNG dataURL.
+  // Canvas 2D is used for everything here — works offline, no dependencies.
+
+  // Canvas-2D-native filters expressible as a single `ctx.filter` string.
+  // We chain them in one pass where possible for efficiency.
+  const CSS_FILTERS = {
+    grayscale:   (amt) => `grayscale(${clamp01(amt)})`,
+    sepia:       (amt) => `sepia(${clamp01(amt)})`,
+    invert:      (amt) => `invert(${clamp01(amt)})`,
+    brightness:  (amt) => `brightness(${clampRange(amt, 0, 3)})`,
+    contrast:    (amt) => `contrast(${clampRange(amt, 0, 3)})`,
+    saturate:    (amt) => `saturate(${clampRange(amt, 0, 3)})`,
+    "hue-rotate":(deg) => `hue-rotate(${Number(deg) || 0}deg)`,
+    blur:        (px)  => `blur(${Math.max(0, Math.min(40, Number(px) || 0))}px)`,
+  };
+  function clamp01(v) { v = Number(v); if (!isFinite(v)) v = 1; return Math.max(0, Math.min(1, v)); }
+  function clampRange(v, lo, hi) { v = Number(v); if (!isFinite(v)) v = 1; return Math.max(lo, Math.min(hi, v)); }
+
+  // Parse a #rrggbb or rgb(...) color into [r,g,b] 0-255.
+  function parseColor(c) {
+    if (!c) return [0, 0, 0];
+    const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c.trim());
+    if (hex) {
+      let h = hex[1];
+      if (h.length === 3) h = h.split("").map(ch => ch + ch).join("");
+      return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+    }
+    const rgb = /rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(c);
+    if (rgb) return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
+    return [0, 0, 0];
+  }
+
+  // Each pixel filter receives ImageData and mutates the `data` Uint8ClampedArray.
+  const PIXEL_FILTERS = {
+    duotone(imgData, params) {
+      // Map luminance to a gradient between `shadow` and `highlight`
+      const [sr,sg,sb] = parseColor(params.shadow || "#1a1a2e");
+      const [hr,hg,hb] = parseColor(params.highlight || "#f4f1de");
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = (0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2]) / 255;
+        d[i]   = Math.round(sr + (hr - sr) * lum);
+        d[i+1] = Math.round(sg + (hg - sg) * lum);
+        d[i+2] = Math.round(sb + (hb - sb) * lum);
+      }
+    },
+    "gradient-map"(imgData, params) {
+      // 3-stop gradient: shadows → mids → highlights
+      const stops = [
+        parseColor(params.shadow   || "#1a1a2e"),
+        parseColor(params.mid      || "#e07a5f"),
+        parseColor(params.highlight|| "#f4f1de"),
+      ];
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = (0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2]) / 255;
+        let c1, c2, t;
+        if (lum < 0.5) { c1 = stops[0]; c2 = stops[1]; t = lum * 2; }
+        else           { c1 = stops[1]; c2 = stops[2]; t = (lum - 0.5) * 2; }
+        d[i]   = Math.round(c1[0] + (c2[0] - c1[0]) * t);
+        d[i+1] = Math.round(c1[1] + (c2[1] - c1[1]) * t);
+        d[i+2] = Math.round(c1[2] + (c2[2] - c1[2]) * t);
+      }
+    },
+    vignette(imgData, params) {
+      // Darken the corners. `amount` controls intensity (0-1); `radius` pulls the falloff in/out.
+      const amt = clamp01(params.amount ?? 0.6);
+      const radius = clampRange(params.radius ?? 0.7, 0.1, 1.5);
+      const w = imgData.width, h = imgData.height;
+      const cx = w / 2, cy = h / 2;
+      const maxDist = Math.sqrt(cx*cx + cy*cy) * radius;
+      const d = imgData.data;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const dist = Math.sqrt((x-cx)**2 + (y-cy)**2);
+          const fall = Math.min(1, dist / maxDist);
+          const k = 1 - amt * fall * fall;
+          const i = (y * w + x) * 4;
+          d[i]   = d[i]   * k;
+          d[i+1] = d[i+1] * k;
+          d[i+2] = d[i+2] * k;
+        }
+      }
+    },
+    grain(imgData, params) {
+      const amt = clamp01(params.amount ?? 0.08) * 80; // 0..80 grayscale wobble
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const n = (Math.random() - 0.5) * amt;
+        d[i]   = Math.max(0, Math.min(255, d[i]   + n));
+        d[i+1] = Math.max(0, Math.min(255, d[i+1] + n));
+        d[i+2] = Math.max(0, Math.min(255, d[i+2] + n));
+      }
+    },
+    posterize(imgData, params) {
+      const levels = Math.max(2, Math.min(16, Math.round(params.levels ?? 4)));
+      const step = 255 / (levels - 1);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.round(d[i]   / step) * step;
+        d[i+1] = Math.round(d[i+1] / step) * step;
+        d[i+2] = Math.round(d[i+2] / step) * step;
+      }
+    },
+    pixelate(imgData, params, ctx) {
+      // Can't do this with ImageData mutation alone — handled separately in applyPixelFilter.
+      // (Intentionally empty; see the special-case in the pipeline below.)
+    },
+    tint(imgData, params) {
+      const [r, g, b] = parseColor(params.color || "#e07a5f");
+      const amt = clamp01(params.amount ?? 0.3);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = d[i]   * (1 - amt) + r * amt;
+        d[i+1] = d[i+1] * (1 - amt) + g * amt;
+        d[i+2] = d[i+2] * (1 - amt) + b * amt;
+      }
+    },
+    warmth(imgData, params) {
+      const amt = clampRange(params.amount ?? 0.3, -1, 1);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.max(0, Math.min(255, d[i]   + amt * 30));
+        d[i+2] = Math.max(0, Math.min(255, d[i+2] - amt * 30));
+      }
+    },
+  };
+
+  // Preset stacks — named looks the model can pick by name.
+  const PRESETS = {
+    "polaroid-1975": [
+      { name: "contrast",  params: { amount: 0.92 } },
+      { name: "saturate",  params: { amount: 0.78 } },
+      { name: "warmth",    params: { amount: 0.35 } },
+      { name: "grain",     params: { amount: 0.12 } },
+      { name: "vignette",  params: { amount: 0.35, radius: 0.9 } },
+    ],
+    "noir": [
+      { name: "grayscale", params: { amount: 1 } },
+      { name: "contrast",  params: { amount: 1.3 } },
+      { name: "brightness",params: { amount: 0.92 } },
+      { name: "vignette",  params: { amount: 0.55, radius: 0.7 } },
+      { name: "grain",     params: { amount: 0.15 } },
+    ],
+    "risograph": [
+      { name: "posterize", params: { levels: 4 } },
+      { name: "saturate",  params: { amount: 1.4 } },
+      { name: "duotone",   params: { shadow: "#2b0a3d", highlight: "#ffcc00" } },
+    ],
+    "moody-forest": [
+      { name: "gradient-map", params: { shadow: "#0d1b1e", mid: "#2e5339", highlight: "#d8e2c8" } },
+      { name: "contrast",    params: { amount: 1.15 } },
+      { name: "vignette",    params: { amount: 0.45, radius: 0.85 } },
+    ],
+    "vintage-warm": [
+      { name: "warmth",   params: { amount: 0.45 } },
+      { name: "contrast", params: { amount: 0.9 } },
+      { name: "sepia",    params: { amount: 0.3 } },
+      { name: "grain",    params: { amount: 0.08 } },
+      { name: "vignette", params: { amount: 0.3, radius: 1.0 } },
+    ],
+    "cyberpunk": [
+      { name: "contrast",  params: { amount: 1.35 } },
+      { name: "saturate",  params: { amount: 1.6 } },
+      { name: "hue-rotate",params: { amount: 300 } },
+      { name: "duotone",   params: { shadow: "#1a0033", highlight: "#ff00aa" } },
+    ],
+    "dreamy": [
+      { name: "brightness",params: { amount: 1.1 } },
+      { name: "saturate",  params: { amount: 0.85 } },
+      { name: "blur",      params: { amount: 1.5 } },
+      { name: "warmth",    params: { amount: 0.2 } },
+    ],
+    "high-contrast-bw": [
+      { name: "grayscale", params: { amount: 1 } },
+      { name: "contrast",  params: { amount: 1.6 } },
+    ],
+  };
+
+  // Load the original image, apply filters, return a dataURL of the result.
+  // Memoized into state.processedImageCache.
+  async function processBaseImage() {
+    if (!state.baseImageDataUrl) return null;
+    // Build a working canvas at the cropped size
+    const img = await loadImage(state.baseImageDataUrl);
+    const crop = state.cropBox || { x: 0, y: 0, w: state.baseImageW, h: state.baseImageH };
+    const canvas = document.createElement("canvas");
+    canvas.width = crop.w; canvas.height = crop.h;
+    const ctx = canvas.getContext("2d");
+
+    // Partition the filter stack. CSS-native filters can be chained in one ctx.filter
+    // string and applied during the initial drawImage. Pixel filters run after.
+    const steps = [...state.filters];
+    // Split into leading CSS-native batch (all before the first pixel/pixelate filter)
+    const cssBatch = [];
+    let idx = 0;
+    while (idx < steps.length && CSS_FILTERS[steps[idx].name]) {
+      cssBatch.push(steps[idx]); idx++;
+    }
+    const remaining = steps.slice(idx);
+
+    if (cssBatch.length > 0) {
+      ctx.filter = cssBatch.map(f => CSS_FILTERS[f.name](f.params?.amount ?? 1)).join(" ");
+    }
+    ctx.drawImage(img, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h);
+    ctx.filter = "none";
+
+    // Apply any further filters (mix of CSS and pixel — we re-roundtrip as needed)
+    for (const step of remaining) {
+      if (step.name === "pixelate") {
+        // Downscale → upscale with nearest-neighbor for chunky blocks
+        const size = Math.max(2, Math.min(64, Math.round(step.params?.size ?? 10)));
+        const sw = Math.max(1, Math.floor(canvas.width / size));
+        const sh = Math.max(1, Math.floor(canvas.height / size));
+        const tmp = document.createElement("canvas");
+        tmp.width = sw; tmp.height = sh;
+        const tctx = tmp.getContext("2d");
+        tctx.imageSmoothingEnabled = false;
+        tctx.drawImage(canvas, 0, 0, sw, sh);
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(tmp, 0, 0, canvas.width, canvas.height);
+        ctx.imageSmoothingEnabled = true;
+      } else if (CSS_FILTERS[step.name]) {
+        // Another CSS filter after a pixel filter — redraw through ctx.filter
+        const tmp = document.createElement("canvas");
+        tmp.width = canvas.width; tmp.height = canvas.height;
+        const tctx = tmp.getContext("2d");
+        tctx.drawImage(canvas, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.filter = CSS_FILTERS[step.name](step.params?.amount ?? 1);
+        ctx.drawImage(tmp, 0, 0);
+        ctx.filter = "none";
+      } else if (PIXEL_FILTERS[step.name]) {
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        PIXEL_FILTERS[step.name](imgData, step.params || {}, ctx);
+        ctx.putImageData(imgData, 0, 0);
+      }
+    }
+
+    state.processedImageCache = canvas.toDataURL("image/png");
+    return state.processedImageCache;
+  }
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  function invalidateProcessedImage() { state.processedImageCache = null; }
+
 
   // Convert a shape op to an SVG element
   function shapeToSvg(op, ns) {
@@ -3862,8 +4255,15 @@ const studio = (() => {
     return parseInt(m[0], 10);
   }
 
+  const VALID_FILTER_NAMES = new Set([
+    ...Object.keys(CSS_FILTERS),
+    ...Object.keys(PIXEL_FILTERS),
+    "pixelate",
+  ]);
+
   function applyCommands(commands) {
     let applied = 0, errors = [];
+    let needsReprocess = false;
     for (const c of commands) {
       try {
         switch (c.action) {
@@ -3904,11 +4304,79 @@ const studio = (() => {
             applied++;
             break;
           }
+
+          // ── Image-manipulation ops ───────────────────────────
+          case "add_filter": {
+            if (!state.baseImageDataUrl) throw new Error("add_filter: no image to filter (upload one first)");
+            if (!c.name || !VALID_FILTER_NAMES.has(c.name)) throw new Error(`add_filter: unknown filter "${c.name}". Valid: ${[...VALID_FILTER_NAMES].join(", ")}`);
+            state.filters.push({ name: c.name, params: c.params || {} });
+            needsReprocess = true;
+            applied++;
+            break;
+          }
+          case "remove_filter": {
+            // Remove by either index or by name (last occurrence)
+            if (state.filters.length === 0) throw new Error("remove_filter: no filters to remove");
+            if (c.index != null) {
+              const i = Number(c.index);
+              if (!Number.isInteger(i) || i < 0 || i >= state.filters.length) throw new Error(`remove_filter: index ${c.index} out of range`);
+              state.filters.splice(i, 1);
+            } else if (c.name) {
+              for (let i = state.filters.length - 1; i >= 0; i--) {
+                if (state.filters[i].name === c.name) { state.filters.splice(i, 1); break; }
+              }
+            } else {
+              // Default: remove most recent
+              state.filters.pop();
+            }
+            needsReprocess = true;
+            applied++;
+            break;
+          }
+          case "clear_filters": {
+            state.filters = [];
+            needsReprocess = true;
+            applied++;
+            break;
+          }
+          case "apply_preset": {
+            if (!state.baseImageDataUrl) throw new Error("apply_preset: no image to filter");
+            const presetName = c.preset || c.name;
+            const preset = PRESETS[presetName];
+            if (!preset) throw new Error(`apply_preset: unknown preset "${presetName}". Valid: ${Object.keys(PRESETS).join(", ")}`);
+            // Replace the stack with the preset's filters
+            state.filters = JSON.parse(JSON.stringify(preset));
+            needsReprocess = true;
+            applied++;
+            break;
+          }
+          case "crop": {
+            if (!state.baseImageDataUrl) throw new Error("crop: no image to crop");
+            const { x = 0, y = 0, w, h } = c;
+            if (!(w > 0 && h > 0)) throw new Error("crop: w and h must be positive numbers");
+            const maxW = state.baseImageW, maxH = state.baseImageH;
+            state.cropBox = {
+              x: Math.max(0, Math.min(maxW - 1, Math.round(x))),
+              y: Math.max(0, Math.min(maxH - 1, Math.round(y))),
+              w: Math.max(1, Math.min(maxW - Math.round(x), Math.round(w))),
+              h: Math.max(1, Math.min(maxH - Math.round(y), Math.round(h))),
+            };
+            needsReprocess = true;
+            applied++;
+            break;
+          }
+          case "uncrop": {
+            state.cropBox = null;
+            needsReprocess = true;
+            applied++;
+            break;
+          }
           default:
             throw new Error(`unknown action: ${c.action}`);
         }
       } catch (e) { errors.push(e.message || String(e)); }
     }
+    if (needsReprocess) invalidateProcessedImage();
     if (applied > 0) pushHistory();
     renderCanvas();
     return { applied, errors };
@@ -3946,18 +4414,13 @@ const studio = (() => {
   function buildStudioSystemPrompt() {
     const hasImage = !!state.baseImageDataUrl;
     const baseDesc = hasImage
-      ? `BACKGROUND LAYER: The user has uploaded a raster image that sits underneath your vector overlay. You CANNOT see the pixels of this image. You have no idea what's in it — not the colors, subjects, composition, or anything visual.
-
-How to handle this:
-- If the user asks you to "cartoonize", "stylize", "transform", or otherwise modify the image itself — that is NOT possible. Say so honestly in your plain-text response, and instead propose what you CAN do: add decorative overlays, frames, labels, annotations, or stylistic shapes on top.
-- If the user describes what's in the image ("there's a dog in the center"), use that description to place shapes appropriately.
-- If you're unsure what's in the image, ASK the user to describe it in your plain-text response, then emit an empty <ops>[]</ops> block for that turn.`
-      : `The canvas is blank. You are composing artwork from scratch using SVG shapes.`;
+      ? `BACKGROUND LAYER: The user has uploaded a raster image that sits underneath your vector overlay. You CANNOT see the pixels — you don't know what's depicted. But you CAN transform it: apply filters (grayscale, sepia, duotone, vignette, blur, etc.), crop it, or apply a named preset look. The user can either describe what's in the photo so you can place overlays thoughtfully, OR ask for whole-image transformations (color, tone, style) which work without knowing content.`
+      : `The canvas is blank. You are composing artwork from scratch using SVG shapes. No image filters are available — those require an uploaded image.`;
 
     // Summarize current shapes with the EXACT id format the system uses
     const validIds = state.ops.map(o => o.id);
     const shapeSummary = state.ops.length === 0
-      ? "(no shapes yet — the overlay is empty)"
+      ? "(no shapes on the overlay)"
       : state.ops.map(o => {
           const attrs = o.attrs || {};
           let summary = `  • id: ${o.id}  →  ${o.type}`;
@@ -3970,48 +4433,133 @@ How to handle this:
           return summary;
         }).join("\n");
 
+    const filterSummary = state.filters.length === 0
+      ? "(no filters applied)"
+      : state.filters.map((f, i) => `  • [${i}] ${f.name}${f.params && Object.keys(f.params).length ? " " + JSON.stringify(f.params) : ""}`).join("\n");
+
+    const cropInfo = state.cropBox
+      ? `CROP: image is cropped to ${state.cropBox.w}×${state.cropBox.h} from origin (${state.cropBox.x},${state.cropBox.y}).`
+      : "";
+
     const idRules = state.ops.length === 0
-      ? `There are NO existing shapes yet. Do not use "modify" or "remove" — only "add" and "clear" are valid. Shape IDs will be assigned automatically by the system when shapes are added.`
-      : `The ONLY valid shape IDs are: ${validIds.join(", ")}. IDs are plain integers — not strings, not "circle-1", not "#1". When you use "modify" or "remove", the "id" field MUST be one of these exact integers: ${validIds.join(", ")}. Never invent an ID; never use a decorated name.`;
+      ? `There are no shapes on the overlay yet. "modify" and "remove" are not valid this turn — only "add" and "clear". Shape IDs are auto-assigned.`
+      : `Valid shape IDs (plain integers, not strings): ${validIds.join(", ")}. When using "modify" or "remove", the "id" MUST be exactly one of these integers. NEVER invent an ID like "circle-1" or "#3".`;
 
-    return `You are Studio, a collaborative visual art assistant. You help the user create and modify vector artwork on an SVG canvas.
+    return `You are Studio, a collaborative visual art assistant. The user directs; you translate direction into image operations.
 
-Canvas dimensions: ${state.baseImageW} wide × ${state.baseImageH} tall. Coordinate (0,0) is top-left.
+Canvas: ${state.baseImageW}×${state.baseImageH} (origin top-left).
+${cropInfo}
 
 ${baseDesc}
 
 Current shapes on the overlay:
 ${shapeSummary}
 
+Current filter stack (applied to the base image in order):
+${filterSummary}
+
 ID RULES (critical):
 ${idRules}
 
-Your job: translate the user's direction into a SHORT plain-text acknowledgment PLUS a JSON command block that modifies the canvas.
+OUTPUT FORMAT — always follow exactly:
+1. One or two plain-text sentences describing what you're doing.
+2. Then a JSON array wrapped in <ops>...</ops>. If no change is needed, emit <ops>[]</ops>.
 
-STRICT OUTPUT FORMAT — follow exactly:
-1. One or two plain-text sentences describing what you're doing (no code fences, no JSON inside).
-2. Then a JSON block wrapped in <ops>...</ops> tags containing an array of commands.
+═══════════════════════════════════════════════════════════════════
+SUPPORTED COMMANDS
+═══════════════════════════════════════════════════════════════════
 
-Supported commands:
-{"action":"add","shape":{"type":"circle|rect|ellipse|line|polygon|path|text","attrs":{...}}}
-{"action":"modify","id":<integer>,"attrs":{...}}     — id MUST be one of the existing integer IDs listed above
-{"action":"remove","id":<integer>}                    — id MUST be one of the existing integer IDs listed above
-{"action":"recolor_all","fill":"#hexcolor"}
+── Vector overlay shapes ────────
+{"action":"add","shape":{"type":"<type>","attrs":{...}}}
+{"action":"modify","id":<integer>,"attrs":{...}}
+{"action":"remove","id":<integer>}
+{"action":"recolor_all","fill":"#hex"}
 {"action":"clear"}
 
-Shape attribute reference:
+Shape types + attrs:
 - circle: cx, cy, r, fill, stroke, stroke-width, opacity
-- rect: x, y, width, height, rx (rounded corners), fill, stroke, stroke-width, opacity
+- rect: x, y, width, height, rx (rounded), fill, stroke, stroke-width, opacity
 - ellipse: cx, cy, rx, ry, fill, stroke, stroke-width, opacity
 - line: x1, y1, x2, y2, stroke, stroke-width, opacity
 - polygon: points ("x1,y1 x2,y2 …"), fill, stroke
 - path: d (SVG path data), fill, stroke, stroke-width
-- text: x, y, text, font-family, font-size, font-weight, font-style, text-anchor, fill
+- text: x, y, text, font-family, font-size, font-weight, text-anchor, fill
 
-Use colors aesthetically. A pleasing palette: #e07a5f (warm orange), #81b29a (sage green), #f2cc8f (soft yellow), #3d405b (deep navy), #f4f1de (cream). Vary size, position, and color — don't stack everything at (100,100).
+── Image filters (require an uploaded image) ────────
+{"action":"add_filter","name":"<filter>","params":{...}}     — adds to the stack
+{"action":"remove_filter","name":"<filter>"}                  — or {"index":<n>}; no arg = pop last
+{"action":"clear_filters"}                                    — removes all filters
+{"action":"apply_preset","preset":"<name>"}                   — replaces stack with a preset look
 
-Example when canvas is empty and user says "add three orange circles across the top":
-I'll add three orange circles spaced evenly across the top.
+Available filters:
+- grayscale   params: {amount: 0-1}            (1 = full B&W)
+- sepia       params: {amount: 0-1}            (brown-tone)
+- invert      params: {amount: 0-1}
+- brightness  params: {amount: 0-3}            (1 = unchanged; <1 darker, >1 brighter)
+- contrast    params: {amount: 0-3}            (1 = unchanged)
+- saturate    params: {amount: 0-3}            (0 = grayscale, 1 = unchanged, >1 = more vivid)
+- hue-rotate  params: {amount: 0-360}          (degrees around color wheel)
+- blur        params: {amount: 0-40}           (pixels)
+- duotone     params: {shadow: "#hex", highlight: "#hex"}
+- gradient-map params: {shadow: "#hex", mid: "#hex", highlight: "#hex"}
+- vignette    params: {amount: 0-1, radius: 0.1-1.5}   (darkens corners)
+- grain       params: {amount: 0-1}            (film grain noise)
+- posterize   params: {levels: 2-16}           (reduces color steps)
+- pixelate    params: {size: 2-64}             (chunky blocks)
+- tint        params: {color: "#hex", amount: 0-1}
+- warmth      params: {amount: -1 to 1}        (positive = warmer, negative = cooler)
+
+Preset looks (apply a curated filter stack):
+- polaroid-1975, noir, risograph, moody-forest, vintage-warm, cyberpunk, dreamy, high-contrast-bw
+
+── Crop / uncrop ────────
+{"action":"crop","x":<n>,"y":<n>,"w":<n>,"h":<n>}   — in ORIGINAL image pixel coords
+{"action":"uncrop"}                                  — remove any crop
+
+═══════════════════════════════════════════════════════════════════
+KEY GUIDANCE
+═══════════════════════════════════════════════════════════════════
+
+When a user asks to transform a photo's look (moody, vintage, cold, warm, cinematic, B&W, cartoonish, 80s, etc.):
+→ Use filters and/or a preset. Don't refuse. Don't overlay fake "cartoon circles" — apply posterize + saturate + maybe duotone for a cartoony look, for instance.
+
+When a user asks you to modify SPECIFIC content of the image (make their eyes blue, remove a person, change the sky):
+→ Be honest: you can't edit pixel content of the photo directly. You can apply whole-image effects, crop, or add vector overlays. Say so, and propose what you CAN do.
+
+When a user asks you to add, draw, or annotate something on top of the photo:
+→ Use vector shapes (add action). If placement depends on what's in the photo, ask the user to describe the scene first — or place shapes reasonably and offer to move them after.
+
+Use colors aesthetically. Palette suggestions: #e07a5f (warm orange), #81b29a (sage), #f2cc8f (soft yellow), #3d405b (navy), #f4f1de (cream). For stylized filter params, err toward subtlety — contrast 1.2, saturate 1.1, amounts 0.3-0.6 — before going extreme.
+
+═══════════════════════════════════════════════════════════════════
+EXAMPLES
+═══════════════════════════════════════════════════════════════════
+
+User: "cartoonize this photo"
+I'll give it a cartoony look by reducing color steps, punching up saturation, and adding a soft vignette.
+<ops>
+[
+  {"action":"add_filter","name":"posterize","params":{"levels":5}},
+  {"action":"add_filter","name":"saturate","params":{"amount":1.4}},
+  {"action":"add_filter","name":"contrast","params":{"amount":1.2}},
+  {"action":"add_filter","name":"vignette","params":{"amount":0.3,"radius":0.9}}
+]
+</ops>
+
+User: "make it moody"
+Applying a moody-forest preset — desaturated greens and a darker tone.
+<ops>
+[{"action":"apply_preset","preset":"moody-forest"}]
+</ops>
+
+User: "turn it black and white with strong contrast"
+Going high-contrast B&W.
+<ops>
+[{"action":"apply_preset","preset":"high-contrast-bw"}]
+</ops>
+
+User: "add three orange circles across the top"
+Three orange circles, spaced across.
 <ops>
 [
   {"action":"add","shape":{"type":"circle","attrs":{"cx":160,"cy":80,"r":44,"fill":"#e07a5f"}}},
@@ -4020,17 +4568,15 @@ I'll add three orange circles spaced evenly across the top.
 ]
 </ops>
 
-Example when the user says "cartoonize this photo" and a background image is present:
-I can't see your photo's pixels, so I can't transform the image itself. But I can add cartoony overlays — thick black outlines, speech bubbles, stars, or a frame. What would you like me to add? If you can describe what's in the photo, I can place the overlays thoughtfully.
+User: "make my eyes blue" (on an uploaded photo)
+I can't edit specific features of the photo — I can't see the pixels, and there's no selective-region tool. I can apply whole-image effects, crop, or add vector overlays. Want to try a filter instead?
 <ops>[]</ops>
 
-IMPORTANT RULES:
-- Always emit BOTH the plain text AND the <ops> block on every turn.
-- If no canvas changes are needed (or you're asking the user for clarification), emit <ops>[]</ops>.
-- Keep your plain text to 1-2 sentences.
-- Use existing integer shape IDs when the user refers to something that's already there.
-- NEVER invent IDs like "circle-1" or "shape-3". IDs are raw integers only.
-- If the user asks for something you cannot actually do (like modifying pixel content of an uploaded image), say so honestly in your plain-text response.`;
+Final rules:
+- Always emit both plain text and an <ops> block, even if it's empty.
+- Keep plain text to 1-2 sentences.
+- Use integer shape IDs only. Never invent IDs.
+- Prefer presets for named looks; prefer filter stacks when you want fine control.`;
   }
 
   // Extract the JSON array inside <ops>…</ops>, if any.
