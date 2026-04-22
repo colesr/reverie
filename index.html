@@ -277,6 +277,87 @@
   .cr-msg-file-size { font-size: 11px; color: var(--c-text-muted); margin-top: 2px; }
   .cr-msg-file-dl { color: var(--c-accent); font-size: 18px; }
 
+  /* ── Threaded messages ── */
+  .cr-msg-actions { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 12px; color: var(--c-text-muted); }
+  .cr-vote { display: inline-flex; align-items: center; gap: 2px; }
+  .cr-vote-btn {
+    background: transparent; border: none; cursor: pointer; padding: 2px 4px;
+    color: var(--c-text-dim); font-size: 13px; line-height: 1;
+    border-radius: 4px; transition: all 0.1s ease;
+  }
+  .cr-vote-btn:hover { background: var(--c-panel-hover); color: var(--c-text); }
+  .cr-vote-btn.voted-up { color: #e67e22; background: rgba(230, 126, 34, 0.1); }
+  .cr-vote-btn.voted-down { color: #3498db; background: rgba(52, 152, 219, 0.1); }
+  .cr-vote-score {
+    font-size: 12px; font-weight: 600; color: var(--c-text-muted);
+    min-width: 16px; text-align: center; font-variant-numeric: tabular-nums;
+  }
+  .cr-vote-score.positive { color: #e67e22; }
+  .cr-vote-score.negative { color: #3498db; }
+  .cr-reply-btn {
+    background: transparent; border: none; cursor: pointer;
+    font: 500 12px var(--sans); color: var(--c-text-muted);
+    padding: 2px 6px; border-radius: 4px; transition: all 0.1s ease;
+  }
+  .cr-reply-btn:hover { background: var(--c-panel-hover); color: var(--c-accent); }
+  .cr-reply-count { font-size: 11px; color: var(--c-text-dim); }
+
+  .cr-msg.threaded { position: relative; padding-left: 22px; }
+  .cr-msg.threaded::before {
+    content: ""; position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: var(--c-border); border-radius: 2px;
+  }
+  .cr-msg.threaded:hover::before { background: var(--c-accent-light); }
+  .cr-msg.depth-1 { margin-left: 20px; }
+  .cr-msg.depth-2 { margin-left: 40px; }
+  .cr-msg.depth-3 { margin-left: 58px; }
+  .cr-msg.depth-4 { margin-left: 74px; }
+  .cr-msg.depth-5 { margin-left: 88px; }
+  .cr-msg.depth-6 { margin-left: 98px; }
+  .cr-msg.threaded .cr-msg-avatar { width: 30px; height: 30px; font-size: 14px; }
+  .cr-msg.threaded .cr-msg-name { font-size: 13px; }
+  .cr-msg.threaded .cr-msg-text { font-size: 13.5px; }
+
+  /* Message being replied to gets a soft highlight */
+  .cr-msg.reply-target > .cr-msg-content { background: rgba(131, 197, 190, 0.12); border-radius: 8px; padding: 4px 8px; margin-left: -8px; }
+
+  /* Inline reply composer */
+  .cr-reply-composer {
+    margin: 4px 0 8px 50px; display: flex; flex-direction: column; gap: 6px;
+    padding: 10px 12px; background: var(--c-panel); border: 1px solid var(--c-border);
+    border-radius: 10px; position: relative;
+  }
+  .cr-reply-composer.threaded { margin-left: 70px; }
+  .cr-reply-composer .label {
+    font-size: 11px; color: var(--c-text-muted);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .cr-reply-composer .label b { color: var(--c-accent); }
+  .cr-reply-composer .cancel {
+    background: transparent; border: none; color: var(--c-text-muted);
+    cursor: pointer; font-size: 15px; line-height: 1;
+  }
+  .cr-reply-composer .cancel:hover { color: var(--c-danger); }
+  .cr-reply-composer textarea {
+    width: 100%; background: var(--c-surface);
+    border: 1px solid var(--c-border); border-radius: 8px;
+    padding: 8px 10px; font: 13px var(--sans); color: var(--c-text);
+    outline: none; resize: none; max-height: 120px; min-height: 22px;
+    line-height: 1.5;
+  }
+  .cr-reply-composer textarea:focus { border-color: var(--c-accent); }
+  .cr-reply-composer .controls {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .cr-reply-composer .spacer { flex: 1; }
+  .cr-reply-composer .send {
+    background: var(--c-accent); color: #fff; border: none;
+    padding: 5px 14px; border-radius: 6px; cursor: pointer;
+    font: 500 12px var(--sans);
+  }
+  .cr-reply-composer .send:hover { background: var(--c-accent-hover); }
+  .cr-reply-composer .attachments { display: flex; flex-wrap: wrap; gap: 6px; }
+
   /* Stickers */
   .cr-sticker { font-size: 72px; line-height: 1; padding: 4px 0; display: inline-block; transform-origin: center; }
   .cr-sticker.anim-bounce { animation: cr-bounce 0.9s ease-in-out infinite; }
@@ -1403,6 +1484,8 @@ const chatroom = (() => {
     pendingBotGens: 0,
     pendingAttachments: [],
     picker: { open: false, tab: "emoji" },
+    replyingTo: null,
+    replyAttachments: [],
   };
 
   const CHATTER = {
@@ -1779,18 +1862,55 @@ const chatroom = (() => {
     msg.id = msg.id || ("m_" + Math.random().toString(36).slice(2, 9));
     msg.ts = msg.ts || new Date();
     msg.roomId = roomId;
+    // Threading defaults
+    msg.parentId = msg.parentId || null;
+    msg.votes = msg.votes || { up: 0, down: 0, voters: {} };
     room.messages.push(msg);
     if (roomId !== state.currentRoomId) {
       room.unread = true;
       renderRooms();
     } else {
-      appendMessageDOM(msg);
-      scrollMessagesBottom();
+      // Record whether the user was near the bottom BEFORE we re-render
+      const nearBottom = isNearBottom();
+      if (msg.parentId) {
+        // Threaded: structure changes, so we re-render the tree
+        renderMessages();
+        // Don't yank the user to the bottom if they're reading history
+        if (nearBottom && !msg.system) scrollMessagesBottom();
+      } else {
+        appendMessageDOM(msg, 0);
+        if (nearBottom || msg.authorType === "human" || msg.system) scrollMessagesBottom();
+      }
     }
     return msg;
   }
   function addSystemMessage(roomId, text) {
     return addMessage(roomId, { system: true, text });
+  }
+
+  // ── Voting ────────────────────────────────────────────────────────
+  // voterId can be the username or a bot id; dir is +1 or -1
+  function voteOnMessage(roomId, msgId, voterId, dir) {
+    const room = state.rooms[roomId];
+    if (!room) return;
+    const msg = room.messages.find(m => m.id === msgId);
+    if (!msg || msg.system) return;
+    if (!msg.votes) msg.votes = { up: 0, down: 0, voters: {} };
+    const prev = msg.votes.voters[voterId] || 0;
+    if (prev === dir) {
+      // toggle off
+      if (dir === 1) msg.votes.up--;
+      else msg.votes.down--;
+      delete msg.votes.voters[voterId];
+    } else {
+      // flip or new vote
+      if (prev === 1) msg.votes.up--;
+      if (prev === -1) msg.votes.down--;
+      if (dir === 1) msg.votes.up++;
+      else msg.votes.down++;
+      msg.votes.voters[voterId] = dir;
+    }
+    if (roomId === state.currentRoomId) updateVoteDisplay(msg);
   }
 
   // ── Bot Modal ─────────────────────────────────────────────────────
@@ -1990,48 +2110,62 @@ const chatroom = (() => {
     els.peopleCount.textContent = count;
   }
 
+  // ── Message rendering (threaded) ──────────────────────────────────
+  const MAX_INDENT_DEPTH = 6;
+
+  function getChildrenOf(room, parentId) {
+    return room.messages.filter(m => !m.system && !m.typing && m.parentId === parentId);
+  }
+  function countDescendants(room, msgId) {
+    let total = 0;
+    const kids = getChildrenOf(room, msgId);
+    for (const k of kids) total += 1 + countDescendants(room, k.id);
+    return total;
+  }
+
   function renderMessages() {
     els.messages.innerHTML = "";
     const room = currentRoom();
-    for (const msg of room.messages) appendMessageDOM(msg);
+
+    // Render top-level system messages in natural order, but threaded
+    // messages are rendered as a tree from top-level (parentId === null) chat messages.
+    for (const msg of room.messages) {
+      if (msg.system) {
+        appendSystemDOM(msg);
+        continue;
+      }
+      // Only render real messages at the top level; their children are rendered recursively
+      if (!msg.parentId) appendMessageDOM(msg, 0);
+    }
     scrollMessagesBottom();
   }
 
-  function appendMessageDOM(msg) {
-    // Don't render messages from non-current rooms
-    if (msg.roomId && msg.roomId !== state.currentRoomId) return;
-
-    if (msg.system) {
-      const el = document.createElement("div");
-      el.className = "cr-msg system";
-      el.dataset.msgId = msg.id;
-      el.innerHTML = `<div class="cr-msg-content">${escapeHtml(msg.text)}</div>`;
-      els.messages.appendChild(el);
-      return;
-    }
-    if (msg.typing) {
-      const el = document.createElement("div");
-      el.className = "cr-msg typing";
-      el.dataset.typingFor = msg.author;
-      el.innerHTML = `<div class="cr-msg-content"><b style="color:${msg.color}">${escapeHtml(msg.author)}</b> is typing</div>`;
-      els.messages.appendChild(el);
-      return;
-    }
-
+  function appendSystemDOM(msg) {
     const el = document.createElement("div");
-    el.className = "cr-msg";
+    el.className = "cr-msg system";
     el.dataset.msgId = msg.id;
+    el.innerHTML = `<div class="cr-msg-content">${escapeHtml(msg.text)}</div>`;
+    els.messages.appendChild(el);
+  }
+
+  // Builds the DOM for a single message and all its descendants recursively.
+  // `depth` starts at 0 for top-level replies in the room.
+  function appendMessageDOM(msg, depth = 0) {
+    if (msg.roomId && msg.roomId !== state.currentRoomId) return;
+    if (msg.system) { appendSystemDOM(msg); return; }
+    if (msg.typing) return; // typing indicators are handled separately
 
     const isBot = msg.authorType === "bot";
-    let avatarInner, avatarStyle = "";
-    if (msg.avatarDataUrl) {
-      avatarStyle = `background-image:url(${msg.avatarDataUrl})`;
-      avatarInner = "";
-    } else if (msg.avatarEmoji) {
-      avatarInner = `<span>${msg.avatarEmoji}</span>`;
-    } else {
-      avatarInner = `<span>${initialsFor(msg.author)}</span>`;
-    }
+    const depthClass = depth > 0 ? ` threaded depth-${Math.min(depth, MAX_INDENT_DEPTH)}` : "";
+
+    const el = document.createElement("div");
+    el.className = `cr-msg${depthClass}`;
+    el.dataset.msgId = msg.id;
+
+    let avatarInner = "", avatarStyle = "";
+    if (msg.avatarDataUrl) { avatarStyle = `background-image:url(${msg.avatarDataUrl})`; }
+    else if (msg.avatarEmoji) { avatarInner = `<span>${msg.avatarEmoji}</span>`; }
+    else { avatarInner = `<span>${initialsFor(msg.author)}</span>`; }
 
     const parts = [];
     parts.push(`<div class="cr-msg-avatar${isBot ? " is-bot" : ""}" style="${avatarStyle}">${avatarInner}</div>`);
@@ -2044,11 +2178,8 @@ const chatroom = (() => {
 
     // Body
     parts.push(`<div class="cr-msg-text">`);
-    if (msg.sticker) {
-      parts.push(`<div class="cr-sticker anim-${msg.sticker.anim}">${msg.sticker.emoji}</div>`);
-    } else if (msg.text) {
-      parts.push(formatBody(msg.text));
-    }
+    if (msg.sticker) parts.push(`<div class="cr-sticker anim-${msg.sticker.anim}">${msg.sticker.emoji}</div>`);
+    else if (msg.text) parts.push(formatBody(msg.text));
     if (msg.attachments && msg.attachments.length) {
       for (const att of msg.attachments) {
         if (att.type === "image") {
@@ -2066,22 +2197,208 @@ const chatroom = (() => {
       }
     }
     parts.push(`</div>`);
+
+    // Actions: vote + reply
+    const room = currentRoom();
+    const replyCount = countDescendants(room, msg.id);
+    const voterId = currentVoterId();
+    const userVote = (msg.votes && msg.votes.voters[voterId]) || 0;
+    const score = ((msg.votes?.up) || 0) - ((msg.votes?.down) || 0);
+    const scoreCls = score > 0 ? "positive" : score < 0 ? "negative" : "";
+    parts.push(`<div class="cr-msg-actions">`);
+    parts.push(`<span class="cr-vote">`);
+    parts.push(`<button class="cr-vote-btn${userVote === 1 ? " voted-up" : ""}" data-vote-up title="Upvote">▲</button>`);
+    parts.push(`<span class="cr-vote-score ${scoreCls}">${score === 0 ? "·" : score}</span>`);
+    parts.push(`<button class="cr-vote-btn${userVote === -1 ? " voted-down" : ""}" data-vote-down title="Downvote">▼</button>`);
+    parts.push(`</span>`);
+    parts.push(`<button class="cr-reply-btn" data-reply>↳ Reply</button>`);
+    if (replyCount > 0) parts.push(`<span class="cr-reply-count">${replyCount} ${replyCount === 1 ? "reply" : "replies"}</span>`);
     parts.push(`</div>`);
 
+    parts.push(`</div>`);
     el.innerHTML = parts.join("");
     els.messages.appendChild(el);
 
-    // Wire lightbox
+    // Wire interactions
     el.querySelectorAll(".cr-msg-image[data-lightbox]").forEach(img => {
       img.addEventListener("click", () => openLightbox(img.src));
     });
+    el.querySelector("[data-vote-up]").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!state.signedOn) return;
+      voteOnMessage(currentRoom().id, msg.id, currentVoterId(), 1);
+    });
+    el.querySelector("[data-vote-down]").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!state.signedOn) return;
+      voteOnMessage(currentRoom().id, msg.id, currentVoterId(), -1);
+    });
+    el.querySelector("[data-reply]").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!state.signedOn) return;
+      openReplyComposer(msg.id);
+    });
+
+    // If the reply composer is currently targeting this message, insert it right here
+    if (state.replyingTo === msg.id) {
+      const composer = renderReplyComposer(msg, depth);
+      els.messages.appendChild(composer);
+    }
+
+    // Recurse into children
+    const kids = getChildrenOf(currentRoom(), msg.id);
+    for (const k of kids) appendMessageDOM(k, depth + 1);
   }
 
+  // Update just the vote display for a message (no full re-render)
+  function updateVoteDisplay(msg) {
+    const row = els.messages.querySelector(`.cr-msg[data-msg-id="${CSS.escape(msg.id)}"]`);
+    if (!row) return;
+    const actions = row.querySelector(":scope > .cr-msg-content > .cr-msg-actions");
+    if (!actions) return;
+    const score = ((msg.votes?.up) || 0) - ((msg.votes?.down) || 0);
+    const scoreEl = actions.querySelector(".cr-vote-score");
+    const upBtn = actions.querySelector("[data-vote-up]");
+    const downBtn = actions.querySelector("[data-vote-down]");
+    scoreEl.textContent = score === 0 ? "·" : score;
+    scoreEl.className = "cr-vote-score " + (score > 0 ? "positive" : score < 0 ? "negative" : "");
+    const voterId = currentVoterId();
+    const userVote = (msg.votes && msg.votes.voters[voterId]) || 0;
+    upBtn.classList.toggle("voted-up", userVote === 1);
+    downBtn.classList.toggle("voted-down", userVote === -1);
+  }
+
+  function currentVoterId() {
+    return state.signedOn ? `human:${state.username}` : "anon";
+  }
+
+  function isNearBottom() {
+    const threshold = 120;
+    return (els.messages.scrollHeight - els.messages.scrollTop - els.messages.clientHeight) < threshold;
+  }
   function scrollMessagesBottom() {
     requestAnimationFrame(() => { els.messages.scrollTop = els.messages.scrollHeight; });
   }
 
-  // Typing indicators (scoped to current room via the author name)
+  // ── Reply composer (inline) ──────────────────────────────────────
+  function openReplyComposer(msgId) {
+    state.replyingTo = msgId;
+    state.replyAttachments = [];
+    renderMessages();
+    // Focus the newly-mounted textarea
+    setTimeout(() => {
+      const ta = els.messages.querySelector(".cr-reply-composer textarea");
+      if (ta) ta.focus();
+    }, 30);
+  }
+  function closeReplyComposer() {
+    state.replyingTo = null;
+    state.replyAttachments = [];
+    renderMessages();
+  }
+
+  function renderReplyComposer(parentMsg, parentDepth) {
+    const wrap = document.createElement("div");
+    wrap.className = "cr-reply-composer" + (parentDepth >= 0 ? " threaded" : "");
+    const replyingToName = parentMsg.author;
+    wrap.innerHTML = `
+      <div class="label">
+        <span>Replying to <b>${escapeHtml(replyingToName)}</b></span>
+        <button class="cancel" title="Cancel (Esc)">×</button>
+      </div>
+      <div class="attachments" data-reply-attachments style="display:none;"></div>
+      <textarea rows="1" placeholder="Write a reply…" maxlength="2000"></textarea>
+      <div class="controls">
+        <button class="cr-tool-btn" data-reply-image title="Upload image">🖼️</button>
+        <button class="cr-tool-btn" data-reply-file title="Upload file">📎</button>
+        <div class="spacer"></div>
+        <button class="send">Send</button>
+      </div>
+    `;
+    const ta = wrap.querySelector("textarea");
+    const sendBtn = wrap.querySelector(".send");
+    const cancelBtn = wrap.querySelector(".cancel");
+
+    ta.addEventListener("input", () => {
+      ta.style.height = "auto";
+      ta.style.height = Math.min(ta.scrollHeight, 120) + "px";
+    });
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitReply(); }
+      else if (e.key === "Escape") { e.preventDefault(); closeReplyComposer(); }
+    });
+    sendBtn.addEventListener("click", submitReply);
+    cancelBtn.addEventListener("click", closeReplyComposer);
+
+    // Hidden file inputs, reused by creating on demand
+    wrap.querySelector("[data-reply-image]").addEventListener("click", () => pickReplyAttachment(wrap, "image"));
+    wrap.querySelector("[data-reply-file]").addEventListener("click", () => pickReplyAttachment(wrap, "file"));
+
+    // Render any pending attachments attached to this composer
+    renderReplyAttachments(wrap);
+
+    function submitReply() {
+      const text = ta.value.trim();
+      const attachments = (state.replyAttachments || []).slice();
+      if (!text && attachments.length === 0) return;
+      const msg = addMessage(state.currentRoomId, {
+        author: state.username, authorType: "human",
+        color: colorForName(state.username),
+        avatarDataUrl: state.avatarDataUrl || null,
+        text, attachments, parentId: parentMsg.id,
+      });
+      state.replyingTo = null;
+      state.replyAttachments = [];
+      if (msg) afterNewMessage(msg);
+    }
+
+    return wrap;
+  }
+
+  function pickReplyAttachment(composerEl, kind) {
+    const input = document.createElement("input");
+    input.type = "file";
+    if (kind === "image") input.accept = "image/*";
+    input.addEventListener("change", async () => {
+      const file = input.files[0];
+      if (!file) return;
+      const maxSize = kind === "image" ? 5 * 1024 * 1024 : 20 * 1024 * 1024;
+      if (file.size > maxSize) { alert(`Too large (max ${kind === "image" ? "5" : "20"} MB).`); return; }
+      try {
+        const dataUrl = await readFileAsDataURL(file);
+        const isImg = (file.type || "").startsWith("image/");
+        state.replyAttachments.push({
+          type: (kind === "image" || isImg) ? "image" : "file",
+          dataUrl, name: file.name, size: file.size, mime: file.type
+        });
+        renderReplyAttachments(composerEl);
+      } catch { alert("Couldn't read that file."); }
+    });
+    input.click();
+  }
+
+  function renderReplyAttachments(composerEl) {
+    const attEl = composerEl.querySelector("[data-reply-attachments]");
+    const list = state.replyAttachments || [];
+    if (list.length === 0) { attEl.style.display = "none"; attEl.innerHTML = ""; return; }
+    attEl.style.display = "flex";
+    attEl.innerHTML = "";
+    list.forEach((att, idx) => {
+      const chip = document.createElement("div");
+      chip.className = "cr-attachment";
+      const body = att.type === "image"
+        ? `<img src="${att.dataUrl}" alt="" /><div class="info"><div class="name">${escapeHtml(att.name)}</div><div class="size">${formatSize(att.size)}</div></div>`
+        : `<span style="font-size:22px;">${fileIconFor(att.mime)}</span><div class="info"><div class="name">${escapeHtml(att.name)}</div><div class="size">${formatSize(att.size)}</div></div>`;
+      chip.innerHTML = body + `<span class="remove" title="Remove">×</span>`;
+      chip.querySelector(".remove").addEventListener("click", () => {
+        state.replyAttachments.splice(idx, 1);
+        renderReplyAttachments(composerEl);
+      });
+      attEl.appendChild(chip);
+    });
+  }
+
+  // Typing indicators (appended at the bottom of the feed, unchanged location-wise)
   function showTyping(bot, roomId) {
     if (roomId !== state.currentRoomId) return;
     const existing = els.messages.querySelector(`[data-typing-for="${CSS.escape(bot.name)}"]`);
@@ -2091,12 +2408,13 @@ const chatroom = (() => {
     el.dataset.typingFor = bot.name;
     el.innerHTML = `<div class="cr-msg-content"><b style="color:${bot.color}">${escapeHtml(bot.name)}</b> is typing</div>`;
     els.messages.appendChild(el);
-    scrollMessagesBottom();
+    if (isNearBottom()) scrollMessagesBottom();
   }
   function clearTyping(bot) {
     const el = els.messages.querySelector(`[data-typing-for="${CSS.escape(bot.name)}"]`);
     if (el) el.remove();
   }
+
 
   // ── Emoji / Sticker picker ────────────────────────────────────────
   function renderPicker() {
@@ -2271,7 +2589,7 @@ const chatroom = (() => {
   els.input.addEventListener("input", autoResizeInput);
 
 
-  // ── Orchestration (only active room) ──────────────────────────────
+  // ── Orchestration (thread-aware) ──────────────────────────────────
   function shouldBotRespond(bot, msg, room) {
     const settings = CHATTER[state.chatterRate];
     const mentioned = msg.text && new RegExp(`\\b${bot.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(msg.text);
@@ -2283,6 +2601,11 @@ const chatroom = (() => {
     const lastReal = [...room.messages].reverse().find(m => !m.system && !m.typing);
     if (lastReal && lastReal.author === bot.name) p -= 0.4;
     if (msg.authorType === "human") p += 0.15;
+    // If this message is itself a reply to THIS bot, much higher chance
+    if (msg.parentId) {
+      const parent = room.messages.find(m => m.id === msg.parentId);
+      if (parent && parent.author === bot.name) p += 0.4;
+    }
 
     p = Math.max(0, Math.min(0.95, p));
     return Math.random() < p;
@@ -2296,7 +2619,6 @@ const chatroom = (() => {
     if (msg.authorType === "bot") room.consecutiveBotMessages++;
     else room.consecutiveBotMessages = 0;
 
-    // Only orchestrate the active room
     if (msg.roomId !== state.currentRoomId) return;
 
     const settings = CHATTER[state.chatterRate];
@@ -2312,7 +2634,22 @@ const chatroom = (() => {
     }
     responders.forEach((bot, i) => {
       const delay = (settings.delayMin + Math.random() * (settings.delayMax - settings.delayMin)) + i * 900;
-      scheduleBotResponse(bot, room.id, { delay });
+      // Route reply: bots respond AS A REPLY to the message that triggered them,
+      // so threads stay intact. If msg is itself a reply, we reply to the same parent
+      // (preserving thread siblings) for non-name-mentioned responses — but if the
+      // bot was directly named, attach as a direct child of the triggering message.
+      const mentioned = msg.text && new RegExp(`\\b${bot.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(msg.text);
+      let replyTo;
+      if (mentioned) {
+        replyTo = msg.id;
+      } else if (msg.parentId) {
+        // Continue the existing thread the message belongs to
+        replyTo = msg.parentId;
+      } else {
+        // Top-level human/bot message — reply as a direct child
+        replyTo = msg.id;
+      }
+      scheduleBotResponse(bot, room.id, { delay, replyTo });
     });
   }
 
@@ -2335,6 +2672,30 @@ const chatroom = (() => {
     }, delay);
   }
 
+  // Build the ancestor chain for a message (root-first).
+  function buildAncestors(room, msgId) {
+    const chain = [];
+    let cur = room.messages.find(m => m.id === msgId);
+    while (cur) {
+      chain.unshift(cur);
+      cur = cur.parentId ? room.messages.find(m => m.id === cur.parentId) : null;
+    }
+    return chain;
+  }
+  function fmtMsgLine(m) {
+    let line = `${m.author}: ${m.text || ""}`.trim();
+    if (m.sticker) line += ` [sticker: ${m.sticker.emoji}]`;
+    if (m.attachments && m.attachments.length) {
+      const parts = [];
+      const imgs = m.attachments.filter(a => a.type === "image").length;
+      const files = m.attachments.filter(a => a.type !== "image").length;
+      if (imgs) parts.push(`${imgs} image${imgs > 1 ? "s" : ""}`);
+      if (files) parts.push(`${files} file${files > 1 ? "s" : ""}`);
+      line += ` [shared ${parts.join(" and ")}]`;
+    }
+    return line;
+  }
+
   async function generateBotResponse(bot, roomId, opts = {}) {
     const room = state.rooms[roomId];
     if (!room) return;
@@ -2344,25 +2705,28 @@ const chatroom = (() => {
     showTyping(bot, roomId);
     updateStatus();
 
-    // Build a transcript. Represent attachments as tags so the model is aware.
-    const recent = room.messages.filter(m => !m.system && !m.typing).slice(-14);
-    const transcriptLines = recent.map(m => {
-      let line = `${m.author}: ${m.text || ""}`.trim();
-      if (m.sticker) line += ` [sent sticker: ${m.sticker.emoji} ${m.sticker.label}]`;
-      if (m.attachments && m.attachments.length) {
-        const counts = m.attachments.reduce((a, x) => { a[x.type] = (a[x.type] || 0) + 1; return a; }, {});
-        const bits = [];
-        if (counts.image) bits.push(`${counts.image} image${counts.image > 1 ? "s" : ""}`);
-        if (counts.file) bits.push(`${counts.file} file${counts.file > 1 ? "s" : ""}`);
-        if (m.attachments.length === 1 && m.attachments[0].name) {
-          line += ` [shared: ${m.attachments[0].name}]`;
-        } else {
-          line += ` [shared ${bits.join(" and ")}]`;
+    // Build context. If replying into a thread, give the bot the ancestor chain
+    // (what came before, most recent last) + recent room activity.
+    const realMessages = room.messages.filter(m => !m.system && !m.typing);
+    const recentRoom = realMessages.slice(-10);
+
+    let threadContextBlock = "";
+    let replyTargetBlock = "";
+    if (opts.replyTo) {
+      const target = realMessages.find(m => m.id === opts.replyTo);
+      if (target) {
+        const ancestors = buildAncestors(room, target.id); // includes target
+        if (ancestors.length > 1) {
+          const ancestorLines = ancestors.map(fmtMsgLine).join("\n");
+          threadContextBlock = `\n\nThread you are replying into (oldest to newest):\n${ancestorLines}`;
         }
+        replyTargetBlock = `\n\nYou are replying directly to this specific message:\n"${target.author}: ${target.text || "(no text)"}"`;
       }
-      return line;
-    });
-    const transcript = transcriptLines.join("\n");
+    }
+
+    const recentBlock = recentRoom.length
+      ? `\n\nRecent room activity (for context):\n${recentRoom.map(fmtMsgLine).join("\n")}`
+      : "";
 
     const participants = [
       state.username && `${state.username} (human)`,
@@ -2385,14 +2749,14 @@ Strict rules:
 - Stay fully in character as ${bot.name}.
 - DO NOT prefix with your name — the chat client handles that.
 - DO NOT use any <thinking> tags or meta-commentary.
-- React naturally to what was just said. If someone shared an image or file, react to that casually (you can't actually see it, so don't describe its contents — just react to the fact they shared something).
+- This is a threaded chat. You're replying to a specific message when one is named. Stay focused on what that message said — don't go off-topic.
+- If someone shared an image or file, react to the fact they shared something; you cannot see its contents.
 - Never speak for anyone else, and never impersonate another chatter.
-- Occasional typos or chat-era punctuation are fine; stay in your era/voice.
 
 Current participants: ${participants}${entryNote}`;
 
-    const userContent = transcript
-      ? `Recent chatroom transcript:\n\n${transcript}\n\nRespond now as ${bot.name}. Just the message text, nothing else.`
+    const userContent = (replyTargetBlock || recentBlock)
+      ? `${replyTargetBlock}${threadContextBlock}${recentBlock}\n\nRespond now as ${bot.name}. Just the message text — one short reply, nothing else.`
       : `The room is quiet. Respond now as ${bot.name} with one short in-character opening line.`;
 
     let text = "";
@@ -2434,12 +2798,31 @@ Current participants: ${participants}${entryNote}`;
     const msg = addMessage(roomId, {
       author: bot.name, authorType: "bot",
       color: bot.color, avatarEmoji: bot.avatar,
-      text,
+      text, parentId: opts.replyTo || null,
     });
-    if (msg) afterNewMessage(msg);
+    if (msg) {
+      // Small chance this bot also casts a vote on something recent, to make the room feel alive
+      maybeBotVote(bot, room);
+      afterNewMessage(msg);
+    }
   }
 
-  // ── Human send ────────────────────────────────────────────────────
+  // When a bot acts, they sometimes up/down a recent message.
+  // Heuristic: favor upvoting the message they're engaging with (their replyTo target),
+  // occasionally voting on the immediate parent in a thread.
+  function maybeBotVote(bot, room) {
+    if (Math.random() > 0.35) return; // ~35% of bot turns cast a vote
+    const voterId = `bot:${bot.id}`;
+    const real = room.messages.filter(m => !m.system && !m.typing && m.author !== bot.name);
+    if (real.length === 0) return;
+    // Weight toward the most recent 4 messages
+    const pool = real.slice(-4);
+    const target = pool[Math.floor(Math.random() * pool.length)];
+    const dir = Math.random() < 0.75 ? 1 : -1; // mostly upvotes
+    voteOnMessage(room.id, target.id, voterId, dir);
+  }
+
+  // ── Human send (top-level, via main composer) ────────────────────
   function handleHumanSend() {
     const text = els.input.value.trim();
     const attachments = state.pendingAttachments.slice();
@@ -2456,6 +2839,7 @@ Current participants: ${participants}${entryNote}`;
       color: colorForName(state.username),
       avatarDataUrl: state.avatarDataUrl || null,
       text, attachments,
+      parentId: null,
     });
     if (msg) afterNewMessage(msg);
   }
@@ -2467,6 +2851,7 @@ Current participants: ${participants}${entryNote}`;
       color: colorForName(state.username),
       avatarDataUrl: state.avatarDataUrl || null,
       text: "", sticker: { emoji: sticker.emoji, label: sticker.label, anim: sticker.anim },
+      parentId: null,
     });
     if (msg) afterNewMessage(msg);
   }
@@ -2476,6 +2861,12 @@ Current participants: ${participants}${entryNote}`;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleHumanSend();
+    }
+  });
+  // Global Escape closes an open reply composer
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && state.replyingTo) {
+      closeReplyComposer();
     }
   });
 
