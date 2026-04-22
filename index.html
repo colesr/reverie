@@ -1103,6 +1103,276 @@
     .st-sidebar { max-height: 340px; }
   }
 
+  /* ═══════════ ARTBOARD ═══════════ */
+  body.view-artboard {
+    background: #1a1612;
+    background-image:
+      radial-gradient(ellipse at top right, rgba(200, 165, 116, 0.04), transparent 60%),
+      radial-gradient(ellipse at bottom left, rgba(131, 197, 190, 0.03), transparent 50%);
+  }
+  #view-artboard { overflow: hidden; padding: 0; }
+
+  .ab-shell { height: 100%; display: flex; flex-direction: column; width: 100%; }
+
+  .ab-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 22px 14px;
+    border-bottom: 1px solid var(--r-border-subtle);
+    flex-shrink: 0;
+    gap: 16px;
+    background: #1a1612;
+    z-index: 2;
+  }
+  .ab-brand { display: flex; align-items: center; gap: 14px; }
+  .ab-mark { font-size: 24px; color: #c8a574; line-height: 1; }
+  .ab-header h2 { font: 400 22px var(--serif); color: var(--r-text); letter-spacing: -0.01em; }
+  .ab-tagline { font: italic 12px var(--serif); color: var(--r-text-muted); margin-top: 2px; }
+
+  .ab-header-actions { display: flex; gap: 6px; align-items: center; }
+  .ab-btn {
+    background: transparent;
+    border: 1px solid var(--r-border);
+    color: var(--r-text-muted);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font: 500 12px var(--sans);
+    transition: all 0.12s ease;
+  }
+  .ab-btn:hover { border-color: #c8a574; color: var(--r-text); }
+  .ab-btn.primary { background: #c8a574; color: #14110d; border-color: #c8a574; }
+  .ab-btn.primary:hover { background: #d8b986; border-color: #d8b986; }
+  .ab-zoom-level {
+    font: 500 10px var(--mono);
+    color: var(--r-text-dim);
+    letter-spacing: 0.08em;
+    padding-left: 6px;
+    min-width: 48px;
+  }
+
+  .ab-workspace {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #161310;
+    /* Subtle paper-grain via tiny radial noise */
+    background-image:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.015) 0%, transparent 40%),
+      radial-gradient(circle at 70% 70%, rgba(200,165,116,0.02) 0%, transparent 50%);
+    cursor: grab;
+  }
+  .ab-workspace.panning { cursor: grabbing; user-select: none; }
+
+  /* The canvas itself — a large space that gets translated and scaled
+     for pan/zoom. Cards live inside .ab-cards, positioned absolutely. */
+  .ab-canvas {
+    position: absolute;
+    left: 0; top: 0;
+    width: 5000px; height: 5000px;
+    transform-origin: 0 0;
+    pointer-events: auto;
+  }
+  .ab-grid {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(200,165,116,0.07) 1px, transparent 0);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  .ab-cards { position: absolute; inset: 0; }
+
+  .ab-hint {
+    position: absolute;
+    bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 14px;
+    background: rgba(20,17,13,0.82);
+    color: var(--r-text-dim);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 14px;
+    font: italic 11px var(--serif);
+    pointer-events: none;
+    z-index: 3;
+    backdrop-filter: blur(4px);
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+  .ab-hint.faded { opacity: 0.25; }
+
+  /* Card base */
+  .ab-card {
+    position: absolute;
+    min-width: 180px;
+    max-width: 320px;
+    background: #f4f1de;
+    color: #2a2418;
+    border-radius: 8px;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.3),
+      0 6px 18px rgba(0,0,0,0.22);
+    font: 13px/1.55 var(--sans);
+    cursor: grab;
+    user-select: none;
+    transition: box-shadow 0.12s ease, transform 0.12s ease;
+  }
+  .ab-card.dragging {
+    cursor: grabbing;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.4),
+      0 16px 32px rgba(0,0,0,0.35);
+    transform: rotate(-0.4deg) scale(1.015);
+    z-index: 10;
+  }
+  .ab-card.editing { cursor: text; }
+  .ab-card.selected { outline: 2px solid #c8a574; outline-offset: 2px; }
+  .ab-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 10px 5px;
+    border-bottom: 1px solid rgba(42,36,24,0.08);
+    gap: 6px;
+  }
+  .ab-card-kind {
+    font: 500 9px var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(42,36,24,0.5);
+  }
+  .ab-card-actions { display: flex; gap: 2px; }
+  .ab-card-action {
+    background: transparent; border: none;
+    color: rgba(42,36,24,0.4);
+    font-size: 14px; line-height: 1;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.1s;
+  }
+  .ab-card-action:hover { background: rgba(42,36,24,0.08); color: rgba(42,36,24,0.8); }
+  .ab-card-action.delete:hover { color: #c24030; }
+  .ab-card-body {
+    padding: 8px 12px 12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .ab-card-body:focus {
+    outline: none;
+    background: rgba(200,165,116,0.06);
+  }
+  .ab-card-body textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+    resize: none;
+    font: inherit;
+    color: inherit;
+    min-height: 60px;
+  }
+  /* Card variants */
+  .ab-card.k-note { background: #f4f1de; }
+  .ab-card.k-chat { background: #eee4d5; }
+  .ab-card.k-chat .ab-card-body { font-family: var(--serif); font-size: 13px; }
+  .ab-card.k-chat .ab-chat-q {
+    font: 500 11px var(--mono);
+    color: rgba(42,36,24,0.6);
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(42,36,24,0.08);
+  }
+  .ab-card.k-look { background: #e4d7c1; max-width: 220px; }
+  .ab-card.k-look .ab-look-thumb {
+    width: 100%;
+    aspect-ratio: 16/10;
+    object-fit: cover;
+    display: block;
+    background: #0a0806;
+  }
+  .ab-card.k-look .ab-card-body {
+    padding: 8px 12px;
+    font: 500 12px var(--sans);
+  }
+  .ab-card.k-council { background: #e7d8c0; }
+  .ab-card.k-council .ab-council-who {
+    font: 500 11px var(--mono);
+    color: #a36b2c;
+    margin-bottom: 4px;
+  }
+
+  .ab-empty-state {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--r-text-dim);
+    font: italic 14px var(--serif);
+    pointer-events: none;
+    max-width: 420px;
+    line-height: 1.6;
+  }
+  .ab-empty-state .ab-empty-mark {
+    font-size: 38px; color: #c8a574; margin-bottom: 12px;
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  /* Send to Artboard / module-bridge button (used in Reverie + Studio + Council) */
+  .r-send-to-artboard {
+    background: transparent;
+    border: 1px solid var(--r-border);
+    color: var(--r-text-dim);
+    padding: 4px 9px;
+    border-radius: 5px;
+    cursor: pointer;
+    font: 10px var(--mono);
+    letter-spacing: 0.04em;
+    transition: all 0.12s ease;
+    margin-left: auto;
+  }
+  .r-send-to-artboard:hover { border-color: #c8a574; color: #c8a574; }
+
+  /* Slash-command menu in Reverie input */
+  .r-slash-menu {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 10px;
+    background: var(--r-bg-elevated);
+    border: 1px solid var(--r-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+    padding: 4px;
+    min-width: 280px;
+    z-index: 20;
+    display: none;
+    animation: r-slash-in 0.14s ease-out;
+  }
+  .r-slash-menu.visible { display: block; }
+  @keyframes r-slash-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .r-slash-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font: 12px var(--sans);
+    color: var(--r-text);
+  }
+  .r-slash-item:hover, .r-slash-item.selected {
+    background: var(--r-bg-subtle);
+  }
+  .r-slash-item .cmd {
+    font: 500 12px var(--mono);
+    color: #c8a574;
+    min-width: 80px;
+  }
+  .r-slash-item .desc {
+    color: var(--r-text-muted);
+    font-size: 11px;
+  }
+
   /* ═══════════ MODERN CHATROOM ═══════════ */
   #view-chatroom { padding: 0; overflow: hidden; position: relative; }
 
@@ -1657,6 +1927,7 @@
       <button class="tabnav-tab active" data-view="chat">Reverie</button>
       <button class="tabnav-tab" data-view="studio">Studio</button>
       <button class="tabnav-tab" data-view="chatroom">AI Council</button>
+      <button class="tabnav-tab" data-view="artboard">Artboard</button>
     </div>
   </nav>
 
@@ -1772,13 +2043,14 @@
 
     <div id="r-input-wrap" class="r-input-wrap" style="display:none;">
       <div id="r-attached-files" class="r-attached-tray" style="display:none;"></div>
-      <div class="r-input-shell">
+      <div class="r-input-shell" style="position:relative;">
+        <div id="r-slash-menu" class="r-slash-menu" role="listbox"></div>
         <button id="r-attach-btn" class="r-attach-btn" title="Attach files">📎</button>
         <input type="file" id="r-file-input" multiple style="display:none;" accept=".txt,.md,.csv,.json,.html,.htm,.xml,.js,.jsx,.ts,.tsx,.py,.rb,.go,.rs,.c,.cpp,.h,.css,.scss,.log,.yml,.yaml,.sql,.sh,.pdf,.docx,image/*" />
-        <textarea id="r-input" placeholder="What are you thinking about…" rows="1"></textarea>
+        <textarea id="r-input" placeholder="What are you thinking about…  (type / for commands)" rows="1"></textarea>
         <button id="r-send-btn" disabled>Send</button>
       </div>
-      <div class="r-footer-hint"><kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for new line · all inference runs locally</div>
+      <div class="r-footer-hint"><kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for new line · <kbd>/</kbd> for commands · all inference runs locally</div>
     </div>
   </section>
 
@@ -2106,6 +2378,34 @@
     </div>
 
   </section>
+
+  <!-- ARTBOARD -->
+  <section id="view-artboard" class="view">
+    <div class="ab-shell">
+      <header class="ab-header">
+        <div class="ab-brand">
+          <span class="ab-mark">⌗</span>
+          <div>
+            <h2>Artboard</h2>
+            <p class="ab-tagline">A private, unstructured workspace — ideas and fragments in space</p>
+          </div>
+        </div>
+        <div class="ab-header-actions">
+          <button class="ab-btn secondary" id="ab-new-note-btn" title="Add a new note (or double-click anywhere)">+ Note</button>
+          <button class="ab-btn secondary" id="ab-zoom-fit-btn" title="Fit all cards in view">Fit</button>
+          <button class="ab-btn secondary" id="ab-zoom-reset-btn" title="Reset to 100%">100%</button>
+          <span class="ab-zoom-level" id="ab-zoom-level">100%</span>
+        </div>
+      </header>
+      <div class="ab-workspace" id="ab-workspace">
+        <div class="ab-canvas" id="ab-canvas">
+          <div class="ab-grid"></div>
+          <div class="ab-cards" id="ab-cards"></div>
+        </div>
+        <div class="ab-hint" id="ab-hint">Double-click empty space to create a note · drag to move cards · scroll to zoom</div>
+      </div>
+    </div>
+  </section>
 </div>
 <script type="module">
 import * as webllm from "https://esm.run/@mlc-ai/web-llm@0.2.79";
@@ -2142,10 +2442,11 @@ document.querySelectorAll(".tabnav-tab").forEach(tab => {
     const view = tab.dataset.view;
     document.querySelectorAll(".tabnav-tab").forEach(t => t.classList.toggle("active", t === tab));
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === `view-${view}`));
-    document.body.classList.remove("view-chat", "view-chatroom", "view-studio");
+    document.body.classList.remove("view-chat", "view-chatroom", "view-studio", "view-artboard");
     document.body.classList.add(`view-${view}`);
     if (view === "chatroom") chatroom.onActivate();
     if (view === "studio") studio.onActivate();
+    if (view === "artboard") artboard.onActivate();
     if (view === "chat") setTimeout(() => $("r-input")?.focus(), 50);
   });
 });
@@ -2404,11 +2705,29 @@ Always include both sections. Always close the </thinking> tag before your final
       bar.className = "r-vote-bar";
       bar.innerHTML = `
         <span class="r-vote-label">Was this helpful? Your feedback teaches Reverie your preferences.</span>
+        <button class="r-send-to-artboard" title="Save to Artboard">→ Artboard</button>
         <button class="r-vote-btn r-vote-up${myVote === 1 ? " active" : ""}" data-vote="up" title="Helpful — show me more like this">▲</button>
         <button class="r-vote-btn r-vote-down${myVote === -1 ? " active" : ""}" data-vote="down" title="Not helpful — avoid this style">▼</button>
       `;
       bar.querySelector('[data-vote="up"]').addEventListener("click", () => toggleVote(m, 1));
       bar.querySelector('[data-vote="down"]').addEventListener("click", () => toggleVote(m, -1));
+      bar.querySelector('.r-send-to-artboard').addEventListener("click", async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        try {
+          await artboard.sendTo({
+            kind: "chat",
+            content: m.content || "",
+            meta: { q: m._userPrompt || "" },
+          });
+          btn.textContent = "✓ saved";
+          setTimeout(() => { btn.textContent = "→ Artboard"; btn.disabled = false; }, 1400);
+        } catch (err) {
+          btn.textContent = "failed";
+          btn.disabled = false;
+          console.warn(err);
+        }
+      });
       wrap.appendChild(bar);
     }
     return wrap;
@@ -2632,13 +2951,133 @@ Always include both sections. Always close the </thinking> tag before your final
   }
   els.input.addEventListener("input", autoResize);
   els.input.addEventListener("keydown", (e) => {
+    // If the slash-menu is open, arrow keys / Enter / Esc belong to it
+    if (slashMenuOpen) {
+      if (e.key === "ArrowDown") { e.preventDefault(); slashMenuMove(1); return; }
+      if (e.key === "ArrowUp")   { e.preventDefault(); slashMenuMove(-1); return; }
+      if (e.key === "Enter")     { e.preventDefault(); slashMenuSelect(); return; }
+      if (e.key === "Escape")    { e.preventDefault(); closeSlashMenu(); return; }
+      if (e.key === "Tab")       { e.preventDefault(); slashMenuSelect(); return; }
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (state.generating) stopGeneration(); else handleSend();
     }
   });
+  els.input.addEventListener("input", () => {
+    refreshSlashMenu();
+  });
   els.sendBtn.addEventListener("click", () => { if (state.generating) stopGeneration(); else handleSend(); });
   els.clearBtn.addEventListener("click", () => { if (state.generating) return; state.messages = []; renderIntro(); });
+
+  // ── Slash-command menu ──────────────────────────────────────────
+  // Triggered by a "/" at the very start of the input (or after whitespace-only).
+  // Presents cross-module actions. Tasteful and minimal: 3 commands, arrow-key
+  // navigation, Enter/Tab to execute, Escape to dismiss.
+  const SLASH_COMMANDS = [
+    {
+      cmd: "/artboard",
+      desc: "save current conversation to Artboard",
+      run: () => {
+        // Find the most recent completed user+assistant pair
+        const msgs = state.messages;
+        let lastUser = null, lastAst = null;
+        for (let i = msgs.length - 1; i >= 0; i--) {
+          if (!lastAst && msgs[i].role === "assistant" && msgs[i].content) lastAst = msgs[i];
+          else if (lastAst && msgs[i].role === "user") { lastUser = msgs[i]; break; }
+        }
+        if (!lastAst || !lastUser) {
+          alert("No conversation to save yet — ask Reverie something first.");
+          return;
+        }
+        artboard.sendTo({
+          kind: "chat",
+          content: lastAst.content,
+          meta: { q: lastUser.content },
+        }).then(() => flashInputFeedback("saved to Artboard"));
+      },
+    },
+    {
+      cmd: "/studio",
+      desc: "open Studio (your creative canvas)",
+      run: () => {
+        const tab = document.querySelector('.tabnav-tab[data-view="studio"]');
+        if (tab) tab.click();
+      },
+    },
+    {
+      cmd: "/council",
+      desc: "open AI Council (multi-bot room)",
+      run: () => {
+        const tab = document.querySelector('.tabnav-tab[data-view="chatroom"]');
+        if (tab) tab.click();
+      },
+    },
+  ];
+
+  let slashMenuOpen = false;
+  let slashMenuIdx = 0;
+  let slashMenuFiltered = [];
+
+  function refreshSlashMenu() {
+    const text = els.input.value;
+    // Trigger only when input STARTS with "/" — keeps it unintrusive
+    const trimmed = text.trimStart();
+    if (!trimmed.startsWith("/")) { closeSlashMenu(); return; }
+    const query = trimmed.split(/\s/)[0].toLowerCase();
+    // If the user has typed whitespace after the command (i.e. they're writing args),
+    // close the menu so it's not in the way
+    if (/\s/.test(trimmed) && query !== "/") { closeSlashMenu(); return; }
+    slashMenuFiltered = SLASH_COMMANDS.filter(c => c.cmd.startsWith(query));
+    if (slashMenuFiltered.length === 0) { closeSlashMenu(); return; }
+    slashMenuIdx = Math.min(slashMenuIdx, slashMenuFiltered.length - 1);
+    openSlashMenu();
+  }
+
+  function openSlashMenu() {
+    const menu = $("r-slash-menu");
+    if (!menu) return;
+    slashMenuOpen = true;
+    menu.classList.add("visible");
+    menu.innerHTML = "";
+    slashMenuFiltered.forEach((c, i) => {
+      const item = document.createElement("div");
+      item.className = "r-slash-item" + (i === slashMenuIdx ? " selected" : "");
+      item.innerHTML = `<span class="cmd">${c.cmd}</span><span class="desc">${c.desc}</span>`;
+      item.addEventListener("mousedown", (e) => { e.preventDefault(); slashMenuIdx = i; slashMenuSelect(); });
+      menu.appendChild(item);
+    });
+  }
+
+  function closeSlashMenu() {
+    slashMenuOpen = false;
+    slashMenuIdx = 0;
+    slashMenuFiltered = [];
+    const menu = $("r-slash-menu");
+    if (menu) { menu.classList.remove("visible"); menu.innerHTML = ""; }
+  }
+
+  function slashMenuMove(delta) {
+    if (slashMenuFiltered.length === 0) return;
+    slashMenuIdx = (slashMenuIdx + delta + slashMenuFiltered.length) % slashMenuFiltered.length;
+    openSlashMenu();
+  }
+
+  function slashMenuSelect() {
+    if (slashMenuFiltered.length === 0) return;
+    const chosen = slashMenuFiltered[slashMenuIdx];
+    closeSlashMenu();
+    els.input.value = "";
+    autoResize();
+    chosen.run();
+  }
+
+  // Feedback flash inside input (brief placeholder hint after a command runs)
+  function flashInputFeedback(text) {
+    const orig = els.input.placeholder;
+    els.input.placeholder = text;
+    setTimeout(() => { els.input.placeholder = orig; }, 1800);
+  }
 
   // ── File attachment handling ────────────────────────────────────
   const MAX_FILE_BYTES = 10 * 1024 * 1024;    // 10 MB per file
@@ -4605,6 +5044,7 @@ const chatroom = (() => {
     parts.push(`<span class="sep"></span>`);
     parts.push(`<button class="cr-react-btn love${iLoved ? " reacted" : ""}" data-react="love" title="Love"><span class="emoji">❤️</span><span class="count">${loveCount || ""}</span></button>`);
     parts.push(`<button class="cr-react-btn lol${iLol ? " reacted" : ""}" data-react="lol" title="LOL"><span class="emoji">😂</span><span class="count">${lolCount || ""}</span></button>`);
+    parts.push(`<button class="cr-react-btn" data-to-artboard title="Send to Artboard"><span class="emoji">→</span></button>`);
     parts.push(`</div>`);
 
     parts.push(`</div>`);
@@ -4644,6 +5084,26 @@ const chatroom = (() => {
         if (added) spawnReactionFly(btn, kind);
       });
     });
+    const abBtn = el.querySelector("[data-to-artboard]");
+    if (abBtn) {
+      abBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const speaker = msg.botId ? (findBot(msg.botId)?.name || msg.botId) : (msg.authorName || "Someone");
+        abBtn.disabled = true;
+        try {
+          await artboard.sendTo({
+            kind: "council",
+            content: msg.text || "",
+            meta: { speaker, room: currentRoom().name },
+          });
+          abBtn.classList.add("reacted");
+          setTimeout(() => { abBtn.classList.remove("reacted"); abBtn.disabled = false; }, 1200);
+        } catch (err) {
+          abBtn.disabled = false;
+          console.warn(err);
+        }
+      });
+    }
 
     // If the reply composer is currently targeting this message, insert it right here
     if (state.replyingTo === msg.id) {
@@ -7386,6 +7846,7 @@ Final rules:
         { title: "Download current view (SVG)", desc: "vector export incl. overlays", icon: "◇", fn: exportSvg },
         { title: "Download current view (PNG)", desc: "flattened raster, any size", icon: "▣", fn: exportPng },
         { title: "Download current view (JPG)", desc: "flattened with white background", icon: "▧", fn: () => exportFlat("image/jpeg", "jpg", 0.92) },
+        { title: "Save to Artboard", desc: "drop this view as a card on your Artboard", icon: "→", fn: sendCurrentToArtboard },
       ];
       sections.push({ label: "Image", tools: imageTools });
     }
@@ -7553,6 +8014,26 @@ Final rules:
         });
       } catch (e) { URL.revokeObjectURL(url); throw e; }
     });
+  }
+
+  // Studio → Artboard: drop a card referencing the current creative state
+  async function sendCurrentToArtboard() {
+    await withProgress("Saving to Artboard", "generating thumbnail", async () => {
+      // Reuse the saved-looks thumbnail generator
+      const thumb = await makeLookThumbnail();
+      const bits = [];
+      if (state.filters.length) bits.push(`${state.filters.length} filter${state.filters.length === 1 ? "" : "s"}`);
+      if (state.ops.length) bits.push(`${state.ops.length} shape${state.ops.length === 1 ? "" : "s"}`);
+      if (state.cropBox) bits.push("cropped");
+      if (state.ascii) bits.push("ASCII");
+      const summary = bits.length ? bits.join(" · ") : "blank canvas";
+      await artboard.sendTo({
+        kind: "look",
+        content: `Studio view · ${summary}`,
+        meta: { thumb },
+      });
+    });
+    addSystemMessage("Saved a snapshot of this Studio view to your Artboard.");
   }
 
   // PDF-based conversions
@@ -7764,6 +8245,544 @@ Final rules:
   els.openToolboxBtn.addEventListener("click", openToolbox);
 
   return { onActivate };
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+// ARTBOARD — private freeform canvas
+// ═══════════════════════════════════════════════════════════════════
+const artboard = (() => {
+  const CANVAS_W = 5000, CANVAS_H = 5000;
+  const MIN_ZOOM = 0.25, MAX_ZOOM = 2.5;
+
+  const state = {
+    active: false,
+    cards: [],          // [{id, kind, x, y, w, h, content, meta, createdAt}]
+    view: { tx: -1400, ty: -1400, zoom: 1 }, // pan offset + zoom
+    selectedId: null,
+    loaded: false,
+  };
+
+  const els = {
+    workspace: $("ab-workspace"),
+    canvas:    $("ab-canvas"),
+    cardsEl:   $("ab-cards"),
+    hint:      $("ab-hint"),
+    newBtn:    $("ab-new-note-btn"),
+    fitBtn:    $("ab-zoom-fit-btn"),
+    resetBtn:  $("ab-zoom-reset-btn"),
+    zoomLevel: $("ab-zoom-level"),
+  };
+
+  // ── Persistence: IndexedDB  ─────────────────────────────────────
+  // We use a separate DB so vault and artboard don't collide.
+  const AB_DB_NAME = "reverie-artboard";
+  const AB_DB_VERSION = 1;
+  let _db = null;
+  function openDb() {
+    return new Promise((resolve, reject) => {
+      if (_db) return resolve(_db);
+      const req = indexedDB.open(AB_DB_NAME, AB_DB_VERSION);
+      req.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains("cards")) d.createObjectStore("cards", { keyPath: "id" });
+        if (!d.objectStoreNames.contains("meta"))  d.createObjectStore("meta",  { keyPath: "key" });
+      };
+      req.onsuccess = () => { _db = req.result; resolve(_db); };
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function loadCards() {
+    await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = _db.transaction("cards", "readonly");
+      const req = tx.objectStore("cards").getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function saveCard(card) {
+    await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = _db.transaction("cards", "readwrite");
+      tx.objectStore("cards").put(card);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function deleteCard(id) {
+    await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = _db.transaction("cards", "readwrite");
+      tx.objectStore("cards").delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function saveMeta(key, value) {
+    await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = _db.transaction("meta", "readwrite");
+      tx.objectStore("meta").put({ key, value });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function loadMeta(key) {
+    await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = _db.transaction("meta", "readonly");
+      const req = tx.objectStore("meta").get(key);
+      req.onsuccess = () => resolve(req.result ? req.result.value : null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  // Debounce-save for view state (pan/zoom change frequently)
+  let viewSaveTimer = null;
+  function scheduleViewSave() {
+    clearTimeout(viewSaveTimer);
+    viewSaveTimer = setTimeout(() => saveMeta("view", state.view), 400);
+  }
+
+  // ── Loading + activating ────────────────────────────────────────
+  async function onActivate() {
+    state.active = true;
+    if (!state.loaded) await initialLoad();
+    applyTransform();
+    renderAll();
+    fadeHintEventually();
+  }
+
+  async function initialLoad() {
+    try {
+      state.cards = await loadCards();
+    } catch (e) {
+      console.warn("artboard load failed", e);
+      state.cards = [];
+    }
+    try {
+      const savedView = await loadMeta("view");
+      if (savedView) state.view = savedView;
+    } catch {}
+    // Drain any pending items sent from other modules while Artboard was inactive
+    await drainInbox();
+    state.loaded = true;
+  }
+
+  // ── Transform + rendering ───────────────────────────────────────
+  function applyTransform() {
+    const { tx, ty, zoom } = state.view;
+    els.canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
+    els.zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+  }
+
+  function renderAll() {
+    els.cardsEl.innerHTML = "";
+    if (state.cards.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "ab-empty-state";
+      empty.innerHTML = `
+        <div class="ab-empty-mark">⌗</div>
+        <div>Your Artboard is empty.</div>
+        <div style="margin-top: 6px; font-size: 12px;">Double-click anywhere to drop a note.<br>Or send things here from Reverie, Studio, and AI Council.</div>
+      `;
+      // Position at a sensible default on the canvas
+      empty.style.left = "2000px"; empty.style.top = "2000px";
+      empty.style.position = "absolute";
+      els.cardsEl.appendChild(empty);
+      return;
+    }
+    for (const c of state.cards) els.cardsEl.appendChild(renderCard(c));
+  }
+
+  function renderCard(card) {
+    const el = document.createElement("div");
+    el.className = `ab-card k-${card.kind}`;
+    el.dataset.id = card.id;
+    el.style.left = card.x + "px";
+    el.style.top = card.y + "px";
+    if (state.selectedId === card.id) el.classList.add("selected");
+
+    const head = document.createElement("div");
+    head.className = "ab-card-head";
+    head.innerHTML = `<span class="ab-card-kind">${kindLabel(card.kind)}</span><div class="ab-card-actions"></div>`;
+    const actions = head.querySelector(".ab-card-actions");
+
+    // Kind-specific actions
+    if (card.kind === "chat" && card.meta?.q) {
+      const openBtn = document.createElement("button");
+      openBtn.className = "ab-card-action";
+      openBtn.innerHTML = "↩";
+      openBtn.title = "Discuss in Reverie";
+      openBtn.addEventListener("click", (e) => { e.stopPropagation(); discussInReverie(card); });
+      actions.appendChild(openBtn);
+    }
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "ab-card-action delete";
+    deleteBtn.innerHTML = "×";
+    deleteBtn.title = "Remove card";
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!confirm("Remove this card from Artboard?")) return;
+      removeCard(card.id);
+    });
+    actions.appendChild(deleteBtn);
+    el.appendChild(head);
+
+    // Body rendering by kind
+    if (card.kind === "note") {
+      const body = document.createElement("div");
+      body.className = "ab-card-body";
+      body.textContent = card.content || "";
+      body.addEventListener("dblclick", (e) => {
+        e.stopPropagation();
+        beginEditNote(el, body, card);
+      });
+      el.appendChild(body);
+    } else if (card.kind === "chat") {
+      const body = document.createElement("div");
+      body.className = "ab-card-body";
+      const q = document.createElement("div");
+      q.className = "ab-chat-q";
+      q.textContent = "Q · " + (card.meta?.q || "").slice(0, 160) + (((card.meta?.q || "").length > 160) ? "…" : "");
+      body.appendChild(q);
+      const a = document.createTextNode(card.content || "");
+      body.appendChild(a);
+      el.appendChild(body);
+    } else if (card.kind === "look") {
+      if (card.meta?.thumb) {
+        const img = document.createElement("img");
+        img.className = "ab-look-thumb";
+        img.src = card.meta.thumb;
+        img.alt = "";
+        el.appendChild(img);
+      }
+      const body = document.createElement("div");
+      body.className = "ab-card-body";
+      body.textContent = card.content || "";
+      el.appendChild(body);
+    } else if (card.kind === "council") {
+      const body = document.createElement("div");
+      body.className = "ab-card-body";
+      if (card.meta?.speaker) {
+        const who = document.createElement("div");
+        who.className = "ab-council-who";
+        who.textContent = card.meta.speaker;
+        body.appendChild(who);
+      }
+      const text = document.createTextNode(card.content || "");
+      body.appendChild(text);
+      el.appendChild(body);
+    }
+
+    // Dragging
+    wireDrag(el, card);
+    return el;
+  }
+
+  function kindLabel(kind) {
+    switch (kind) {
+      case "note":    return "note";
+      case "chat":    return "from reverie";
+      case "look":    return "from studio";
+      case "council": return "from council";
+      default:        return kind;
+    }
+  }
+
+  // ── Pan / zoom ──────────────────────────────────────────────────
+  let panState = null;
+  els.workspace.addEventListener("mousedown", (e) => {
+    if (e.target.closest(".ab-card")) return; // card handles its own drag
+    panState = { startX: e.clientX, startY: e.clientY, origTx: state.view.tx, origTy: state.view.ty };
+    els.workspace.classList.add("panning");
+  });
+  window.addEventListener("mousemove", (e) => {
+    if (!panState) return;
+    const dx = e.clientX - panState.startX;
+    const dy = e.clientY - panState.startY;
+    state.view.tx = panState.origTx + dx;
+    state.view.ty = panState.origTy + dy;
+    applyTransform();
+  });
+  window.addEventListener("mouseup", () => {
+    if (panState) {
+      panState = null;
+      els.workspace.classList.remove("panning");
+      scheduleViewSave();
+    }
+  });
+
+  els.workspace.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    // Zoom relative to mouse position
+    const rect = els.workspace.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const oldZoom = state.view.zoom;
+    const delta = -e.deltaY * 0.0015;
+    let newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, oldZoom * Math.exp(delta)));
+    // Zoom centered on cursor
+    const worldX = (mx - state.view.tx) / oldZoom;
+    const worldY = (my - state.view.ty) / oldZoom;
+    state.view.zoom = newZoom;
+    state.view.tx = mx - worldX * newZoom;
+    state.view.ty = my - worldY * newZoom;
+    applyTransform();
+    scheduleViewSave();
+  }, { passive: false });
+
+  // Double-click empty → create note
+  els.workspace.addEventListener("dblclick", (e) => {
+    if (e.target.closest(".ab-card") || e.target.closest(".ab-empty-state")) return;
+    const rect = els.workspace.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const wx = (mx - state.view.tx) / state.view.zoom - 90; // center card
+    const wy = (my - state.view.ty) / state.view.zoom - 40;
+    createNoteAt(Math.max(20, Math.min(CANVAS_W - 200, wx)), Math.max(20, Math.min(CANVAS_H - 200, wy)));
+  });
+
+  // ── Fit + reset ─────────────────────────────────────────────────
+  function fitToCards() {
+    if (state.cards.length === 0) { resetView(); return; }
+    const PAD = 80;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const c of state.cards) {
+      minX = Math.min(minX, c.x);
+      minY = Math.min(minY, c.y);
+      maxX = Math.max(maxX, c.x + (c.w || 260));
+      maxY = Math.max(maxY, c.y + (c.h || 160));
+    }
+    const spanX = maxX - minX, spanY = maxY - minY;
+    const rect = els.workspace.getBoundingClientRect();
+    const zx = (rect.width - PAD * 2) / spanX;
+    const zy = (rect.height - PAD * 2) / spanY;
+    const zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.min(zx, zy)));
+    state.view.zoom = zoom;
+    state.view.tx = PAD + (rect.width - PAD * 2 - spanX * zoom) / 2 - minX * zoom;
+    state.view.ty = PAD + (rect.height - PAD * 2 - spanY * zoom) / 2 - minY * zoom;
+    applyTransform();
+    scheduleViewSave();
+  }
+  function resetView() {
+    state.view.zoom = 1;
+    const rect = els.workspace.getBoundingClientRect();
+    state.view.tx = -2000 + rect.width / 2;
+    state.view.ty = -2000 + rect.height / 2;
+    applyTransform();
+    scheduleViewSave();
+  }
+  els.fitBtn.addEventListener("click", fitToCards);
+  els.resetBtn.addEventListener("click", resetView);
+
+  // ── Card drag ────────────────────────────────────────────────────
+  function wireDrag(el, card) {
+    let drag = null;
+    el.addEventListener("mousedown", (e) => {
+      if (e.target.closest(".ab-card-action")) return;
+      if (e.target.tagName === "TEXTAREA" || e.target.isContentEditable) return;
+      e.stopPropagation();
+      drag = { startX: e.clientX, startY: e.clientY, origX: card.x, origY: card.y, moved: false };
+      el.classList.add("dragging");
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!drag) return;
+      const dx = (e.clientX - drag.startX) / state.view.zoom;
+      const dy = (e.clientY - drag.startY) / state.view.zoom;
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) drag.moved = true;
+      card.x = Math.max(0, Math.min(CANVAS_W - 100, drag.origX + dx));
+      card.y = Math.max(0, Math.min(CANVAS_H - 40, drag.origY + dy));
+      el.style.left = card.x + "px";
+      el.style.top = card.y + "px";
+    });
+    window.addEventListener("mouseup", async () => {
+      if (!drag) return;
+      const wasMoved = drag.moved;
+      drag = null;
+      el.classList.remove("dragging");
+      if (wasMoved) {
+        try { await saveCard(card); } catch (e) { console.warn(e); }
+      } else {
+        // Treat as click → select
+        state.selectedId = card.id;
+        // update selected visuals without full re-render
+        document.querySelectorAll(".ab-card.selected").forEach(n => n.classList.remove("selected"));
+        el.classList.add("selected");
+      }
+    });
+  }
+
+  // ── Card creation / mutation ─────────────────────────────────────
+  function newId() { return "c_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  async function createNoteAt(x, y, initialContent = "") {
+    const card = {
+      id: newId(),
+      kind: "note",
+      x, y,
+      w: 220, h: 120,
+      content: initialContent,
+      meta: {},
+      createdAt: Date.now(),
+    };
+    state.cards.push(card);
+    await saveCard(card);
+    renderAll();
+    fadeHint();
+    // Auto-edit new empty notes
+    if (!initialContent) {
+      const el = els.cardsEl.querySelector(`[data-id="${card.id}"]`);
+      const body = el?.querySelector(".ab-card-body");
+      if (body) beginEditNote(el, body, card);
+    }
+    return card;
+  }
+
+  async function addCardFromOther({ kind, content, meta, preferredX, preferredY }) {
+    // Find an empty-ish spot near the center of the current view
+    const rect = els.workspace.getBoundingClientRect();
+    const centerX = (rect.width / 2 - state.view.tx) / state.view.zoom;
+    const centerY = (rect.height / 2 - state.view.ty) / state.view.zoom;
+    const x = preferredX ?? centerX - 140 + (Math.random() * 100 - 50);
+    const y = preferredY ?? centerY - 80 + (Math.random() * 100 - 50);
+    const card = {
+      id: newId(),
+      kind,
+      x: Math.max(20, Math.min(CANVAS_W - 250, x)),
+      y: Math.max(20, Math.min(CANVAS_H - 200, y)),
+      w: 260, h: 180,
+      content: content || "",
+      meta: meta || {},
+      createdAt: Date.now(),
+    };
+    state.cards.push(card);
+    await saveCard(card);
+    if (state.active) renderAll();
+    fadeHint();
+    return card;
+  }
+
+  async function removeCard(id) {
+    state.cards = state.cards.filter(c => c.id !== id);
+    try { await deleteCard(id); } catch (e) { console.warn(e); }
+    renderAll();
+  }
+
+  function beginEditNote(el, body, card) {
+    el.classList.add("editing");
+    const current = card.content || "";
+    body.innerHTML = "";
+    const ta = document.createElement("textarea");
+    ta.value = current;
+    ta.rows = 4;
+    body.appendChild(ta);
+    setTimeout(() => { ta.focus(); ta.selectionStart = ta.value.length; }, 20);
+    const finish = async () => {
+      const newVal = ta.value;
+      el.classList.remove("editing");
+      card.content = newVal;
+      body.innerHTML = "";
+      body.textContent = card.content;
+      try { await saveCard(card); } catch (e) { console.warn(e); }
+    };
+    ta.addEventListener("blur", finish);
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { ta.value = current; ta.blur(); }
+      // Ctrl/Cmd-Enter saves
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") ta.blur();
+    });
+  }
+
+  // ── Cross-module glue: inbox pattern ────────────────────────────
+  // Other modules push items via `artboard.sendTo(...)` even when Artboard
+  // is inactive. Items queue, and drain when user first visits Artboard.
+  // Because Artboard persists to IDB, the inbox is just direct-save.
+  async function sendTo(item) {
+    const card = await addCardFromOther(item);
+    // Visual cue: flash the Artboard tab to show something arrived
+    flashArtboardTab();
+    return card;
+  }
+  async function drainInbox() {
+    // Nothing to drain — sendTo writes directly to DB. This method exists as
+    // a hook for future batched inbox if needed.
+  }
+
+  function flashArtboardTab() {
+    const tab = document.querySelector('.tabnav-tab[data-view="artboard"]');
+    if (!tab) return;
+    tab.classList.add("tab-flash");
+    setTimeout(() => tab.classList.remove("tab-flash"), 1400);
+  }
+
+  // ── "Discuss in Reverie" — the reverse bridge ───────────────────
+  function discussInReverie(card) {
+    // Switch to Reverie tab
+    const reverieTab = document.querySelector('.tabnav-tab[data-view="chat"]');
+    if (reverieTab) reverieTab.click();
+    // Drop a summary of the card into the Reverie input as a starter
+    setTimeout(() => {
+      const input = $("r-input");
+      if (!input) return;
+      let text;
+      if (card.kind === "chat") {
+        text = `Earlier, I asked you: "${card.meta?.q || ""}"\n\nYou said:\n${card.content || ""}\n\nLet's pick this back up — `;
+      } else if (card.kind === "note") {
+        text = `From a note on my Artboard:\n"${card.content || ""}"\n\nHelp me think through this — `;
+      } else if (card.kind === "look") {
+        text = `I saved a Studio look called "${card.content}" on my Artboard. `;
+      } else if (card.kind === "council") {
+        text = `From the Council, ${card.meta?.speaker || "someone"} said:\n"${card.content}"\n\nWhat do you make of this? `;
+      } else {
+        text = (card.content || "") + "\n\n";
+      }
+      input.value = text;
+      input.focus();
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }, 120);
+  }
+
+  // ── Header button ───────────────────────────────────────────────
+  els.newBtn.addEventListener("click", () => {
+    // Place at current viewport center
+    const rect = els.workspace.getBoundingClientRect();
+    const cx = (rect.width / 2 - state.view.tx) / state.view.zoom - 90;
+    const cy = (rect.height / 2 - state.view.ty) / state.view.zoom - 40;
+    createNoteAt(Math.max(20, cx), Math.max(20, cy));
+  });
+
+  // Hint fades after any interaction
+  let hintTimer = null;
+  function fadeHint() {
+    if (!els.hint) return;
+    els.hint.classList.add("faded");
+  }
+  function fadeHintEventually() {
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(fadeHint, 6000);
+  }
+
+  // Ensure view is loaded even before first activation (so sendTo works from other tabs)
+  initialLoad();
+
+  return { onActivate, sendTo };
+})();
+
+// ── Tab-flash CSS helper (injected so we don't have to add a rule separately) ──
+(function() {
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes tab-flash-kf {
+      0%   { color: var(--r-accent); }
+      50%  { color: #c8a574; box-shadow: 0 0 0 0 rgba(200,165,116,0.5); }
+      100% { color: var(--r-text-dim); }
+    }
+    .tabnav-tab.tab-flash {
+      animation: tab-flash-kf 1.4s ease-out;
+    }
+  `;
+  document.head.appendChild(style);
 })();
 </script>
 </body>
