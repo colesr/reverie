@@ -290,6 +290,41 @@
   .st-msg.system { color: var(--r-text-dim); font-style: italic; font-size: 12px; padding: 4px 2px; }
   .st-msg.error { color: var(--r-danger); font-size: 12px; padding: 6px 10px; background: rgba(200, 122, 90, 0.08); border: 1px solid rgba(200, 122, 90, 0.25); border-radius: 7px; }
   .st-msg .ops { font: 11px var(--mono); color: var(--r-text-dim); margin-top: 6px; padding: 6px 8px; background: var(--r-bg-subtle); border-radius: 5px; white-space: pre-wrap; max-height: 120px; overflow-y: auto; }
+
+  /* ASCII-art result card in the direction panel */
+  .st-ascii-card {
+    margin: 6px 0 4px;
+    padding: 10px 12px;
+    background: #0e0c09;
+    border: 1px solid rgba(131, 197, 190, 0.35);
+    border-radius: 8px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .st-ascii-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+  }
+  .st-ascii-title {
+    font: 500 11px var(--mono); color: #83c5be;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .st-ascii-meta {
+    font: 10px var(--mono); color: var(--r-text-dim);
+  }
+  .st-ascii-preview {
+    font: 10px/1.1 "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    color: #d7eae6;
+    background: #050403;
+    padding: 8px 10px;
+    border-radius: 5px;
+    max-height: 150px;
+    overflow: auto;
+    white-space: pre;
+    margin: 0;
+  }
+  .st-ascii-actions {
+    display: flex; gap: 6px; justify-content: flex-end;
+  }
   .st-intro { color: var(--r-text-muted); font-size: 13px; }
   .st-intro ul { margin: 6px 0 0 16px; padding: 0; }
   .st-intro li { margin-bottom: 4px; font-size: 12px; color: var(--r-text-dim); }
@@ -3685,7 +3720,8 @@ const studio = (() => {
     filters: [],                   // [{name, params}] stack applied to base image
     processedImageCache: null,     // memoized processed dataURL
     ops: [],                       // vector shape ops (on top of processed image)
-    historyStack: [],              // snapshots of {filters, cropBox, ops}; most recent last
+    ascii: null,                   // { text, width, chars, inverted, fontSize } or null
+    historyStack: [],              // snapshots of {filters, cropBox, ops, ascii}
     historyIndex: -1,
     nextShapeId: 1,
     messages: [],
@@ -3736,6 +3772,7 @@ const studio = (() => {
     state.ops = [];
     state.filters = [];
     state.cropBox = null;
+    state.ascii = null;
     state.processedImageCache = null;
     resetHistory();
     renderCanvas();
@@ -3759,6 +3796,7 @@ const studio = (() => {
         state.ops = [];
         state.filters = [];
         state.cropBox = null;
+        state.ascii = null;
         state.processedImageCache = null;
         resetHistory();
         renderCanvas();
@@ -3799,13 +3837,15 @@ const studio = (() => {
       ops: state.ops,
       filters: state.filters,
       cropBox: state.cropBox,
+      ascii: state.ascii,
     }));
   }
   function restoreSnapshot(snap) {
     state.ops = JSON.parse(JSON.stringify(snap.ops || []));
     state.filters = JSON.parse(JSON.stringify(snap.filters || []));
     state.cropBox = snap.cropBox ? JSON.parse(JSON.stringify(snap.cropBox)) : null;
-    state.processedImageCache = null; // must re-derive
+    state.ascii = snap.ascii ? JSON.parse(JSON.stringify(snap.ascii)) : null;
+    state.processedImageCache = null;
   }
   function pushHistory() {
     state.historyStack = state.historyStack.slice(0, state.historyIndex + 1);
@@ -3936,10 +3976,13 @@ const studio = (() => {
     els.svg.setAttribute("viewBox", `0 0 ${viewW} ${viewH}`);
     while (els.svg.firstChild) els.svg.removeChild(els.svg.firstChild);
 
-    if (state.baseImageDataUrl) {
+    // ASCII takeover: when the user has converted the image to text art,
+    // that replaces the image layer entirely.
+    if (state.ascii) {
+      renderAsciiIntoSvg(els.svg, svgNs, viewW, viewH);
+    } else if (state.baseImageDataUrl) {
       const needsProcessing = state.filters.length > 0 || !!state.cropBox;
       if (needsProcessing && !state.processedImageCache) {
-        // Start processing; show the raw image meanwhile to avoid flashes
         processBaseImage().then(() => renderCanvas()).catch(err => console.warn("filter error", err));
       }
       const href = state.processedImageCache || state.baseImageDataUrl;
@@ -3957,6 +4000,7 @@ const studio = (() => {
       els.svg.appendChild(bg);
     }
 
+    // Vector shapes still render on top (works with both image and ASCII modes)
     for (const op of state.ops) {
       const node = shapeToSvg(op, svgNs);
       if (node) els.svg.appendChild(node);
@@ -4219,6 +4263,127 @@ const studio = (() => {
 
   function invalidateProcessedImage() { state.processedImageCache = null; }
 
+  // ── ASCII art conversion ────────────────────────────────────────
+  // Character ramps ordered from least to most visually "dense" — dark to light.
+  // The model can pick by name or pass a custom string.
+  const ASCII_RAMPS = {
+    classic:   " .:-=+*#%@",
+    detailed:  " .'`^\",:;Il!i><~+_-?][}{1)(|/\\tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
+    blocks:    " ░▒▓█",
+    binary:    " #",
+    dots:      " ·•●",
+    lines:     " -=≡≣",
+    minimal:   " .:oO@",
+  };
+
+  // Produce plain-text ASCII art from the currently-composed canvas (after filters).
+  // The output is what we render into the SVG AND what gets saved to .txt.
+  //
+  // `opts` fields (all optional):
+  //   width     — columns of characters (default 80, clamped 20-200)
+  //   ramp      — ramp name key or a custom string (default "classic")
+  //   inverted  — swap mapping so lighter pixels = denser chars (default false)
+  //
+  // Returns { text, width, height, chars, inverted }
+  async function generateAsciiArt(opts = {}) {
+    if (!state.baseImageDataUrl) throw new Error("No image to convert — upload one first.");
+
+    const width = Math.max(20, Math.min(200, Math.round(opts.width || 80)));
+    const rampInput = opts.ramp || opts.chars || "classic";
+    const inverted = !!opts.inverted;
+
+    // Resolve the ramp: preset name → chars, or take the raw string.
+    let chars = ASCII_RAMPS[rampInput] || rampInput;
+    if (typeof chars !== "string" || chars.length < 2) chars = ASCII_RAMPS.classic;
+    if (inverted) chars = chars.split("").reverse().join("");
+
+    // We convert the PROCESSED image (filters applied), not the raw upload,
+    // so that "cartoonize then convert to ASCII" works as expected.
+    const sourceDataUrl = (state.filters.length > 0 || state.cropBox)
+      ? (state.processedImageCache || await processBaseImage())
+      : state.baseImageDataUrl;
+
+    const img = await loadImage(sourceDataUrl);
+    // Monospace chars in most fonts are ~0.5 as wide as they are tall.
+    // So to preserve aspect, sample half as many rows per column.
+    const CHAR_ASPECT = 0.5;
+    const srcRatio = img.height / img.width;
+    const height = Math.max(8, Math.round(width * srcRatio * CHAR_ASPECT));
+
+    // Render to a tiny canvas at exactly width × height; each pixel = one cell.
+    const canvas = document.createElement("canvas");
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, 0, 0, width, height);
+    const imgData = ctx.getImageData(0, 0, width, height).data;
+
+    const ramp = chars;
+    const rampMax = ramp.length - 1;
+    let out = "";
+    for (let y = 0; y < height; y++) {
+      let line = "";
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+        const r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        // lum=1 (white) → last char; lum=0 (black) → first char. Ramps are ordered
+        // from "feels light/empty" to "feels dark/full" so a white pixel picks
+        // the densest char, which is appropriate for LIGHT-ON-DARK display.
+        // We'll flip this downstream when rendering on white terminal backgrounds.
+        const idx = Math.round(lum * rampMax);
+        line += ramp[idx];
+      }
+      out += line + "\n";
+    }
+
+    return { text: out, width, height, chars: ramp, inverted };
+  }
+
+  // Render ASCII text into the SVG canvas in place of the image.
+  // Chosen font size fits the text within the cropped viewport.
+  function renderAsciiIntoSvg(svg, ns, viewW, viewH) {
+    const art = state.ascii;
+    if (!art) return;
+
+    // Background fill (dark, terminal-like)
+    const bg = document.createElementNS(ns, "rect");
+    bg.setAttribute("x", "0"); bg.setAttribute("y", "0");
+    bg.setAttribute("width", viewW); bg.setAttribute("height", viewH);
+    bg.setAttribute("fill", "#0a0806");
+    svg.appendChild(bg);
+
+    // Size the text so the widest line fits into the viewport.
+    // For a monospace font, char width ≈ 0.6 * font-size, line-height ≈ 1.2 * font-size.
+    const CHAR_W_RATIO = 0.6;
+    const LINE_H_RATIO = 1.2;
+    const maxWByWidth  = viewW / (art.width  * CHAR_W_RATIO);
+    const maxHByHeight = viewH / (art.height * LINE_H_RATIO);
+    const fontSize = Math.max(4, Math.min(maxWByWidth, maxHByHeight));
+    const lineHeight = fontSize * LINE_H_RATIO;
+
+    // Center the block
+    const textBlockH = art.height * lineHeight;
+    const startY = (viewH - textBlockH) / 2 + lineHeight * 0.8; // baseline fudge
+    const startX = (viewW - art.width * fontSize * CHAR_W_RATIO) / 2;
+
+    const lines = art.text.split("\n");
+    for (let i = 0; i < art.height; i++) {
+      const line = lines[i] || "";
+      const textEl = document.createElementNS(ns, "text");
+      textEl.setAttribute("x", startX);
+      textEl.setAttribute("y", startY + i * lineHeight);
+      textEl.setAttribute("font-family", "'JetBrains Mono', ui-monospace, 'Menlo', 'Consolas', monospace");
+      textEl.setAttribute("font-size", fontSize.toFixed(2));
+      textEl.setAttribute("fill", "#d7eae6");
+      textEl.setAttribute("xml:space", "preserve");
+      textEl.setAttribute("letter-spacing", "0");
+      textEl.textContent = line;
+      svg.appendChild(textEl);
+    }
+  }
+
 
   // Convert a shape op to an SVG element
   function shapeToSvg(op, ns) {
@@ -4317,7 +4482,7 @@ const studio = (() => {
     "pixelate",
   ]);
 
-  function applyCommands(commands) {
+  async function applyCommands(commands) {
     let applied = 0, errors = [];
     let needsReprocess = false;
     for (const c of commands) {
@@ -4371,7 +4536,6 @@ const studio = (() => {
             break;
           }
           case "remove_filter": {
-            // Remove by either index or by name (last occurrence)
             if (state.filters.length === 0) throw new Error("remove_filter: no filters to remove");
             if (c.index != null) {
               const i = Number(c.index);
@@ -4382,7 +4546,6 @@ const studio = (() => {
                 if (state.filters[i].name === c.name) { state.filters.splice(i, 1); break; }
               }
             } else {
-              // Default: remove most recent
               state.filters.pop();
             }
             needsReprocess = true;
@@ -4400,7 +4563,6 @@ const studio = (() => {
             const presetName = c.preset || c.name;
             const preset = PRESETS[presetName];
             if (!preset) throw new Error(`apply_preset: unknown preset "${presetName}". Valid: ${Object.keys(PRESETS).join(", ")}`);
-            // Replace the stack with the preset's filters
             state.filters = JSON.parse(JSON.stringify(preset));
             needsReprocess = true;
             applied++;
@@ -4427,6 +4589,26 @@ const studio = (() => {
             applied++;
             break;
           }
+
+          // ── ASCII art ────────────────────────────────────────
+          case "to_ascii": {
+            if (!state.baseImageDataUrl) throw new Error("to_ascii: no image to convert (upload one first)");
+            const art = await generateAsciiArt({
+              width:    c.width,
+              ramp:     c.ramp || c.chars,
+              inverted: c.inverted,
+            });
+            state.ascii = art;
+            applied++;
+            break;
+          }
+          case "remove_ascii": {
+            if (!state.ascii) throw new Error("remove_ascii: no ASCII art to remove");
+            state.ascii = null;
+            applied++;
+            break;
+          }
+
           default:
             throw new Error(`unknown action: ${c.action}`);
         }
@@ -4465,6 +4647,62 @@ const studio = (() => {
     els.messages.scrollTop = els.messages.scrollHeight;
   }
   function addSystemMessage(text) { addMsg("system", text); }
+
+  // When new ASCII art is generated, drop a card in the chat with a preview
+  // (first ~12 lines) and a proper "Download .txt" button. The full text is
+  // state.ascii.text — we don't duplicate it inline to keep the chat readable.
+  function surfaceAsciiDownload(art) {
+    // Remove intro card if still present (same behavior as addMsg)
+    const intro = els.messages.querySelector(".st-intro");
+    if (intro) intro.remove();
+
+    const card = document.createElement("div");
+    card.className = "st-ascii-card";
+
+    const previewLines = art.text.split("\n").slice(0, 12).join("\n");
+    const lineCount = art.height;
+    const byteSize = new Blob([art.text]).size;
+    const sizeLabel = byteSize < 1024 ? `${byteSize} B` : `${(byteSize / 1024).toFixed(1)} KB`;
+
+    card.innerHTML = `
+      <div class="st-ascii-header">
+        <span class="st-ascii-title">ASCII art generated</span>
+        <span class="st-ascii-meta">${art.width}×${lineCount} · ${sizeLabel}</span>
+      </div>
+      <pre class="st-ascii-preview"></pre>
+      <div class="st-ascii-actions">
+        <button class="st-btn primary" data-action="download">Download .txt</button>
+        <button class="st-btn secondary" data-action="copy">Copy</button>
+      </div>
+    `;
+    // Safely insert the preview as text (never innerHTML for arbitrary chars)
+    card.querySelector(".st-ascii-preview").textContent = previewLines + (art.height > 12 ? "\n…" : "");
+
+    card.querySelector('[data-action="download"]').addEventListener("click", () => {
+      const blob = new Blob([art.text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ascii-art-${Date.now()}.txt`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    card.querySelector('[data-action="copy"]').addEventListener("click", async (e) => {
+      try {
+        await navigator.clipboard.writeText(art.text);
+        const btn = e.currentTarget;
+        const prev = btn.textContent;
+        btn.textContent = "Copied ✓";
+        btn.disabled = true;
+        setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1500);
+      } catch {
+        alert("Couldn't copy — your browser may have blocked clipboard access. Use Download instead.");
+      }
+    });
+
+    els.messages.appendChild(card);
+    els.messages.scrollTop = els.messages.scrollHeight;
+  }
 
   // ── AI prompt + response parsing ────────────────────────────────
   function buildStudioSystemPrompt() {
@@ -4513,6 +4751,8 @@ ${shapeSummary}
 
 Current filter stack (applied to the base image in order):
 ${filterSummary}
+
+${state.ascii ? `ASCII MODE ACTIVE: the canvas currently shows ASCII art (${state.ascii.width}×${state.ascii.height}, ramp: "${state.ascii.chars.length < 20 ? state.ascii.chars : 'detailed'}"). Further filter/crop/shape ops are allowed (shapes render on top of the ASCII text). Use "remove_ascii" to restore the normal image view.` : `ASCII mode: off.`}
 
 ID RULES (critical):
 ${idRules}
@@ -4572,12 +4812,33 @@ Preset looks (apply a curated filter stack):
 {"action":"crop","x":<n>,"y":<n>,"w":<n>,"h":<n>}   — in ORIGINAL image pixel coords
 {"action":"uncrop"}                                  — remove any crop
 
+── ASCII art (convert the image to text art) ────────
+{"action":"to_ascii","width":<n>,"ramp":"<name>","inverted":<bool>}
+{"action":"remove_ascii"}   — return to the normal image view
+
+Parameters for to_ascii (all optional):
+- width: integer, columns of characters. Default 80. Range 20-200. Larger = more detail.
+- ramp: one of these preset names, OR a raw string of characters from lightest to densest:
+    "classic"  → " .:-=+*#%@"  (default, balanced)
+    "detailed" → long ramp with 70+ chars for subtle tonal range
+    "blocks"   → " ░▒▓█"  (clean, poster-like)
+    "binary"   → " #"  (pure two-tone)
+    "dots"     → " ·•●"  (delicate)
+    "lines"    → " -=≡≣"  (horizontal texture)
+    "minimal"  → " .:oO@"  (punchy, low-detail)
+- inverted: true if the image is light-on-dark and should be flipped. Default false.
+
+After to_ascii runs, the user sees the ASCII art on the canvas AND gets a Download .txt button in the chat. They can export the result as a plain text file.
+
 ═══════════════════════════════════════════════════════════════════
 KEY GUIDANCE
 ═══════════════════════════════════════════════════════════════════
 
 When a user asks to transform a photo's look (moody, vintage, cold, warm, cinematic, B&W, cartoonish, 80s, etc.):
 → Use filters and/or a preset. Don't refuse. Don't overlay fake "cartoon circles" — apply posterize + saturate + maybe duotone for a cartoony look, for instance.
+
+When a user asks to convert an image to text art / ASCII art:
+→ Use to_ascii. Pick a reasonable width (80 is a good default; 120 for more detail, 60 for a compact look). Pick a ramp that matches the user's tone — "classic" for normal photos, "detailed" if they want subtle gradients, "blocks" for a chunky poster feel, "binary" for stark contrast.
 
 When a user asks you to modify SPECIFIC content of the image (make their eyes blue, remove a person, change the sky):
 → Be honest: you can't edit pixel content of the photo directly. You can apply whole-image effects, crop, or add vector overlays. Say so, and propose what you CAN do.
@@ -4600,6 +4861,18 @@ I'll give it a cartoony look by reducing color steps, punching up saturation, an
   {"action":"add_filter","name":"contrast","params":{"amount":1.2}},
   {"action":"add_filter","name":"vignette","params":{"amount":0.3,"radius":0.9}}
 ]
+</ops>
+
+User: "convert image to text art"
+Converting to ASCII art with the classic ramp at 80 columns. A .txt download will appear in the chat.
+<ops>
+[{"action":"to_ascii","width":80,"ramp":"classic"}]
+</ops>
+
+User: "make it into detailed ASCII art, really wide"
+Going wide with the detailed ramp for subtle tonal range.
+<ops>
+[{"action":"to_ascii","width":160,"ramp":"detailed"}]
 </ops>
 
 User: "make it moody"
@@ -4850,17 +5123,17 @@ Final rules:
     if (raw) extras.ops = raw;
 
     if (ops && ops.length > 0) {
-      const { applied, errors } = applyCommands(ops);
+      const asciiBefore = state.ascii;
+      const { applied, errors } = await applyCommands(ops);
       addMsg("assistant", displayText, { ...extras, rawOps: raw });
       if (errors.length) addMsg("error", `Some commands failed: ${errors.join("; ")}`);
       else if (applied === 0) addMsg("system", "(no changes applied)");
+      // If the ops generated NEW ASCII art, surface it with a download button
+      // and a small inline preview so the user can grab the .txt easily.
+      if (state.ascii && state.ascii !== asciiBefore) surfaceAsciiDownload(state.ascii);
     } else if (ops && ops.length === 0) {
       addMsg("assistant", displayText);
     } else {
-      // Couldn't parse — show exactly what the model produced so the issue is visible.
-      // Small models sometimes drop the <ops> tag entirely and just chat back; the
-      // resilient parser handles most recovery cases, so reaching here usually means
-      // no JSON-like content was emitted at all.
       addMsg("assistant", displayText || "(no text)");
       const preview = fullResponse.length > 400 ? fullResponse.slice(0, 400) + "…" : fullResponse;
       addMsg("error", `No canvas commands found in that response. The model responded but didn't emit an <ops> block. Try rephrasing more directly ("apply the noir preset", "add a red circle at 200,200"). Raw output:\n\n${preview}`);
