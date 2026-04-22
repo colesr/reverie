@@ -141,6 +141,145 @@
   .r-footer-hint { text-align: center; margin-top: 10px; font-family: var(--mono); font-size: 10px; color: var(--r-text-dim); letter-spacing: 0.08em; }
   .r-footer-hint kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--r-border); border-radius: 3px; font-size: 10px; font-family: var(--mono); color: var(--r-text-muted); }
 
+  /* Vote bar under completed Reverie responses */
+  .r-vote-bar {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding: 6px 10px;
+    background: var(--r-bg-subtle); border: 1px solid var(--r-border-subtle);
+    border-radius: 8px;
+  }
+  .r-vote-label { flex: 1; font: 500 11px var(--mono); color: var(--r-text-dim); letter-spacing: 0.02em; }
+  .r-vote-btn {
+    background: transparent; border: 1px solid var(--r-border); color: var(--r-text-muted);
+    cursor: pointer; padding: 4px 10px; border-radius: 6px; font-size: 13px; line-height: 1;
+    transition: all 0.12s ease;
+  }
+  .r-vote-btn:hover { border-color: var(--r-accent-dim); color: var(--r-text); }
+  .r-vote-up.active { background: rgba(200,165,116,0.18); border-color: var(--r-accent); color: var(--r-accent); }
+  .r-vote-down.active { background: rgba(200,122,90,0.15); border-color: var(--r-danger); color: var(--r-danger); }
+
+  /* Attachment tray above Reverie input */
+  .r-attached-tray { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0 10px; }
+  .r-attached-chip, .r-msg-attached .r-attached-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 10px; background: var(--r-bg-elevated); border: 1px solid var(--r-border);
+    border-radius: 8px; font: 12px var(--sans); max-width: 260px;
+    color: var(--r-text-muted);
+  }
+  .r-attached-chip.tray { padding-right: 4px; }
+  .r-attached-chip .icon { font-size: 14px; line-height: 1; }
+  .r-attached-chip .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--r-text); }
+  .r-attached-chip .size { font: 10px var(--mono); color: var(--r-text-dim); flex-shrink: 0; }
+  .r-attached-chip .remove {
+    background: transparent; border: none; color: var(--r-text-dim);
+    cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 14px;
+  }
+  .r-attached-chip .remove:hover { background: var(--r-bg-subtle); color: var(--r-danger); }
+  .r-msg-attached { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .r-attach-btn {
+    background: transparent; border: none; color: var(--r-text-muted);
+    cursor: pointer; font-size: 17px; padding: 6px 8px; border-radius: 6px;
+    transition: all 0.12s ease; flex-shrink: 0;
+  }
+  .r-attach-btn:hover { background: var(--r-bg-subtle); color: var(--r-accent); }
+  .r-attach-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+  .r-attach-badge {
+    margin-left: 2px; font: 10px var(--mono); color: var(--r-text-dim);
+  }
+
+  /* ═══════════ STUDIO ═══════════ */
+  body.view-studio {
+    background: #1a1612;
+    background-image:
+      radial-gradient(ellipse at top right, rgba(131, 197, 190, 0.06), transparent 60%),
+      radial-gradient(ellipse at bottom left, rgba(200,165,116,0.04), transparent 50%);
+  }
+  #view-studio { overflow: hidden; }
+
+  .st-shell { height: 100%; display: flex; flex-direction: column; padding: 14px 20px 20px; max-width: 1400px; width: 100%; margin: 0 auto; }
+  .st-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 16px; border-bottom: 1px solid var(--r-border-subtle); margin-bottom: 14px; gap: 16px; flex-wrap: wrap; }
+  .st-brand { display: flex; align-items: center; gap: 14px; }
+  .st-mark { font-size: 28px; color: #83c5be; line-height: 1; }
+  .st-header h2 { font: 400 24px var(--serif); color: var(--r-text); }
+  .st-tagline { font: italic 13px var(--serif); color: var(--r-text-muted); margin-top: 2px; }
+  .st-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .st-btn {
+    background: transparent; border: 1px solid var(--r-border);
+    color: var(--r-text-muted); padding: 7px 14px; border-radius: 7px;
+    cursor: pointer; font: 500 12px var(--sans);
+    transition: all 0.12s ease;
+  }
+  .st-btn:hover:not(:disabled) { border-color: var(--r-accent-dim); color: var(--r-text); }
+  .st-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .st-btn.primary { background: #83c5be; color: #14110d; border-color: #83c5be; }
+  .st-btn.primary:hover:not(:disabled) { background: #a8d8d3; border-color: #a8d8d3; }
+  .st-btn.secondary { color: var(--r-text); }
+
+  .st-body { flex: 1; display: grid; grid-template-columns: 1fr 340px; gap: 16px; min-height: 0; }
+
+  .st-canvas-col { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .st-canvas-wrap {
+    flex: 1; background: #0a0806; border: 1px solid var(--r-border);
+    border-radius: 10px; overflow: hidden; position: relative;
+    display: flex; align-items: center; justify-content: center; min-height: 0;
+  }
+  .st-canvas-wrap svg { max-width: 100%; max-height: 100%; background: #fafafa; border-radius: 6px; }
+  .st-placeholder { padding: 40px; text-align: center; max-width: 480px; }
+  .st-placeholder .big { font-size: 64px; color: #83c5be; margin-bottom: 14px; }
+  .st-placeholder h3 { font: 400 26px var(--serif); color: var(--r-text); margin-bottom: 10px; }
+  .st-placeholder p { color: var(--r-text-muted); font-size: 14px; line-height: 1.7; margin-bottom: 18px; }
+  .st-placeholder-actions { display: flex; gap: 10px; justify-content: center; margin-bottom: 18px; flex-wrap: wrap; }
+  .st-note { font: 11px var(--mono); color: var(--r-text-dim); background: var(--r-bg-subtle); padding: 10px 14px; border-radius: 7px; border: 1px solid var(--r-border-subtle); text-align: left; line-height: 1.6; }
+
+  .st-history-bar { display: flex; gap: 4px; align-items: center; padding: 6px 10px; background: var(--r-bg-subtle); border: 1px solid var(--r-border-subtle); border-radius: 8px; }
+  .st-icon-btn { background: transparent; border: none; color: var(--r-text-muted); cursor: pointer; padding: 6px 10px; border-radius: 5px; font-size: 16px; line-height: 1; transition: all 0.1s ease; }
+  .st-icon-btn:hover:not(:disabled) { background: var(--r-bg-elevated); color: var(--r-accent); }
+  .st-icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .st-step-info { margin-left: auto; font: 11px var(--mono); color: var(--r-text-dim); letter-spacing: 0.05em; }
+
+  .st-sidebar {
+    background: var(--r-bg-elevated); border: 1px solid var(--r-border);
+    border-radius: 10px; display: flex; flex-direction: column; min-height: 0;
+  }
+  .st-sidebar-header {
+    padding: 12px 14px 10px; border-bottom: 1px solid var(--r-border-subtle);
+    font: 500 11px var(--mono); color: var(--r-text-muted); letter-spacing: 0.1em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .st-status { font: 10px var(--mono); color: var(--r-text-dim); letter-spacing: 0.05em; text-transform: none; }
+  .st-status.working { color: var(--r-accent); }
+  .st-status.working::after { content: "…"; animation: st-dots 1s steps(4) infinite; }
+  @keyframes st-dots { to { content: "…    "; } }
+
+  .st-messages { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .st-messages::-webkit-scrollbar { width: 6px; }
+  .st-messages::-webkit-scrollbar-thumb { background: var(--r-border); border-radius: 3px; }
+  .st-msg { font-size: 13px; line-height: 1.55; }
+  .st-msg.user { color: var(--r-text); padding: 8px 12px; background: var(--r-bg-subtle); border-radius: 8px; align-self: flex-end; max-width: 85%; }
+  .st-msg.assistant { color: var(--r-text-muted); padding: 6px 2px; }
+  .st-msg.system { color: var(--r-text-dim); font-style: italic; font-size: 12px; padding: 4px 2px; }
+  .st-msg.error { color: var(--r-danger); font-size: 12px; padding: 6px 10px; background: rgba(200, 122, 90, 0.08); border: 1px solid rgba(200, 122, 90, 0.25); border-radius: 7px; }
+  .st-msg .ops { font: 11px var(--mono); color: var(--r-text-dim); margin-top: 6px; padding: 6px 8px; background: var(--r-bg-subtle); border-radius: 5px; white-space: pre-wrap; max-height: 120px; overflow-y: auto; }
+  .st-intro { color: var(--r-text-muted); font-size: 13px; }
+  .st-intro ul { margin: 8px 0 0 18px; padding: 0; }
+  .st-intro li { margin-bottom: 4px; font-size: 12px; color: var(--r-text-dim); }
+
+  .st-input-wrap { padding: 10px; border-top: 1px solid var(--r-border-subtle); display: flex; gap: 6px; align-items: flex-end; }
+  .st-input-wrap textarea {
+    flex: 1; background: var(--r-bg); border: 1px solid var(--r-border); border-radius: 7px;
+    padding: 8px 10px; color: var(--r-text); resize: none; outline: none;
+    font: 13px var(--sans); max-height: 120px; min-height: 22px; line-height: 1.5;
+    transition: border-color 0.12s;
+  }
+  .st-input-wrap textarea:focus { border-color: var(--r-accent-dim); }
+  .st-input-wrap textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  @media (max-width: 860px) {
+    .st-body { grid-template-columns: 1fr; }
+    .st-sidebar { max-height: 340px; }
+  }
+
   /* ═══════════ MODERN CHATROOM ═══════════ */
   #view-chatroom { padding: 0; overflow: hidden; position: relative; }
 
@@ -693,6 +832,7 @@
     <span class="tabnav-brand">Reverie · local private AI</span>
     <div class="tabnav-tabs">
       <button class="tabnav-tab active" data-view="chat">Reverie</button>
+      <button class="tabnav-tab" data-view="studio">Studio</button>
       <button class="tabnav-tab" data-view="chatroom">AI Council</button>
     </div>
   </nav>
@@ -725,11 +865,83 @@
     <div id="r-messages" style="display:none;"></div>
 
     <div id="r-input-wrap" class="r-input-wrap" style="display:none;">
+      <div id="r-attached-files" class="r-attached-tray" style="display:none;"></div>
       <div class="r-input-shell">
+        <button id="r-attach-btn" class="r-attach-btn" title="Attach files">📎</button>
+        <input type="file" id="r-file-input" multiple style="display:none;" accept=".txt,.md,.csv,.json,.html,.htm,.xml,.js,.jsx,.ts,.tsx,.py,.rb,.go,.rs,.c,.cpp,.h,.css,.scss,.log,.yml,.yaml,.sql,.sh,.pdf,.docx,image/*" />
         <textarea id="r-input" placeholder="What are you thinking about…" rows="1"></textarea>
         <button id="r-send-btn" disabled>Send</button>
       </div>
       <div class="r-footer-hint"><kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for new line · all inference runs locally</div>
+    </div>
+  </section>
+
+  <!-- STUDIO -->
+  <section id="view-studio" class="view">
+    <div class="st-shell">
+      <header class="st-header">
+        <div class="st-brand">
+          <span class="st-mark">◐</span>
+          <div>
+            <h2>Studio</h2>
+            <p class="st-tagline">Collaborative visual art — the AI proposes changes, you direct the vision</p>
+          </div>
+        </div>
+        <div class="st-header-actions">
+          <button class="st-btn secondary" id="st-upload-btn">Upload image</button>
+          <button class="st-btn secondary" id="st-blank-btn">Blank canvas</button>
+          <button class="st-btn secondary" id="st-export-btn" disabled>Export SVG</button>
+          <button class="st-btn secondary" id="st-export-png-btn" disabled>Export PNG</button>
+          <input type="file" id="st-image-input" accept="image/*" style="display:none;" />
+        </div>
+      </header>
+
+      <div class="st-body">
+        <div class="st-canvas-col">
+          <div class="st-canvas-wrap" id="st-canvas-wrap">
+            <div class="st-placeholder" id="st-placeholder">
+              <div class="big">◐</div>
+              <h3>Start a piece</h3>
+              <p>Upload an image, or open a blank canvas. Then ask the AI to add, remove, move, recolor, or transform elements. Iterate together.</p>
+              <div class="st-placeholder-actions">
+                <button class="st-btn primary" id="st-upload-btn-2">Upload image</button>
+                <button class="st-btn secondary" id="st-blank-btn-2">Blank canvas</button>
+              </div>
+              <div class="st-note">Note: this local text model can't see pixels. It composes by adding and manipulating shapes on a vector overlay on top of your image. Think of it as the AI as your art assistant, taking direction.</div>
+            </div>
+            <svg id="st-canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" style="display:none;"></svg>
+          </div>
+          <div class="st-history-bar">
+            <button class="st-icon-btn" id="st-undo-btn" title="Undo" disabled>↶</button>
+            <button class="st-icon-btn" id="st-redo-btn" title="Redo" disabled>↷</button>
+            <button class="st-icon-btn" id="st-reset-btn" title="Reset to starting state" disabled>⟲</button>
+            <span class="st-step-info" id="st-step-info">no canvas yet</span>
+          </div>
+        </div>
+
+        <aside class="st-sidebar">
+          <div class="st-sidebar-header">
+            <span>Direction</span>
+            <span class="st-status" id="st-status"></span>
+          </div>
+          <div class="st-messages" id="st-messages">
+            <div class="st-intro">
+              <p>Tell the AI what you want to change. Try:</p>
+              <ul>
+                <li>"Add three orange circles across the top"</li>
+                <li>"Draw a crescent moon in the upper right"</li>
+                <li>"Make all the circles bigger"</li>
+                <li>"Change the color palette to warm autumn tones"</li>
+                <li>"Add a handwritten label that says 'morning'"</li>
+              </ul>
+            </div>
+          </div>
+          <div class="st-input-wrap">
+            <textarea id="st-input" rows="1" placeholder="Direct the AI…" maxlength="1000" disabled></textarea>
+            <button class="st-btn primary" id="st-send-btn" disabled>Send</button>
+          </div>
+        </aside>
+      </div>
     </div>
   </section>
 
@@ -960,9 +1172,10 @@ document.querySelectorAll(".tabnav-tab").forEach(tab => {
     const view = tab.dataset.view;
     document.querySelectorAll(".tabnav-tab").forEach(t => t.classList.toggle("active", t === tab));
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === `view-${view}`));
-    document.body.classList.remove("view-chat", "view-chatroom");
+    document.body.classList.remove("view-chat", "view-chatroom", "view-studio");
     document.body.classList.add(`view-${view}`);
     if (view === "chatroom") chatroom.onActivate();
+    if (view === "studio") studio.onActivate();
     if (view === "chat") setTimeout(() => $("r-input")?.focus(), 50);
   });
 });
@@ -982,13 +1195,14 @@ Your final answer to the user goes here, outside the thinking tags. Write in cle
 
 Always include both sections. Always close the </thinking> tag before your final answer.`;
 
-  const state = { messages: [], generating: false, abortCtrl: null };
+  const state = { messages: [], generating: false, abortCtrl: null, pendingFiles: [] };
   const els = {
     loader: $("r-loader"), loaderTitle: $("r-loader-title"), loaderSub: $("r-loader-sub"),
     startBtn: $("r-start-btn"), progressTrack: $("r-progress-track"), progressFill: $("r-progress-fill"),
     progressLabel: $("r-progress-label"), messages: $("r-messages"), inputWrap: $("r-input-wrap"),
     input: $("r-input"), sendBtn: $("r-send-btn"), modelSelect: $("model-select"),
     clearBtn: $("r-clear-btn"), mark: $("r-mark"),
+    attachBtn: $("r-attach-btn"), fileInput: $("r-file-input"), attachedTray: $("r-attached-files"),
   };
 
   for (const m of MODELS) {
@@ -1101,6 +1315,74 @@ Always include both sections. Always close the </thinking> tag before your final
     scrollBottom();
   }
 
+  // Preference store — maps a content fingerprint → {vote, userPrompt, assistantResponse}
+  // Used to personalize future responses via retrieval of recent liked/disliked examples.
+  const PREF_KEY = "reverie-preferences-v1";
+  const prefStore = {
+    read() { try { return JSON.parse(localStorage.getItem(PREF_KEY) || "{}"); } catch { return {}; } },
+    write(data) {
+      try { localStorage.setItem(PREF_KEY, JSON.stringify(data)); } catch (e) { console.warn("pref quota", e); }
+    },
+    record(key, entry) {
+      const data = this.read();
+      data[key] = { ...entry, updatedAt: Date.now() };
+      // Keep no more than ~200 entries by LRU; localStorage is precious
+      const keys = Object.keys(data);
+      if (keys.length > 200) {
+        keys.sort((a, b) => (data[a].updatedAt || 0) - (data[b].updatedAt || 0));
+        for (const k of keys.slice(0, keys.length - 200)) delete data[k];
+      }
+      this.write(data);
+    },
+    remove(key) {
+      const data = this.read();
+      delete data[key];
+      this.write(data);
+    },
+    get(key) { return this.read()[key] || null; },
+    all() { return this.read(); },
+    clear() { this.write({}); },
+  };
+  function hashKey(userText, assistantText) {
+    // Content-addressed so the same Q/A pair collapses across sessions
+    let h = 5381;
+    const s = userText + "||" + assistantText;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36);
+  }
+  // Keyword overlap between two strings, rough similarity
+  const STOPWORDS = new Set(["the","a","an","and","or","but","is","are","was","were","be","been","being","to","of","in","on","at","for","with","by","from","as","it","this","that","these","those","i","you","he","she","we","they","my","your","our","their","what","which","who","how","why","when","where","do","does","did","can","could","should","would","will","not","no","yes","if","then","else","so","too","also","just"]);
+  function tokenize(s) {
+    return (s || "").toLowerCase().match(/[a-z0-9]{2,}/g)?.filter(w => !STOPWORDS.has(w)) || [];
+  }
+  function similarity(a, b) {
+    const ta = new Set(tokenize(a)), tb = new Set(tokenize(b));
+    if (ta.size === 0 || tb.size === 0) return 0;
+    let overlap = 0;
+    for (const t of ta) if (tb.has(t)) overlap++;
+    return overlap / Math.max(ta.size, tb.size);
+  }
+  // Pull up to N preference examples most relevant to a new user prompt.
+  // Returns { liked: [...], disliked: [...] } with each entry containing
+  // the original prompt and the response the user voted on.
+  function retrieveRelevantPrefs(currentPrompt, n = 3) {
+    const all = Object.values(prefStore.all());
+    if (all.length === 0) return { liked: [], disliked: [] };
+    const scored = all.map(e => ({ ...e, _sim: similarity(currentPrompt, e.userPrompt || "") }));
+    const liked = scored.filter(e => e.vote === 1 && e._sim > 0.1).sort((a, b) => b._sim - a._sim).slice(0, n);
+    const disliked = scored.filter(e => e.vote === -1 && e._sim > 0.1).sort((a, b) => b._sim - a._sim).slice(0, n);
+    // If we have NO topical matches but the user has voting history, fall back to
+    // most recent votes — still gives the model a general sense of their taste.
+    if (liked.length === 0 && disliked.length === 0) {
+      const recent = all.slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      return {
+        liked: recent.filter(e => e.vote === 1).slice(0, 1),
+        disliked: recent.filter(e => e.vote === -1).slice(0, 1),
+      };
+    }
+    return { liked, disliked };
+  }
+
   function renderMsg(m) {
     const wrap = document.createElement("div");
     wrap.className = "r-msg " + (m.role === "user" ? "r-msg-user" : "r-msg-assistant");
@@ -1127,10 +1409,53 @@ Always include both sections. Always close the </thinking> tag before your final
 
     const body = document.createElement("div");
     body.className = "r-msg-body";
-    if (m.role === "user") body.textContent = m.content;
+    if (m.role === "user") {
+      body.textContent = m.content;
+      if (m.attachedFiles && m.attachedFiles.length) {
+        const attRow = document.createElement("div");
+        attRow.className = "r-msg-attached";
+        for (const f of m.attachedFiles) {
+          const chip = document.createElement("div");
+          chip.className = "r-attached-chip";
+          chip.innerHTML = `<span class="icon">${f.kind === "image" ? "🖼️" : f.kind === "text" ? "📄" : "📎"}</span><span class="name" title="${f.name.replace(/"/g, "&quot;")}">${f.name}</span><span class="size">${formatBytes(f.size)}</span>`;
+          attRow.appendChild(chip);
+        }
+        body.appendChild(attRow);
+      }
+    }
     else body.innerHTML = renderMarkdown(m.content || "");
     wrap.appendChild(body);
+
+    // Vote bar — only on completed assistant messages with content and a paired user prompt
+    if (m.role === "assistant" && !m._thinkingStreaming && (m.content || "").trim() && m._voteKey) {
+      const stored = prefStore.get(m._voteKey);
+      const myVote = stored?.vote || 0;
+      const bar = document.createElement("div");
+      bar.className = "r-vote-bar";
+      bar.innerHTML = `
+        <span class="r-vote-label">Was this helpful? Your feedback teaches Reverie your preferences.</span>
+        <button class="r-vote-btn r-vote-up${myVote === 1 ? " active" : ""}" data-vote="up" title="Helpful — show me more like this">▲</button>
+        <button class="r-vote-btn r-vote-down${myVote === -1 ? " active" : ""}" data-vote="down" title="Not helpful — avoid this style">▼</button>
+      `;
+      bar.querySelector('[data-vote="up"]').addEventListener("click", () => toggleVote(m, 1));
+      bar.querySelector('[data-vote="down"]').addEventListener("click", () => toggleVote(m, -1));
+      wrap.appendChild(bar);
+    }
     return wrap;
+  }
+
+  function toggleVote(m, dir) {
+    const key = m._voteKey;
+    if (!key) return;
+    const existing = prefStore.get(key);
+    const currentVote = existing?.vote || 0;
+    if (currentVote === dir) {
+      // toggle off
+      prefStore.remove(key);
+    } else {
+      prefStore.record(key, { vote: dir, userPrompt: m._userPrompt || "", assistantResponse: m.content || "" });
+    }
+    renderMessages();
   }
 
   function renderMarkdown(src) {
@@ -1184,25 +1509,91 @@ Always include both sections. Always close the </thinking> tag before your final
     };
   }
 
-  async function handleSend() {
-    const text = els.input.value.trim();
-    if (!text || state.generating || !engineState.engine) return;
-    state.messages.push({ role: "user", content: text });
-    els.input.value = ""; autoResize(); renderMessages();
+  // Build an assistant system prompt that optionally includes preference
+  // examples (from upvotes/downvotes on similar past prompts) and/or attached files.
+  function buildSystemPrompt(currentUserText, attachedFiles) {
+    let prompt = SYSTEM_PROMPT;
 
-    const assistant = { role: "assistant", content: "", thinking: "", _thinkingStreaming: true, _thinkingCollapsed: false };
+    // Preference conditioning (retrieval-augmented personalization)
+    const { liked, disliked } = retrieveRelevantPrefs(currentUserText, 2);
+    const hasPrefs = liked.length > 0 || disliked.length > 0;
+    if (hasPrefs) {
+      prompt += `\n\n---\nPersonalization: the user has provided feedback on past responses about related topics. Match the voice, depth, and structure of responses they liked; avoid the patterns of responses they disliked. Do not mention this context to the user.`;
+      if (liked.length) {
+        prompt += `\n\nResponses the user liked:\n`;
+        for (const e of liked) {
+          const snippet = (e.assistantResponse || "").slice(0, 400).replace(/\s+/g, " ").trim();
+          prompt += `- On "${(e.userPrompt || "").slice(0, 100)}…" → "${snippet}${snippet.length >= 400 ? "…" : ""}"\n`;
+        }
+      }
+      if (disliked.length) {
+        prompt += `\n\nResponses the user disliked:\n`;
+        for (const e of disliked) {
+          const snippet = (e.assistantResponse || "").slice(0, 300).replace(/\s+/g, " ").trim();
+          prompt += `- On "${(e.userPrompt || "").slice(0, 100)}…" → "${snippet}${snippet.length >= 300 ? "…" : ""}"\n`;
+        }
+      }
+    }
+
+    // File attachments: inline text content into the system prompt
+    if (attachedFiles && attachedFiles.length) {
+      prompt += `\n\n---\nThe user has attached ${attachedFiles.length} file${attachedFiles.length > 1 ? "s" : ""} as reference material. Read carefully and answer questions about ${attachedFiles.length > 1 ? "them" : "it"}. If the user asks something the file can't answer, say so honestly.`;
+      for (const f of attachedFiles) {
+        if (f.kind === "text") {
+          prompt += `\n\n=== FILE: ${f.name} (${formatBytes(f.size)}, ${f.type || "text"}) ===\n${f.content}\n=== END OF FILE: ${f.name} ===`;
+        } else if (f.kind === "image") {
+          // Vision is not available in this text-only model — be honest with both model and user.
+          prompt += `\n\n=== FILE: ${f.name} (image, ${formatBytes(f.size)}) ===\n[The user attached an image. This local model cannot see image contents. Acknowledge the attachment and ask the user to describe what's in the image if they want you to reason about it.]\n=== END OF FILE ===`;
+        } else {
+          prompt += `\n\n=== FILE: ${f.name} (${formatBytes(f.size)}) — could not be parsed ===`;
+        }
+      }
+    }
+
+    return prompt;
+  }
+
+  function formatBytes(n) {
+    if (n < 1024) return n + " B";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+    return (n / 1024 / 1024).toFixed(1) + " MB";
+  }
+
+  async function handleSend() {
+    const rawText = els.input.value.trim();
+    const attached = state.pendingFiles.slice();
+    if ((!rawText && attached.length === 0) || state.generating || !engineState.engine) return;
+
+    // The user message content includes the text plus a compact reference to attachments,
+    // so the in-context model sees both. The actual file bodies go into the system prompt.
+    const userEntryText = rawText || "(no message — please analyze the attached file(s))";
+    const userMsg = { role: "user", content: userEntryText, attachedFiles: attached };
+    state.messages.push(userMsg);
+    state.pendingFiles = [];
+    els.input.value = ""; autoResize(); renderAttachedFiles(); renderMessages();
+
+    const assistant = {
+      role: "assistant", content: "", thinking: "",
+      _thinkingStreaming: true, _thinkingCollapsed: false,
+      _userPrompt: userEntryText,
+    };
     state.messages.push(assistant); renderMessages();
 
+    // Build per-turn system prompt. Attachments are only included for THIS turn
+    // (subsequent turns re-inject via the still-present userMsg.attachedFiles).
+    const systemPromptForTurn = buildSystemPrompt(userEntryText, attached);
+
+    // Trim history to fit a rough char budget
     const MAX_INPUT_CHARS = 6000 * 4;
     const history = state.messages
       .filter(m => m.role === "user" || m.role === "assistant")
       .slice(0, -1)
       .map(m => ({ role: m.role, content: m.role === "assistant" ? (m.content || "") : m.content }));
-    let totalChars = SYSTEM_PROMPT.length + history.reduce((n, m) => n + m.content.length, 0);
+    let totalChars = systemPromptForTurn.length + history.reduce((n, m) => n + m.content.length, 0);
     while (totalChars > MAX_INPUT_CHARS && history.length > 1) {
       const dropped = history.shift(); totalChars -= dropped.content.length;
     }
-    const chatMessages = [{ role: "system", content: SYSTEM_PROMPT }, ...history];
+    const chatMessages = [{ role: "system", content: systemPromptForTurn }, ...history];
 
     state.generating = true; engineState.generating = true;
     els.sendBtn.textContent = "Stop"; els.sendBtn.classList.add("stop");
@@ -1239,6 +1630,10 @@ Always include both sections. Always close the </thinking> tag before your final
       state.generating = false; engineState.generating = false; state.abortCtrl = null;
       els.sendBtn.textContent = "Send"; els.sendBtn.classList.remove("stop");
       els.mark.classList.remove("thinking");
+      // Now that the response is complete, assign a vote key so feedback is collectable
+      if ((assistant.content || "").trim()) {
+        assistant._voteKey = hashKey(userEntryText, assistant.content);
+      }
       renderMessages(); els.input.focus();
     }
   }
@@ -1261,6 +1656,149 @@ Always include both sections. Always close the </thinking> tag before your final
   });
   els.sendBtn.addEventListener("click", () => { if (state.generating) stopGeneration(); else handleSend(); });
   els.clearBtn.addEventListener("click", () => { if (state.generating) return; state.messages = []; renderIntro(); });
+
+  // ── File attachment handling ────────────────────────────────────
+  const MAX_FILE_BYTES = 10 * 1024 * 1024;    // 10 MB per file
+  const MAX_TEXT_CHARS = 60_000;              // cap inlined text at ~60k chars (~15k tokens)
+  // File extensions we treat as plain text
+  const TEXT_EXT = /\.(txt|md|markdown|csv|tsv|json|jsonl|ya?ml|xml|html?|css|scss|less|js|jsx|ts|tsx|mjs|cjs|py|rb|go|rs|c|cpp|cc|h|hpp|java|kt|swift|php|sql|sh|bash|zsh|fish|log|ini|conf|toml|lua|r|m|pl)$/i;
+
+  async function readTextFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("read failed"));
+      reader.readAsText(file);
+    });
+  }
+
+  // Load a module from a CDN once, caching the promise.
+  const _libs = {};
+  function loadLib(key, url) {
+    if (!_libs[key]) _libs[key] = import(/* @vite-ignore */ url);
+    return _libs[key];
+  }
+
+  async function readPdfFile(file) {
+    // pdf.js ESM build
+    const pdfjs = await loadLib("pdfjs", "https://esm.run/pdfjs-dist@4.0.379/build/pdf.min.mjs");
+    // Worker src — pdf.js needs this set before getDocument
+    pdfjs.GlobalWorkerOptions.workerSrc = "https://esm.run/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs";
+    const buf = await file.arrayBuffer();
+    const doc = await pdfjs.getDocument({ data: buf }).promise;
+    const pages = [];
+    const maxPages = Math.min(doc.numPages, 60); // cap pages parsed
+    for (let i = 1; i <= maxPages; i++) {
+      const page = await doc.getPage(i);
+      const tc = await page.getTextContent();
+      const text = tc.items.map(it => it.str).join(" ");
+      pages.push(`[Page ${i}]\n${text}`);
+    }
+    let out = pages.join("\n\n");
+    if (doc.numPages > maxPages) out += `\n\n[Note: file has ${doc.numPages} pages; only the first ${maxPages} were read.]`;
+    return out;
+  }
+
+  async function readDocxFile(file) {
+    const mammoth = await loadLib("mammoth", "https://esm.run/mammoth@1.6.0/mammoth.browser.js");
+    const buf = await file.arrayBuffer();
+    const mammothLib = mammoth.default || mammoth;
+    const result = await mammothLib.extractRawText({ arrayBuffer: buf });
+    return result.value || "";
+  }
+
+  // Return a parsed-file object { name, size, type, kind, content }
+  async function parseFile(file) {
+    const name = file.name || "file";
+    const size = file.size || 0;
+    const type = file.type || "";
+    const ext = (name.match(/\.[^.]+$/) || [""])[0].toLowerCase();
+    if (size > MAX_FILE_BYTES) {
+      throw new Error(`File is too large (${formatBytes(size)} > ${formatBytes(MAX_FILE_BYTES)} limit).`);
+    }
+    // Images: attach metadata only, be honest that vision isn't supported here
+    if (type.startsWith("image/")) {
+      return { name, size, type, kind: "image", content: null };
+    }
+    // PDFs
+    if (type === "application/pdf" || ext === ".pdf") {
+      const content = await readPdfFile(file);
+      return { name, size, type: "pdf", kind: "text", content: truncate(content) };
+    }
+    // Word .docx (note: older .doc format is not supported by mammoth)
+    if (ext === ".docx" || type.includes("officedocument.wordprocessingml")) {
+      const content = await readDocxFile(file);
+      return { name, size, type: "docx", kind: "text", content: truncate(content) };
+    }
+    // Plain-text-ish: by extension or mime
+    if (TEXT_EXT.test(name) || type.startsWith("text/") || type === "application/json" || type === "application/xml") {
+      const content = await readTextFile(file);
+      return { name, size, type: type || "text", kind: "text", content: truncate(content) };
+    }
+    // Fallback: try reading as text; if it's binary garbage, warn
+    try {
+      const content = await readTextFile(file);
+      // Heuristic: if >5% of bytes are null/control, treat as unsupported
+      const controls = (content.match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g) || []).length;
+      if (controls / Math.max(1, content.length) > 0.05) {
+        throw new Error("binary");
+      }
+      return { name, size, type: type || "text", kind: "text", content: truncate(content) };
+    } catch {
+      return { name, size, type, kind: "unknown", content: null };
+    }
+  }
+
+  function truncate(text) {
+    if (!text) return "";
+    if (text.length <= MAX_TEXT_CHARS) return text;
+    return text.slice(0, MAX_TEXT_CHARS) + `\n\n[… truncated; file was ${text.length.toLocaleString()} characters, showing first ${MAX_TEXT_CHARS.toLocaleString()}]`;
+  }
+
+  function renderAttachedFiles() {
+    const tray = els.attachedTray;
+    if (!state.pendingFiles.length) { tray.style.display = "none"; tray.innerHTML = ""; return; }
+    tray.style.display = "flex";
+    tray.innerHTML = "";
+    state.pendingFiles.forEach((f, idx) => {
+      const chip = document.createElement("div");
+      chip.className = "r-attached-chip tray";
+      const iconEmoji = f.kind === "image" ? "🖼️" : f.kind === "unknown" ? "⚠️" : "📄";
+      chip.innerHTML = `<span class="icon">${iconEmoji}</span><span class="name" title="${f.name.replace(/"/g, "&quot;")}">${escapeHtmlLocal(f.name)}</span><span class="size">${formatBytes(f.size)}</span><button class="remove" title="Remove">×</button>`;
+      chip.querySelector(".remove").addEventListener("click", () => {
+        state.pendingFiles.splice(idx, 1);
+        renderAttachedFiles();
+      });
+      tray.appendChild(chip);
+    });
+  }
+
+  function escapeHtmlLocal(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  els.attachBtn.addEventListener("click", () => {
+    if (!engineState.engine) return;
+    els.fileInput.click();
+  });
+  els.fileInput.addEventListener("change", async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    for (const file of files) {
+      try {
+        const parsed = await parseFile(file);
+        if (parsed.kind === "unknown") {
+          state.pendingFiles.push(parsed);
+          renderAttachedFiles();
+          // Friendly nudge — we didn't fail, just can't see inside
+          setTimeout(() => alert(`"${file.name}" was attached but its format isn't readable as text. Reverie will know it exists but can't read its contents. Try a .txt, .md, .pdf, .docx, or a common code file for full analysis.`), 0);
+        } else {
+          state.pendingFiles.push(parsed);
+          renderAttachedFiles();
+        }
+      } catch (err) {
+        alert(`Couldn't read "${file.name}": ${err.message || err}`);
+      }
+    }
+  });
 
   showLoader();
   return { isEngineReady: () => !!engineState.engine };
@@ -3043,6 +3581,554 @@ Current participants: ${participants}${entryNote}`;
   });
 
   return { onActivate, onEngineReady, onEngineLost };
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+// STUDIO MODULE — collaborative vector canvas
+// ═══════════════════════════════════════════════════════════════════
+const studio = (() => {
+  // An operation-based canvas: the canvas is a deterministic function of
+  // (base image + ordered list of ops). History = snapshots of op lists.
+  // Each op has an auto-assigned id so later ops can target earlier shapes.
+
+  const CANVAS_W = 800, CANVAS_H = 600;
+  const state = {
+    active: false,
+    baseImageDataUrl: null, // null if blank canvas
+    baseImageW: null, baseImageH: null,
+    ops: [],        // current ops, in render order
+    historyStack: [], // snapshots of ops; most recent = last element
+    historyIndex: -1, // pointer into historyStack; -1 means "nothing yet"
+    nextShapeId: 1,
+    messages: [],
+    working: false,
+  };
+
+  const els = {
+    svg:          $("st-canvas"),
+    wrap:         $("st-canvas-wrap"),
+    placeholder:  $("st-placeholder"),
+    uploadBtn:    $("st-upload-btn"),
+    uploadBtn2:   $("st-upload-btn-2"),
+    blankBtn:     $("st-blank-btn"),
+    blankBtn2:    $("st-blank-btn-2"),
+    exportBtn:    $("st-export-btn"),
+    exportPngBtn: $("st-export-png-btn"),
+    imageInput:   $("st-image-input"),
+    undoBtn:      $("st-undo-btn"),
+    redoBtn:      $("st-redo-btn"),
+    resetBtn:     $("st-reset-btn"),
+    stepInfo:     $("st-step-info"),
+    messages:     $("st-messages"),
+    input:        $("st-input"),
+    sendBtn:      $("st-send-btn"),
+    status:       $("st-status"),
+  };
+
+  function onActivate() {
+    state.active = true;
+    if (!engineState.engine) {
+      addSystemMessage("⚠️ Reverie model not loaded yet. Head to the Reverie tab and click Download & begin first.");
+      els.input.disabled = true; els.sendBtn.disabled = true;
+    } else {
+      els.input.disabled = false; els.sendBtn.disabled = false;
+    }
+    setTimeout(() => els.input.focus(), 60);
+  }
+
+  // ── Canvas setup ────────────────────────────────────────────────
+  function openBlankCanvas() {
+    state.baseImageDataUrl = null;
+    state.baseImageW = CANVAS_W; state.baseImageH = CANVAS_H;
+    els.svg.setAttribute("viewBox", `0 0 ${CANVAS_W} ${CANVAS_H}`);
+    state.ops = [];
+    resetHistory();
+    renderCanvas();
+    showCanvas();
+    enableInput();
+    addSystemMessage("Blank canvas ready. Tell me what to create.");
+  }
+
+  function openUploadedImage(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        // Fit into CANVAS_W × CANVAS_H while preserving aspect
+        const ratio = img.width / img.height;
+        let w, h;
+        if (ratio > CANVAS_W / CANVAS_H) { w = CANVAS_W; h = Math.round(CANVAS_W / ratio); }
+        else { h = CANVAS_H; w = Math.round(CANVAS_H * ratio); }
+        state.baseImageDataUrl = reader.result;
+        state.baseImageW = w; state.baseImageH = h;
+        els.svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+        state.ops = [];
+        resetHistory();
+        renderCanvas();
+        showCanvas();
+        enableInput();
+        addSystemMessage(`Image loaded (${file.name}). The AI will add a vector overlay on top — tell it what to draw, label, or mark up. It can't see pixel contents, so describe the scene if that helps.`);
+      };
+      img.onerror = () => alert("Couldn't read that image.");
+      img.src = reader.result;
+    };
+    reader.onerror = () => alert("Couldn't read that file.");
+    reader.readAsDataURL(file);
+  }
+
+  function showCanvas() {
+    els.placeholder.style.display = "none";
+    els.svg.style.display = "block";
+    els.exportBtn.disabled = false;
+    els.exportPngBtn.disabled = false;
+  }
+  function enableInput() {
+    if (engineState.engine) { els.input.disabled = false; els.sendBtn.disabled = false; }
+  }
+
+  els.uploadBtn.addEventListener("click", () => els.imageInput.click());
+  els.uploadBtn2.addEventListener("click", () => els.imageInput.click());
+  els.blankBtn.addEventListener("click", openBlankCanvas);
+  els.blankBtn2.addEventListener("click", openBlankCanvas);
+  els.imageInput.addEventListener("change", (e) => {
+    const f = e.target.files[0];
+    if (f) openUploadedImage(f);
+    e.target.value = "";
+  });
+
+  // ── History ─────────────────────────────────────────────────────
+  function pushHistory() {
+    // Drop anything after the current pointer (standard undo/redo behavior)
+    state.historyStack = state.historyStack.slice(0, state.historyIndex + 1);
+    state.historyStack.push(JSON.parse(JSON.stringify(state.ops)));
+    if (state.historyStack.length > 40) state.historyStack.shift();
+    state.historyIndex = state.historyStack.length - 1;
+    updateHistoryUI();
+  }
+  function resetHistory() {
+    state.historyStack = [JSON.parse(JSON.stringify(state.ops))];
+    state.historyIndex = 0;
+    updateHistoryUI();
+  }
+  function undo() {
+    if (state.historyIndex <= 0) return;
+    state.historyIndex--;
+    state.ops = JSON.parse(JSON.stringify(state.historyStack[state.historyIndex]));
+    renderCanvas();
+    updateHistoryUI();
+  }
+  function redo() {
+    if (state.historyIndex >= state.historyStack.length - 1) return;
+    state.historyIndex++;
+    state.ops = JSON.parse(JSON.stringify(state.historyStack[state.historyIndex]));
+    renderCanvas();
+    updateHistoryUI();
+  }
+  function resetToStart() {
+    if (state.historyStack.length === 0) return;
+    state.historyIndex = 0;
+    state.ops = JSON.parse(JSON.stringify(state.historyStack[0]));
+    renderCanvas();
+    updateHistoryUI();
+  }
+  function updateHistoryUI() {
+    els.undoBtn.disabled = state.historyIndex <= 0;
+    els.redoBtn.disabled = state.historyIndex >= state.historyStack.length - 1;
+    els.resetBtn.disabled = state.historyStack.length <= 1;
+    const shapeCount = state.ops.length;
+    els.stepInfo.textContent = `${shapeCount} element${shapeCount === 1 ? "" : "s"} · step ${state.historyIndex + 1}/${state.historyStack.length}`;
+  }
+  els.undoBtn.addEventListener("click", undo);
+  els.redoBtn.addEventListener("click", redo);
+  els.resetBtn.addEventListener("click", resetToStart);
+
+  // ── Rendering ───────────────────────────────────────────────────
+  function renderCanvas() {
+    const svgNs = "http://www.w3.org/2000/svg";
+    while (els.svg.firstChild) els.svg.removeChild(els.svg.firstChild);
+
+    // Base image layer
+    if (state.baseImageDataUrl) {
+      const img = document.createElementNS(svgNs, "image");
+      img.setAttributeNS("http://www.w3.org/1999/xlink", "href", state.baseImageDataUrl);
+      img.setAttribute("href", state.baseImageDataUrl);
+      img.setAttribute("x", "0"); img.setAttribute("y", "0");
+      img.setAttribute("width", state.baseImageW); img.setAttribute("height", state.baseImageH);
+      els.svg.appendChild(img);
+    } else {
+      // White background for blank canvas
+      const bg = document.createElementNS(svgNs, "rect");
+      bg.setAttribute("x", "0"); bg.setAttribute("y", "0");
+      bg.setAttribute("width", state.baseImageW); bg.setAttribute("height", state.baseImageH);
+      bg.setAttribute("fill", "#fafafa");
+      els.svg.appendChild(bg);
+    }
+
+    // Render each op
+    for (const op of state.ops) {
+      const node = shapeToSvg(op, svgNs);
+      if (node) els.svg.appendChild(node);
+    }
+  }
+
+  // Convert a shape op to an SVG element
+  function shapeToSvg(op, ns) {
+    const attrs = op.attrs || {};
+    let el = null;
+    switch (op.type) {
+      case "circle": {
+        el = document.createElementNS(ns, "circle");
+        el.setAttribute("cx", attrs.cx ?? 100);
+        el.setAttribute("cy", attrs.cy ?? 100);
+        el.setAttribute("r", attrs.r ?? 40);
+        break;
+      }
+      case "rect": {
+        el = document.createElementNS(ns, "rect");
+        el.setAttribute("x", attrs.x ?? 50);
+        el.setAttribute("y", attrs.y ?? 50);
+        el.setAttribute("width", attrs.width ?? 100);
+        el.setAttribute("height", attrs.height ?? 80);
+        if (attrs.rx != null) el.setAttribute("rx", attrs.rx);
+        break;
+      }
+      case "ellipse": {
+        el = document.createElementNS(ns, "ellipse");
+        el.setAttribute("cx", attrs.cx ?? 100);
+        el.setAttribute("cy", attrs.cy ?? 100);
+        el.setAttribute("rx", attrs.rx ?? 60);
+        el.setAttribute("ry", attrs.ry ?? 40);
+        break;
+      }
+      case "line": {
+        el = document.createElementNS(ns, "line");
+        el.setAttribute("x1", attrs.x1 ?? 0); el.setAttribute("y1", attrs.y1 ?? 0);
+        el.setAttribute("x2", attrs.x2 ?? 100); el.setAttribute("y2", attrs.y2 ?? 100);
+        break;
+      }
+      case "polygon": {
+        el = document.createElementNS(ns, "polygon");
+        el.setAttribute("points", attrs.points || "0,0 50,0 25,43");
+        break;
+      }
+      case "path": {
+        el = document.createElementNS(ns, "path");
+        el.setAttribute("d", attrs.d || "M 100 100 L 200 100 L 200 200 Z");
+        break;
+      }
+      case "text": {
+        el = document.createElementNS(ns, "text");
+        el.setAttribute("x", attrs.x ?? 100);
+        el.setAttribute("y", attrs.y ?? 100);
+        el.setAttribute("font-family", attrs["font-family"] || "Georgia, serif");
+        el.setAttribute("font-size", attrs["font-size"] ?? 28);
+        if (attrs["text-anchor"]) el.setAttribute("text-anchor", attrs["text-anchor"]);
+        if (attrs["font-weight"]) el.setAttribute("font-weight", attrs["font-weight"]);
+        if (attrs["font-style"]) el.setAttribute("font-style", attrs["font-style"]);
+        el.textContent = attrs.text || "";
+        break;
+      }
+      default:
+        return null;
+    }
+    // Common style attributes
+    if (attrs.fill != null) el.setAttribute("fill", attrs.fill);
+    else if (op.type !== "text") el.setAttribute("fill", "#e07a5f");
+    if (attrs.stroke != null) el.setAttribute("stroke", attrs.stroke);
+    if (attrs["stroke-width"] != null) el.setAttribute("stroke-width", attrs["stroke-width"]);
+    if (attrs.opacity != null) el.setAttribute("opacity", attrs.opacity);
+    if (attrs.transform != null) el.setAttribute("transform", attrs.transform);
+    el.setAttribute("data-shape-id", op.id);
+    return el;
+  }
+
+  // ── Apply op commands from the AI ───────────────────────────────
+  // Supported commands:
+  //   {"action":"add","shape":{type, attrs}}
+  //   {"action":"modify","id":N,"attrs":{...}}        // merge-update attrs
+  //   {"action":"remove","id":N}
+  //   {"action":"recolor_all","fill":"#hex"}          // affects all shape fills
+  //   {"action":"clear"}                              // remove all ops, keep base image
+  function applyCommands(commands) {
+    let applied = 0, errors = [];
+    for (const c of commands) {
+      try {
+        switch (c.action) {
+          case "add": {
+            if (!c.shape || !c.shape.type) throw new Error("add: missing shape");
+            const shape = { id: state.nextShapeId++, type: c.shape.type, attrs: c.shape.attrs || {} };
+            state.ops.push(shape);
+            applied++;
+            break;
+          }
+          case "modify": {
+            const idx = state.ops.findIndex(o => o.id === c.id);
+            if (idx === -1) throw new Error(`modify: shape #${c.id} not found`);
+            state.ops[idx].attrs = { ...state.ops[idx].attrs, ...(c.attrs || {}) };
+            applied++;
+            break;
+          }
+          case "remove": {
+            const idx = state.ops.findIndex(o => o.id === c.id);
+            if (idx === -1) throw new Error(`remove: shape #${c.id} not found`);
+            state.ops.splice(idx, 1);
+            applied++;
+            break;
+          }
+          case "recolor_all": {
+            for (const op of state.ops) {
+              if (op.type !== "text") op.attrs.fill = c.fill;
+            }
+            applied++;
+            break;
+          }
+          case "clear": {
+            state.ops = [];
+            applied++;
+            break;
+          }
+          default:
+            throw new Error(`unknown action: ${c.action}`);
+        }
+      } catch (e) { errors.push(e.message || String(e)); }
+    }
+    if (applied > 0) pushHistory();
+    renderCanvas();
+    return { applied, errors };
+  }
+
+  // ── Messages ────────────────────────────────────────────────────
+  function addMsg(role, content, extras) {
+    state.messages.push({ role, content, ...extras });
+    const el = document.createElement("div");
+    el.className = `st-msg ${role}`;
+    if (role === "user") el.textContent = content;
+    else if (role === "error") el.textContent = "⚠ " + content;
+    else if (role === "system") el.textContent = content;
+    else {
+      // assistant: main text + optional ops preview
+      const text = document.createElement("div");
+      text.textContent = content;
+      el.appendChild(text);
+      if (extras?.ops) {
+        const ops = document.createElement("div");
+        ops.className = "ops";
+        ops.textContent = extras.ops;
+        el.appendChild(ops);
+      }
+    }
+    // Remove intro card after first real message
+    const intro = els.messages.querySelector(".st-intro");
+    if (intro) intro.remove();
+    els.messages.appendChild(el);
+    els.messages.scrollTop = els.messages.scrollHeight;
+  }
+  function addSystemMessage(text) { addMsg("system", text); }
+
+  // ── AI prompt + response parsing ────────────────────────────────
+  function buildStudioSystemPrompt() {
+    const baseDesc = state.baseImageDataUrl
+      ? `The user has uploaded a raster image as the background layer. You cannot see its pixels. You can only add vector shapes as an overlay on top. If the user describes what's in the image, you can reason about it from their description.`
+      : `The canvas is blank. You are drawing from scratch using SVG shapes.`;
+
+    // Summarize current shapes for the model
+    const shapeSummary = state.ops.length === 0
+      ? "(no shapes yet — the overlay is empty)"
+      : state.ops.map(o => {
+          const attrs = o.attrs || {};
+          let summary = `#${o.id} ${o.type}`;
+          if (o.type === "circle") summary += ` at (${attrs.cx},${attrs.cy}) r=${attrs.r}`;
+          else if (o.type === "rect") summary += ` at (${attrs.x},${attrs.y}) ${attrs.width}x${attrs.height}`;
+          else if (o.type === "ellipse") summary += ` at (${attrs.cx},${attrs.cy}) rx=${attrs.rx} ry=${attrs.ry}`;
+          else if (o.type === "line") summary += ` (${attrs.x1},${attrs.y1})→(${attrs.x2},${attrs.y2})`;
+          else if (o.type === "text") summary += ` "${(attrs.text || "").slice(0, 40)}" at (${attrs.x},${attrs.y})`;
+          if (attrs.fill) summary += ` fill=${attrs.fill}`;
+          return summary;
+        }).join("\n");
+
+    return `You are Studio, a collaborative visual art assistant. You help the user create and modify vector artwork on an SVG canvas.
+
+Canvas dimensions: ${state.baseImageW} wide × ${state.baseImageH} tall. Coordinate (0,0) is top-left.
+
+${baseDesc}
+
+Current shapes on the overlay:
+${shapeSummary}
+
+Your job: translate the user's direction into a SHORT plain-text acknowledgment PLUS a JSON command block that modifies the canvas.
+
+STRICT OUTPUT FORMAT — follow exactly:
+1. One or two plain-text sentences describing what you're doing (no code fences, no JSON inside).
+2. Then a JSON block wrapped in <ops>...</ops> tags containing an array of commands.
+
+Supported commands:
+{"action":"add","shape":{"type":"circle|rect|ellipse|line|polygon|path|text","attrs":{...}}}
+{"action":"modify","id":<shape_id>,"attrs":{...}}     — merge-updates attributes
+{"action":"remove","id":<shape_id>}
+{"action":"recolor_all","fill":"#hexcolor"}           — recolors all non-text shape fills
+{"action":"clear"}                                     — removes all overlay shapes
+
+Shape attribute reference:
+- circle: cx, cy, r, fill, stroke, stroke-width, opacity
+- rect: x, y, width, height, rx (for rounded corners), fill, stroke, stroke-width, opacity
+- ellipse: cx, cy, rx, ry, fill, stroke, stroke-width, opacity
+- line: x1, y1, x2, y2, stroke, stroke-width, opacity
+- polygon: points ("x1,y1 x2,y2 x3,y3 …"), fill, stroke
+- path: d (SVG path data), fill, stroke, stroke-width
+- text: x, y, text, font-family, font-size, font-weight, font-style, text-anchor, fill
+
+Use colors aesthetically — hex codes like "#e07a5f", "#81b29a", "#f2cc8f", "#3d405b", "#f4f1de" are a nice palette. Vary size, position, and color to make compositions interesting. Don't stack everything at (100,100).
+
+Example response for "add three orange circles across the top":
+I'll add three orange circles spaced evenly across the top of the canvas.
+<ops>
+[
+  {"action":"add","shape":{"type":"circle","attrs":{"cx":160,"cy":80,"r":44,"fill":"#e07a5f"}}},
+  {"action":"add","shape":{"type":"circle","attrs":{"cx":400,"cy":80,"r":44,"fill":"#e07a5f"}}},
+  {"action":"add","shape":{"type":"circle","attrs":{"cx":640,"cy":80,"r":44,"fill":"#e07a5f"}}}
+]
+</ops>
+
+IMPORTANT:
+- Always emit BOTH the plain text AND the <ops> block on every turn.
+- If the user's request doesn't require canvas changes, emit an empty array: <ops>[]</ops>.
+- Keep your plain text to 1-2 sentences. The user sees the shapes directly; don't narrate what's visible.
+- Use existing shape IDs when the user says "the circle" or "that one" — don't add duplicates when they mean modify.`;
+  }
+
+  // Extract the JSON array inside <ops>…</ops>, if any.
+  function parseOpsFromResponse(text) {
+    const match = text.match(/<ops>([\s\S]*?)<\/ops>/i);
+    if (!match) return { text: text.trim(), ops: null, raw: null };
+    const cleanText = (text.slice(0, match.index) + text.slice(match.index + match[0].length)).trim();
+    let ops = null;
+    let raw = match[1].trim();
+    // Strip any wrapping code fences the model might have added
+    raw = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    try {
+      ops = JSON.parse(raw);
+      if (!Array.isArray(ops)) ops = null;
+    } catch { ops = null; }
+    return { text: cleanText, ops, raw };
+  }
+
+  async function sendDirection() {
+    const prompt = els.input.value.trim();
+    if (!prompt || state.working) return;
+    if (!engineState.engine) { addMsg("error", "Model isn't loaded."); return; }
+    if (state.historyStack.length === 0) {
+      addMsg("error", "Start a blank canvas or upload an image first.");
+      return;
+    }
+
+    addMsg("user", prompt);
+    els.input.value = "";
+    els.input.style.height = "auto";
+
+    state.working = true;
+    els.status.textContent = "Working";
+    els.status.classList.add("working");
+    els.sendBtn.disabled = true;
+
+    const sys = buildStudioSystemPrompt();
+    // Keep short history (studio conversations can get long; the canvas IS the state)
+    const recentHistory = state.messages
+      .filter(m => m.role === "user" || m.role === "assistant")
+      .slice(-6)
+      .map(m => ({ role: m.role, content: m.content + (m.rawOps ? `\n<ops>${m.rawOps}</ops>` : "") }));
+
+    let fullResponse = "";
+    try {
+      await engineState.run(async () => {
+        const stream = await engineState.engine.chat.completions.create({
+          messages: [{ role: "system", content: sys }, ...recentHistory, { role: "user", content: prompt }],
+          stream: true, temperature: 0.6, max_tokens: 800,
+        });
+        for await (const chunk of stream) {
+          const delta = chunk.choices?.[0]?.delta?.content || "";
+          if (delta) fullResponse += delta;
+        }
+      });
+    } catch (e) {
+      addMsg("error", `Generation failed: ${e.message || e}`);
+      state.working = false;
+      els.status.textContent = "";
+      els.status.classList.remove("working");
+      els.sendBtn.disabled = false;
+      return;
+    }
+
+    const { text, ops, raw } = parseOpsFromResponse(fullResponse);
+    const displayText = text || "(done)";
+    let extras = {};
+    if (raw) extras.ops = raw;
+
+    if (ops && ops.length > 0) {
+      const { applied, errors } = applyCommands(ops);
+      addMsg("assistant", displayText, { ...extras, rawOps: raw });
+      if (errors.length) addMsg("error", `Some commands failed: ${errors.join("; ")}`);
+      else if (applied === 0) addMsg("system", "(no changes applied)");
+    } else if (ops && ops.length === 0) {
+      // Empty ops array = no canvas change intended
+      addMsg("assistant", displayText);
+    } else {
+      // Failed to parse — include the raw response so the user sees what happened
+      addMsg("assistant", displayText || fullResponse.slice(0, 400));
+      addMsg("error", "Couldn't parse an <ops> block from that response — the model may have drifted. Try rephrasing the request or rerunning.");
+    }
+
+    state.working = false;
+    els.status.textContent = "";
+    els.status.classList.remove("working");
+    els.sendBtn.disabled = false;
+    els.input.focus();
+  }
+
+  els.sendBtn.addEventListener("click", sendDirection);
+  els.input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendDirection(); }
+  });
+  els.input.addEventListener("input", () => {
+    els.input.style.height = "auto";
+    els.input.style.height = Math.min(els.input.scrollHeight, 120) + "px";
+  });
+
+  // ── Export ──────────────────────────────────────────────────────
+  els.exportBtn.addEventListener("click", () => {
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(els.svg);
+    const blob = new Blob([svgStr], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "studio.svg"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  els.exportPngBtn.addEventListener("click", async () => {
+    try {
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(els.svg);
+      const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = state.baseImageW; canvas.height = state.baseImageH;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          const pngUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = pngUrl; a.download = "studio.png"; a.click();
+          setTimeout(() => { URL.revokeObjectURL(pngUrl); URL.revokeObjectURL(url); }, 1000);
+        }, "image/png");
+      };
+      img.onerror = () => { alert("Couldn't render PNG (some images block canvas export due to CORS). Try SVG export instead."); URL.revokeObjectURL(url); };
+      img.src = url;
+    } catch (e) { alert("Export failed: " + (e.message || e)); }
+  });
+
+  return { onActivate };
 })();
 </script>
 </body>
