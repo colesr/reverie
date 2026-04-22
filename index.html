@@ -236,12 +236,32 @@
     50%      { box-shadow: 0 0 0 2px rgba(131, 197, 190, 0.45), 0 0 40px rgba(131, 197, 190, 0.3); }
   }
   .st-canvas-wrap svg { max-width: 100%; max-height: 100%; background: #fafafa; border-radius: 6px; }
-  .st-placeholder { padding: 40px; text-align: center; max-width: 480px; }
-  .st-placeholder .big { font-size: 64px; color: #83c5be; margin-bottom: 14px; }
-  .st-placeholder h3 { font: 400 26px var(--serif); color: var(--r-text); margin-bottom: 10px; }
-  .st-placeholder p { color: var(--r-text-muted); font-size: 14px; line-height: 1.7; margin-bottom: 18px; }
-  .st-placeholder-actions { display: flex; gap: 10px; justify-content: center; margin-bottom: 18px; flex-wrap: wrap; }
-  .st-note { font: 11px var(--mono); color: var(--r-text-dim); background: var(--r-bg-subtle); padding: 10px 14px; border-radius: 7px; border: 1px solid var(--r-border-subtle); text-align: left; line-height: 1.6; }
+  .st-placeholder { padding: 40px 40px 36px; text-align: center; max-width: 560px; width: 100%; }
+  .st-placeholder-mark { font-size: 54px; color: #83c5be; margin-bottom: 16px; line-height: 1; animation: st-mark-breathe 5s ease-in-out infinite; }
+  @keyframes st-mark-breathe { 0%,100% { opacity: 0.65; transform: scale(1); } 50% { opacity: 1; transform: scale(1.04); } }
+  .st-placeholder h3 { font: 400 28px var(--serif); color: var(--r-text); margin-bottom: 8px; letter-spacing: -0.01em; }
+  .st-placeholder-sub { color: var(--r-text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 26px; }
+  .st-starter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .st-starter-card {
+    display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
+    padding: 14px 16px;
+    background: var(--r-bg-elevated);
+    border: 1px solid var(--r-border);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.18s cubic-bezier(0.34, 1.2, 0.64, 1);
+    color: var(--r-text);
+    font: inherit;
+  }
+  .st-starter-card:hover {
+    border-color: #83c5be;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(131, 197, 190, 0.12);
+  }
+  .st-starter-icon { font-size: 22px; color: #83c5be; line-height: 1; }
+  .st-starter-title { font: 500 14px var(--sans); color: var(--r-text); }
+  .st-starter-desc { font: 11px var(--mono); color: var(--r-text-dim); letter-spacing: 0.02em; }
 
   .st-history-bar { display: flex; gap: 4px; align-items: center; padding: 6px 10px; background: var(--r-bg-subtle); border: 1px solid var(--r-border-subtle); border-radius: 8px; }
   .st-icon-btn { background: transparent; border: none; color: var(--r-text-muted); cursor: pointer; padding: 6px 10px; border-radius: 5px; font-size: 16px; line-height: 1; transition: all 0.1s ease; }
@@ -373,6 +393,192 @@
   }
   .st-input-wrap textarea:focus { border-color: var(--r-accent-dim); }
   .st-input-wrap textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Toolbox ── */
+  .st-toolbox-trigger { display: inline-flex; align-items: center; gap: 6px; }
+  .st-toolbox-trigger[aria-expanded="true"] {
+    background: #83c5be; color: #14110d; border-color: #83c5be;
+  }
+  .st-toolbox-trigger[aria-expanded="true"] .st-toolbox-icon { transform: rotate(90deg); }
+  .st-toolbox-icon {
+    display: inline-block; font-size: 14px; line-height: 1;
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .st-toolbox {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.32s cubic-bezier(0.2, 0, 0.2, 1);
+    border-bottom: 1px solid transparent;
+  }
+  .st-toolbox[aria-hidden="false"] {
+    max-height: 520px;
+    border-bottom-color: var(--r-border-subtle);
+  }
+  .st-toolbox-inner { padding: 14px 0 16px; }
+  .st-toolbox-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; padding: 0 2px; }
+  .st-toolbox-label {
+    font: 500 11px var(--mono); color: #83c5be;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .st-toolbox-hint { font: italic 12px var(--serif); color: var(--r-text-muted); }
+
+  .st-toolbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+  }
+  .st-toolbox-section {
+    grid-column: 1 / -1;
+    font: 500 10px var(--mono); color: var(--r-text-dim);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 8px 2px 2px;
+    border-top: 1px dashed var(--r-border-subtle);
+  }
+  .st-toolbox-section:first-child { border-top: none; padding-top: 2px; }
+  .st-tool-card {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--r-text);
+    font: inherit;
+    transition: all 0.15s ease;
+  }
+  .st-tool-card:hover:not(:disabled) {
+    border-color: #83c5be;
+    background: var(--r-bg-elevated);
+    transform: translateY(-1px);
+  }
+  .st-tool-card:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .st-tool-icon { font-size: 18px; color: #83c5be; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .st-tool-body { flex: 1; min-width: 0; }
+  .st-tool-title { font: 500 13px var(--sans); color: var(--r-text); }
+  .st-tool-desc { font: 11px var(--mono); color: var(--r-text-dim); margin-top: 2px; display: block; }
+
+  .st-tool-empty {
+    grid-column: 1 / -1;
+    padding: 20px; text-align: center;
+    color: var(--r-text-dim); font-size: 13px; font-style: italic;
+    background: var(--r-bg-subtle); border-radius: 8px;
+    border: 1px dashed var(--r-border-subtle);
+  }
+
+  /* ── Non-image file preview panel (when user uploads PDF, Word, CSV, etc.) ── */
+  .st-preview-panel {
+    position: absolute; inset: 0;
+    background: #14110d;
+    display: flex; flex-direction: column;
+    padding: 20px;
+    overflow: hidden;
+  }
+  .st-preview-head {
+    display: flex; align-items: center; gap: 12px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--r-border-subtle);
+    margin-bottom: 14px;
+  }
+  .st-preview-file-icon {
+    width: 44px; height: 44px; border-radius: 8px;
+    background: rgba(131, 197, 190, 0.15);
+    color: #83c5be;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .st-preview-title { font: 500 15px var(--sans); color: var(--r-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .st-preview-meta { font: 11px var(--mono); color: var(--r-text-dim); margin-top: 2px; }
+  .st-preview-body {
+    flex: 1; min-height: 0; overflow: auto;
+    background: var(--r-bg-subtle);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .st-preview-body.pdf-render { padding: 0; background: #2a251f; display: flex; align-items: center; justify-content: center; }
+  .st-preview-body.pdf-render img { max-width: 100%; max-height: 100%; box-shadow: 0 6px 24px rgba(0,0,0,0.35); border-radius: 3px; }
+  .st-preview-body pre {
+    margin: 0;
+    font: 12px/1.55 var(--mono);
+    color: var(--r-text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .st-preview-body.data-table { padding: 0; }
+  .st-preview-body.data-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font: 12px var(--sans);
+  }
+  .st-preview-body.data-table th,
+  .st-preview-body.data-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--r-border-subtle);
+    text-align: left;
+    color: var(--r-text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 200px;
+  }
+  .st-preview-body.data-table th {
+    background: var(--r-bg-elevated);
+    color: #83c5be;
+    font: 500 10px var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: sticky; top: 0;
+    border-bottom: 1px solid var(--r-border);
+  }
+
+  /* ── Global progress overlay ── */
+  .st-progress-overlay {
+    position: absolute; inset: 0;
+    background: rgba(20, 17, 13, 0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .st-progress-overlay.visible { display: flex; opacity: 1; }
+  .st-progress-card {
+    padding: 22px 28px;
+    background: var(--r-bg-elevated);
+    border: 1px solid var(--r-border);
+    border-radius: 12px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    min-width: 220px;
+  }
+  .st-progress-ring {
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 3px solid var(--r-border-subtle);
+    border-top-color: #83c5be;
+    animation: st-spin 0.9s linear infinite;
+    position: relative;
+  }
+  .st-progress-ring-inner {
+    position: absolute; inset: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(131,197,190,0.15) 0%, transparent 70%);
+    animation: st-inner-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes st-spin { to { transform: rotate(360deg); } }
+  @keyframes st-inner-pulse {
+    0%,100% { opacity: 0.4; transform: scale(0.85); }
+    50%     { opacity: 1;   transform: scale(1.1); }
+  }
+  .st-progress-text {
+    font: 500 13px var(--sans); color: var(--r-text);
+    margin-top: 4px;
+  }
+  .st-progress-sub {
+    font: 11px var(--mono); color: var(--r-text-dim);
+    min-height: 14px;
+  }
 
   @media (max-width: 860px) {
     .st-body { grid-template-columns: 1fr; }
@@ -987,28 +1193,54 @@
           </div>
         </div>
         <div class="st-header-actions">
-          <button class="st-btn secondary" id="st-upload-btn">Upload image</button>
+          <button class="st-btn secondary" id="st-upload-btn">Upload file</button>
           <button class="st-btn secondary" id="st-blank-btn">Blank canvas</button>
-          <button class="st-btn secondary" id="st-export-btn" disabled>Export SVG</button>
-          <button class="st-btn secondary" id="st-export-png-btn" disabled>Export PNG</button>
-          <input type="file" id="st-image-input" accept="image/*" style="display:none;" />
+          <button class="st-btn secondary st-toolbox-trigger" id="st-toolbox-btn" aria-expanded="false">
+            <span class="st-toolbox-icon">▤</span>
+            <span>Toolbox</span>
+          </button>
+          <input type="file" id="st-image-input" style="display:none;" />
         </div>
       </header>
+
+      <!-- Toolbox slide-down panel -->
+      <div class="st-toolbox" id="st-toolbox" aria-hidden="true">
+        <div class="st-toolbox-inner">
+          <div class="st-toolbox-header">
+            <span class="st-toolbox-label">Toolbox</span>
+            <span class="st-toolbox-hint" id="st-toolbox-hint">Upload a file to see what's available</span>
+          </div>
+          <div class="st-toolbox-grid" id="st-toolbox-grid"></div>
+        </div>
+      </div>
 
       <div class="st-body">
         <div class="st-canvas-col">
           <div class="st-canvas-wrap" id="st-canvas-wrap">
             <div class="st-placeholder" id="st-placeholder">
-              <div class="big">◐</div>
+              <div class="st-placeholder-mark">◐</div>
               <h3>Start a piece</h3>
-              <p>Upload an image, or open a blank canvas. Then ask the AI to add, remove, move, recolor, or transform elements. Iterate together.</p>
-              <div class="st-placeholder-actions">
-                <button class="st-btn primary" id="st-upload-btn-2">Upload image</button>
-                <button class="st-btn secondary" id="st-blank-btn-2">Blank canvas</button>
+              <p class="st-placeholder-sub">Upload a file or open a blank canvas. Direct the AI. Transform, convert, compose.</p>
+              <div class="st-starter-grid">
+                <button class="st-starter-card" id="st-upload-btn-2">
+                  <span class="st-starter-icon">↑</span>
+                  <span class="st-starter-title">Upload file</span>
+                  <span class="st-starter-desc">Image, PDF, Word, CSV, JSON…</span>
+                </button>
+                <button class="st-starter-card" id="st-blank-btn-2">
+                  <span class="st-starter-icon">◻</span>
+                  <span class="st-starter-title">Blank canvas</span>
+                  <span class="st-starter-desc">Start from nothing, build with shapes</span>
+                </button>
+                <button class="st-starter-card" id="st-open-toolbox-btn">
+                  <span class="st-starter-icon">▤</span>
+                  <span class="st-starter-title">Browse Toolbox</span>
+                  <span class="st-starter-desc">Conversions, exports, utilities</span>
+                </button>
               </div>
-              <div class="st-note"><b>How this works:</b> the local model can direct two kinds of changes. It can <b>transform your photo</b> as a whole — apply filters, presets (polaroid, noir, moody-forest, cyberpunk…), crop, adjust tone, color, and grain. And it can <b>add vector overlays on top</b> — shapes, frames, labels, annotations. What it cannot do is see or edit specific pixels of your photo (change just the sky, recolor a particular person, remove objects). For placement-sensitive overlays, describe what's in the image.</div>
             </div>
             <svg id="st-canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" style="display:none;"></svg>
+            <div class="st-preview-panel" id="st-preview-panel" style="display:none;"></div>
           </div>
           <div class="st-history-bar">
             <button class="st-icon-btn" id="st-undo-btn" title="Undo" disabled>↶</button>
@@ -1061,6 +1293,15 @@
             <button class="st-btn primary" id="st-send-btn" disabled>Send</button>
           </div>
         </aside>
+      </div>
+
+      <!-- Global progress overlay (appears during conversions, library loading, etc.) -->
+      <div class="st-progress-overlay" id="st-progress-overlay" aria-hidden="true">
+        <div class="st-progress-card">
+          <div class="st-progress-ring"><div class="st-progress-ring-inner"></div></div>
+          <div class="st-progress-text" id="st-progress-text">Working</div>
+          <div class="st-progress-sub" id="st-progress-sub"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -3714,18 +3955,20 @@ const studio = (() => {
   const CANVAS_W = 800, CANVAS_H = 600;
   const state = {
     active: false,
-    baseImageDataUrl: null,       // original, unmodified upload (or null for blank)
-    baseImageW: null, baseImageH: null, // original image dimensions
-    cropBox: null,                 // {x,y,w,h} in original-image coords, or null for no crop
-    filters: [],                   // [{name, params}] stack applied to base image
-    processedImageCache: null,     // memoized processed dataURL
-    ops: [],                       // vector shape ops (on top of processed image)
-    ascii: null,                   // { text, width, chars, inverted, fontSize } or null
-    historyStack: [],              // snapshots of {filters, cropBox, ops, ascii}
+    baseImageDataUrl: null,
+    baseImageW: null, baseImageH: null,
+    cropBox: null,
+    filters: [],
+    processedImageCache: null,
+    ops: [],
+    ascii: null,
+    historyStack: [],
     historyIndex: -1,
     nextShapeId: 1,
     messages: [],
     working: false,
+    nonImageFile: null,    // for non-image uploads: { kind, name, size, mime, content, extra }
+    toolboxOpen: false,
   };
 
   const els = {
@@ -3736,8 +3979,15 @@ const studio = (() => {
     uploadBtn2:   $("st-upload-btn-2"),
     blankBtn:     $("st-blank-btn"),
     blankBtn2:    $("st-blank-btn-2"),
-    exportBtn:    $("st-export-btn"),
-    exportPngBtn: $("st-export-png-btn"),
+    openToolboxBtn: $("st-open-toolbox-btn"),
+    toolboxBtn:   $("st-toolbox-btn"),
+    toolbox:      $("st-toolbox"),
+    toolboxGrid:  $("st-toolbox-grid"),
+    toolboxHint:  $("st-toolbox-hint"),
+    previewPanel: $("st-preview-panel"),
+    progressOverlay: $("st-progress-overlay"),
+    progressText: $("st-progress-text"),
+    progressSub:  $("st-progress-sub"),
     imageInput:   $("st-image-input"),
     undoBtn:      $("st-undo-btn"),
     redoBtn:      $("st-redo-btn"),
@@ -3774,6 +4024,7 @@ const studio = (() => {
     state.cropBox = null;
     state.ascii = null;
     state.processedImageCache = null;
+    state.nonImageFile = null;
     resetHistory();
     renderCanvas();
     showCanvas();
@@ -3814,8 +4065,21 @@ const studio = (() => {
   function showCanvas() {
     els.placeholder.style.display = "none";
     els.svg.style.display = "block";
-    els.exportBtn.disabled = false;
-    els.exportPngBtn.disabled = false;
+    els.previewPanel.style.display = "none";
+    els.previewPanel.innerHTML = "";
+    // Toolbox catalog updates on canvas show (new available actions)
+    if (toolboxOpen) renderToolbox();
+  }
+  function showPlaceholder() {
+    els.placeholder.style.display = "flex";
+    els.svg.style.display = "none";
+    els.previewPanel.style.display = "none";
+    els.previewPanel.innerHTML = "";
+  }
+  function showFilePreview() {
+    els.placeholder.style.display = "none";
+    els.svg.style.display = "none";
+    els.previewPanel.style.display = "flex";
   }
   function enableInput() {
     if (engineState.engine) { els.input.disabled = false; els.sendBtn.disabled = false; }
@@ -3827,7 +4091,7 @@ const studio = (() => {
   els.blankBtn2.addEventListener("click", openBlankCanvas);
   els.imageInput.addEventListener("change", (e) => {
     const f = e.target.files[0];
-    if (f) openUploadedImage(f);
+    if (f) handleAnyUpload(f);
     e.target.value = "";
   });
 
@@ -5150,6 +5414,757 @@ Final rules:
     els.wrap.classList.remove("working");
   }
 
+  // ── Export functions (invoked from Toolbox) ─────────────────────
+  function exportSvg() {
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(els.svg);
+    const blob = new Blob([svgStr], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "studio.svg"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function exportPng() {
+    try {
+      await withProgress("Rendering PNG", "serializing SVG", async () => {
+        const serializer = new XMLSerializer();
+        const svgStr = serializer.serializeToString(els.svg);
+        const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(svgBlob);
+        await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const viewW = state.cropBox ? state.cropBox.w : state.baseImageW;
+            const viewH = state.cropBox ? state.cropBox.h : state.baseImageH;
+            canvas.width = viewW; canvas.height = viewH;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob((blob) => {
+              const pngUrl = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = pngUrl; a.download = "studio.png"; a.click();
+              setTimeout(() => { URL.revokeObjectURL(pngUrl); URL.revokeObjectURL(url); }, 1000);
+              resolve();
+            }, "image/png");
+          };
+          img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("PNG render failed")); };
+          img.src = url;
+        });
+      });
+    } catch (e) {
+      alert("Export failed: " + (e.message || e));
+    }
+  }
+
+  // ── Progress overlay helper ─────────────────────────────────────
+  // withProgress wraps any async task and shows a minimal overlay while it runs.
+  async function withProgress(label, sublabel, task) {
+    showProgress(label, sublabel || "");
+    try {
+      const result = await task();
+      return result;
+    } finally {
+      hideProgress();
+    }
+  }
+  function showProgress(label, sublabel) {
+    els.progressText.textContent = label || "Working";
+    els.progressSub.textContent = sublabel || "";
+    els.progressOverlay.classList.add("visible");
+    els.progressOverlay.setAttribute("aria-hidden", "false");
+  }
+  function updateProgress(sublabel) { els.progressSub.textContent = sublabel || ""; }
+  function hideProgress() {
+    els.progressOverlay.classList.remove("visible");
+    els.progressOverlay.setAttribute("aria-hidden", "true");
+  }
+
+  // ── File-type dispatch ──────────────────────────────────────────
+  // Reads the uploaded file, figures out what kind it is, and routes to the
+  // appropriate presenter. Updates state and the UI accordingly.
+  const TEXT_EXT_STUDIO = /\.(txt|md|log|ini|conf|toml|yml|yaml|sql|sh)$/i;
+  const CSV_EXT = /\.(csv|tsv)$/i;
+
+  async function handleAnyUpload(file) {
+    if (!file) return;
+    const name = file.name;
+    const size = file.size;
+    const type = file.type || "";
+    const extMatch = name.match(/\.[^.]+$/);
+    const ext = extMatch ? extMatch[0].toLowerCase() : "";
+
+    // Enforce a generous but sane size cap — 30 MB covers almost everything useful
+    if (size > 30 * 1024 * 1024) {
+      alert(`"${name}" is ${formatFileSize(size)}. Max is 30 MB.`);
+      return;
+    }
+
+    try {
+      await withProgress(`Loading ${name}`, "reading file", async () => {
+        // IMAGE: raster (jpg/png/webp/gif/bmp)
+        if (type.startsWith("image/") && type !== "image/svg+xml" && !/heic|heif/i.test(type + ext)) {
+          await loadImageFile(file);
+          return;
+        }
+        // HEIC/HEIF → convert to JPG on load (so it can be displayed)
+        if (/heic|heif/i.test(type + ext)) {
+          updateProgress("converting HEIC (first-time loads ~800KB library)");
+          const jpgBlob = await convertHeic(file);
+          const jpgFile = new File([jpgBlob], name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+          await loadImageFile(jpgFile);
+          return;
+        }
+        // SVG: load as image (browser can render it natively)
+        if (type === "image/svg+xml" || ext === ".svg") {
+          const text = await file.text();
+          // Render the SVG to a rasterized dataURL so filters can be applied
+          const svgDataUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(text);
+          await loadImageDataUrl(svgDataUrl, name);
+          // Also stash the raw SVG text so we can offer svg-specific tools
+          state.nonImageFile = null; // it loaded as an image
+          return;
+        }
+        // PDF
+        if (type === "application/pdf" || ext === ".pdf") {
+          updateProgress("parsing PDF");
+          const parsed = await parsePdfForStudio(file);
+          state.nonImageFile = { kind: "pdf", name, size, mime: type, ...parsed };
+          renderFilePreview();
+          return;
+        }
+        // Word .docx
+        if (ext === ".docx" || type.includes("officedocument.wordprocessingml")) {
+          updateProgress("reading Word document");
+          const text = await readDocxAsText(file);
+          state.nonImageFile = { kind: "docx", name, size, mime: type, content: text };
+          renderFilePreview();
+          return;
+        }
+        // CSV / TSV
+        if (CSV_EXT.test(name) || type === "text/csv" || type === "text/tab-separated-values") {
+          const text = await file.text();
+          const delimiter = ext === ".tsv" ? "\t" : ",";
+          const parsed = parseCsv(text, delimiter);
+          state.nonImageFile = { kind: "csv", name, size, mime: type, content: text, rows: parsed.rows, headers: parsed.headers, delimiter };
+          renderFilePreview();
+          return;
+        }
+        // JSON
+        if (ext === ".json" || type === "application/json") {
+          const text = await file.text();
+          let data = null;
+          try { data = JSON.parse(text); } catch { /* leave null */ }
+          state.nonImageFile = { kind: "json", name, size, mime: type, content: text, data };
+          renderFilePreview();
+          return;
+        }
+        // XML / HTML
+        if (ext === ".xml" || type === "application/xml" || type === "text/xml" || ext === ".html" || ext === ".htm") {
+          const text = await file.text();
+          state.nonImageFile = { kind: ext.includes("htm") ? "html" : "xml", name, size, mime: type, content: text };
+          renderFilePreview();
+          return;
+        }
+        // Plain text / code
+        if (type.startsWith("text/") || TEXT_EXT_STUDIO.test(name)) {
+          const text = await file.text();
+          state.nonImageFile = { kind: "text", name, size, mime: type, content: text };
+          renderFilePreview();
+          return;
+        }
+        // Unknown — present as a file card, offer no specific conversions
+        state.nonImageFile = { kind: "unknown", name, size, mime: type };
+        renderFilePreview();
+      });
+    } catch (err) {
+      console.error(err);
+      alert(`Couldn't load "${name}": ${err.message || err}`);
+    }
+    if (toolboxOpen) renderToolbox();
+  }
+
+  // Convenience: turn a File with an image MIME type into the current image
+  async function loadImageFile(file) {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+    await loadImageDataUrl(dataUrl, file.name);
+  }
+
+  async function loadImageDataUrl(dataUrl, filename) {
+    const img = await loadImage(dataUrl);
+    const ratio = img.width / img.height;
+    let w, h;
+    if (ratio > CANVAS_W / CANVAS_H) { w = CANVAS_W; h = Math.round(CANVAS_W / ratio); }
+    else { h = CANVAS_H; w = Math.round(CANVAS_H * ratio); }
+    state.baseImageDataUrl = dataUrl;
+    state.baseImageW = w; state.baseImageH = h;
+    state.nonImageFile = null;
+    state.ops = [];
+    state.filters = [];
+    state.cropBox = null;
+    state.ascii = null;
+    state.processedImageCache = null;
+    resetHistory();
+    renderCanvas();
+    showCanvas();
+    enableInput();
+    addSystemMessage(`Loaded ${filename}. Apply filters, presets, convert to ASCII art, or add vector overlays. Open the Toolbox to see format conversions available.`);
+  }
+
+  // HEIC → JPG via heic2any (lazy-loaded)
+  async function convertHeic(file) {
+    const heic2any = await loadLib("heic2any", "https://esm.run/heic2any@0.0.4/dist/heic2any.js");
+    const convert = heic2any.default || heic2any;
+    const result = await convert({ blob: file, toType: "image/jpeg", quality: 0.92 });
+    return Array.isArray(result) ? result[0] : result;
+  }
+
+  async function parsePdfForStudio(file) {
+    const pdfjs = await loadLib("pdfjs", "https://esm.run/pdfjs-dist@4.0.379/build/pdf.min.mjs");
+    pdfjs.GlobalWorkerOptions.workerSrc = "https://esm.run/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs";
+    const buf = await file.arrayBuffer();
+    const doc = await pdfjs.getDocument({ data: buf }).promise;
+    const pageCount = doc.numPages;
+    // Render first page to a dataURL for preview
+    const firstPage = await doc.getPage(1);
+    const viewport = firstPage.getViewport({ scale: 1.5 });
+    const previewCanvas = document.createElement("canvas");
+    previewCanvas.width = viewport.width; previewCanvas.height = viewport.height;
+    await firstPage.render({ canvasContext: previewCanvas.getContext("2d"), viewport }).promise;
+    const previewDataUrl = previewCanvas.toDataURL("image/jpeg", 0.85);
+    // Extract text for conversions
+    const pages = [];
+    for (let i = 1; i <= pageCount; i++) {
+      const page = await doc.getPage(i);
+      const tc = await page.getTextContent();
+      const text = tc.items.map(it => it.str).join(" ");
+      pages.push(text);
+    }
+    return { pageCount, previewDataUrl, pages };
+  }
+
+  async function readDocxAsText(file) {
+    const mammoth = await loadLib("mammoth", "https://esm.run/mammoth@1.6.0/mammoth.browser.js");
+    const mammothLib = mammoth.default || mammoth;
+    const buf = await file.arrayBuffer();
+    const result = await mammothLib.extractRawText({ arrayBuffer: buf });
+    return result.value || "";
+  }
+
+  async function loadLib(key, url) {
+    if (!_studioLibs[key]) _studioLibs[key] = import(/* @vite-ignore */ url);
+    return _studioLibs[key];
+  }
+  const _studioLibs = {};
+
+  // ── CSV parser (safe enough for everyday files) ─────────────────
+  function parseCsv(text, delimiter) {
+    const rows = [];
+    let cur = [], field = "", inQuotes = false;
+    const d = delimiter || ",";
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i], next = text[i + 1];
+      if (inQuotes) {
+        if (ch === '"' && next === '"') { field += '"'; i++; }
+        else if (ch === '"') { inQuotes = false; }
+        else { field += ch; }
+      } else {
+        if (ch === '"') { inQuotes = true; }
+        else if (ch === d) { cur.push(field); field = ""; }
+        else if (ch === "\n" || ch === "\r") {
+          if (ch === "\r" && next === "\n") i++;
+          cur.push(field); field = "";
+          if (cur.length > 1 || cur[0] !== "") rows.push(cur);
+          cur = [];
+        } else { field += ch; }
+      }
+    }
+    if (field !== "" || cur.length > 0) { cur.push(field); rows.push(cur); }
+    const headers = rows.length > 0 ? rows[0] : [];
+    const dataRows = rows.slice(1);
+    return { headers, rows: dataRows, allRows: rows };
+  }
+
+  // ── File preview panel ──────────────────────────────────────────
+  function renderFilePreview() {
+    const f = state.nonImageFile;
+    if (!f) return;
+    showFilePreview();
+    const iconByKind = {
+      pdf: "📄", docx: "📘", csv: "📊", json: "⚙️", xml: "⚙️",
+      html: "🌐", text: "📝", unknown: "📎",
+    };
+    const icon = iconByKind[f.kind] || "📎";
+    let metaLine = `${f.kind.toUpperCase()} · ${formatFileSize(f.size)}`;
+    if (f.kind === "pdf") metaLine += ` · ${f.pageCount} page${f.pageCount === 1 ? "" : "s"}`;
+    if (f.kind === "csv") metaLine += ` · ${f.rows.length} row${f.rows.length === 1 ? "" : "s"} × ${f.headers.length} col${f.headers.length === 1 ? "" : "s"}`;
+
+    const head = document.createElement("div");
+    head.className = "st-preview-head";
+    head.innerHTML = `
+      <div class="st-preview-file-icon">${icon}</div>
+      <div style="flex:1; min-width:0;">
+        <div class="st-preview-title">${escapeAttr(f.name)}</div>
+        <div class="st-preview-meta">${metaLine}</div>
+      </div>
+    `;
+    const body = document.createElement("div");
+    body.className = "st-preview-body";
+
+    if (f.kind === "pdf" && f.previewDataUrl) {
+      body.classList.add("pdf-render");
+      const img = document.createElement("img");
+      img.src = f.previewDataUrl;
+      img.alt = `Page 1 of ${f.name}`;
+      body.appendChild(img);
+    } else if (f.kind === "csv") {
+      body.classList.add("data-table");
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const hrow = document.createElement("tr");
+      for (const h of f.headers) { const th = document.createElement("th"); th.textContent = h || "(empty)"; hrow.appendChild(th); }
+      thead.appendChild(hrow); table.appendChild(thead);
+      const tbody = document.createElement("tbody");
+      for (const row of f.rows.slice(0, 50)) {
+        const tr = document.createElement("tr");
+        for (let i = 0; i < f.headers.length; i++) { const td = document.createElement("td"); td.textContent = row[i] ?? ""; tr.appendChild(td); }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody); body.appendChild(table);
+      if (f.rows.length > 50) { const more = document.createElement("div"); more.style.cssText = "padding:8px 12px;color:var(--r-text-dim);font:11px var(--mono);"; more.textContent = `… ${f.rows.length - 50} more rows`; body.appendChild(more); }
+    } else if (f.kind === "json" && f.data != null) {
+      const pre = document.createElement("pre");
+      try { pre.textContent = JSON.stringify(f.data, null, 2); }
+      catch { pre.textContent = f.content; }
+      body.appendChild(pre);
+    } else {
+      const pre = document.createElement("pre");
+      pre.textContent = (f.content || "(no text content)").slice(0, 5000);
+      if ((f.content || "").length > 5000) { pre.textContent += "\n\n… (truncated preview)"; }
+      body.appendChild(pre);
+    }
+
+    els.previewPanel.innerHTML = "";
+    els.previewPanel.appendChild(head);
+    els.previewPanel.appendChild(body);
+    addSystemMessage(`Loaded ${f.name}. Open Toolbox for conversion options.`);
+    if (toolboxOpen) renderToolbox();
+  }
+
+  function escapeAttr(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function formatFileSize(n) {
+    if (n < 1024) return n + " B";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+    return (n / 1024 / 1024).toFixed(1) + " MB";
+  }
+
+  // ── Toolbox rendering ───────────────────────────────────────────
+  // The Toolbox is context-aware: what appears depends on what's loaded.
+  let toolboxOpen = false;
+  function toggleToolbox() { toolboxOpen ? closeToolbox() : openToolbox(); }
+  function openToolbox() {
+    toolboxOpen = true;
+    state.toolboxOpen = true;
+    els.toolbox.setAttribute("aria-hidden", "false");
+    els.toolboxBtn.setAttribute("aria-expanded", "true");
+    renderToolbox();
+  }
+  function closeToolbox() {
+    toolboxOpen = false;
+    state.toolboxOpen = false;
+    els.toolbox.setAttribute("aria-hidden", "true");
+    els.toolboxBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function renderToolbox() {
+    const grid = els.toolboxGrid;
+    grid.innerHTML = "";
+
+    // Determine context
+    const hasImage = !!state.baseImageDataUrl;
+    const nonImg = state.nonImageFile;
+    const sections = [];
+
+    // IMAGE section (when there's an image OR blank canvas with shapes/ascii)
+    if (hasImage) {
+      const imageTools = [
+        { title: "Convert to JPG",  desc: "re-encode as image/jpeg", icon: "J", fn: () => convertImageFormat("image/jpeg", "jpg", 0.92) },
+        { title: "Convert to PNG",  desc: "re-encode as image/png (lossless)", icon: "P", fn: () => convertImageFormat("image/png", "png") },
+        { title: "Convert to WebP", desc: "re-encode as image/webp", icon: "W", fn: () => convertImageFormat("image/webp", "webp", 0.92) },
+        { title: "Download current view (SVG)", desc: "vector export incl. overlays", icon: "◇", fn: exportSvg },
+        { title: "Download current view (PNG)", desc: "flattened raster, any size", icon: "▣", fn: exportPng },
+        { title: "Download current view (JPG)", desc: "flattened with white background", icon: "▧", fn: () => exportFlat("image/jpeg", "jpg", 0.92) },
+      ];
+      sections.push({ label: "Image", tools: imageTools });
+    }
+
+    // NON-IMAGE FILE sections
+    if (nonImg) {
+      if (nonImg.kind === "pdf") {
+        sections.push({
+          label: "PDF",
+          tools: [
+            { title: "Extract text (.txt)", desc: `dump all ${nonImg.pageCount} pages as plain text`, icon: "T", fn: () => pdfToText(nonImg) },
+            { title: "Convert to JSON", desc: "pages as a JSON array", icon: "{ }", fn: () => pdfToJson(nonImg) },
+            { title: "Convert to XML", desc: "pages as structured XML", icon: "< >", fn: () => pdfToXml(nonImg) },
+            { title: "Render first page as PNG", desc: "rasterize the preview", icon: "▣", fn: () => pdfPageToPng(nonImg) },
+          ],
+        });
+      }
+      if (nonImg.kind === "docx") {
+        sections.push({
+          label: "Word document",
+          tools: [
+            { title: "Extract text (.txt)", desc: "plain text of the whole document", icon: "T", fn: () => downloadBlob(nonImg.content, nonImg.name.replace(/\.docx$/i, "") + ".txt", "text/plain") },
+            { title: "Convert to PDF", desc: "basic text-only PDF (formatting not preserved)", icon: "📄", fn: () => docxToPdf(nonImg) },
+            { title: "Convert to HTML", desc: "semantic HTML paragraphs", icon: "🌐", fn: () => docxToHtml(nonImg) },
+          ],
+        });
+      }
+      if (nonImg.kind === "csv") {
+        sections.push({
+          label: "CSV",
+          tools: [
+            { title: "Convert to JSON", desc: "rows as an array of objects", icon: "{ }", fn: () => csvToJson(nonImg) },
+            { title: "Convert to XML", desc: "rows wrapped in elements", icon: "< >", fn: () => csvToXml(nonImg) },
+          ],
+        });
+      }
+      if (nonImg.kind === "json") {
+        sections.push({
+          label: "JSON",
+          tools: [
+            { title: "Convert to CSV", desc: "flatten array-of-objects to rows", icon: "📊", fn: () => jsonToCsv(nonImg), disabledReason: !Array.isArray(nonImg.data) ? "JSON must be an array of objects" : null },
+            { title: "Convert to XML", desc: "object tree as XML", icon: "< >", fn: () => jsonToXml(nonImg) },
+            { title: "Pretty-print (.json)", desc: "reformat with 2-space indent", icon: "¶", fn: () => jsonPrettyPrint(nonImg) },
+          ],
+        });
+      }
+      if (nonImg.kind === "xml" || nonImg.kind === "html") {
+        sections.push({
+          label: nonImg.kind.toUpperCase(),
+          tools: [
+            { title: "Convert to JSON", desc: "DOM tree as JSON", icon: "{ }", fn: () => xmlToJson(nonImg) },
+            { title: "Extract plain text", desc: "strip tags", icon: "T", fn: () => xmlToText(nonImg) },
+          ],
+        });
+      }
+      if (nonImg.kind === "text") {
+        sections.push({
+          label: "Text",
+          tools: [
+            { title: "Download", desc: "save as-is", icon: "↓", fn: () => downloadBlob(nonImg.content, nonImg.name, "text/plain") },
+          ],
+        });
+      }
+    }
+
+    // UPLOAD prompt if nothing is loaded
+    if (!hasImage && !nonImg) {
+      const empty = document.createElement("div");
+      empty.className = "st-tool-empty";
+      empty.innerHTML = "Upload a file to see conversions available for it. The Toolbox adapts to what you've loaded.";
+      grid.appendChild(empty);
+      const card = toolCard({ title: "Upload file", desc: "image, pdf, word, csv, json…", icon: "↑", fn: () => els.imageInput.click() });
+      grid.appendChild(card);
+      els.toolboxHint.textContent = "Upload a file to see what's available";
+      return;
+    }
+
+    // Render sections
+    for (const s of sections) {
+      const header = document.createElement("div");
+      header.className = "st-toolbox-section";
+      header.textContent = s.label;
+      grid.appendChild(header);
+      for (const t of s.tools) grid.appendChild(toolCard(t));
+    }
+    const label = hasImage ? (nonImg ? "file + canvas" : "image on canvas") : nonImg.kind + " file";
+    els.toolboxHint.textContent = `Available for: ${label}`;
+  }
+
+  function toolCard(t) {
+    const btn = document.createElement("button");
+    btn.className = "st-tool-card";
+    btn.type = "button";
+    btn.innerHTML = `<span class="st-tool-icon">${t.icon || "•"}</span><span class="st-tool-body"><span class="st-tool-title">${escapeAttr(t.title)}</span><span class="st-tool-desc">${escapeAttr(t.desc || "")}</span></span>`;
+    if (t.disabledReason) { btn.disabled = true; btn.title = t.disabledReason; }
+    else btn.addEventListener("click", async () => {
+      try { await t.fn(); } catch (e) { console.error(e); alert("Conversion failed: " + (e.message || e)); }
+    });
+    return btn;
+  }
+
+  // ── Converters ──────────────────────────────────────────────────
+  function downloadBlob(content, filename, mime) {
+    const blob = content instanceof Blob ? content : new Blob([content], { type: mime || "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // Re-encode the currently loaded image in a different raster format
+  async function convertImageFormat(mimeType, ext, quality) {
+    if (!state.baseImageDataUrl) return;
+    await withProgress(`Converting to ${ext.toUpperCase()}`, "re-encoding", async () => {
+      const img = await loadImage(state.baseImageDataUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      // JPG has no alpha — paint white background first
+      if (mimeType === "image/jpeg") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.drawImage(img, 0, 0);
+      await new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (!blob) { reject(new Error("encode failed")); return; }
+          const base = (state.baseImageName || "image").replace(/\.[^.]+$/, "");
+          downloadBlob(blob, `${base}.${ext}`);
+          resolve();
+        }, mimeType, quality);
+      });
+    });
+  }
+
+  // Export the current canvas view (including filters, overlays, ASCII) as JPG
+  async function exportFlat(mimeType, ext, quality) {
+    await withProgress(`Exporting ${ext.toUpperCase()}`, "flattening canvas", async () => {
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(els.svg);
+      const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+      try {
+        await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const viewW = state.cropBox ? state.cropBox.w : state.baseImageW;
+            const viewH = state.cropBox ? state.cropBox.h : state.baseImageH;
+            canvas.width = viewW; canvas.height = viewH;
+            const ctx = canvas.getContext("2d");
+            if (mimeType === "image/jpeg") {
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob((blob) => {
+              downloadBlob(blob, `studio.${ext}`);
+              URL.revokeObjectURL(url);
+              resolve();
+            }, mimeType, quality);
+          };
+          img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("render failed")); };
+          img.src = url;
+        });
+      } catch (e) { URL.revokeObjectURL(url); throw e; }
+    });
+  }
+
+  // PDF-based conversions
+  async function pdfToText(f) {
+    const text = f.pages.map((t, i) => `=== Page ${i+1} ===\n${t}`).join("\n\n");
+    downloadBlob(text, f.name.replace(/\.pdf$/i, "") + ".txt", "text/plain");
+  }
+  async function pdfToJson(f) {
+    const json = JSON.stringify({ source: f.name, pageCount: f.pageCount, pages: f.pages.map((text, i) => ({ page: i+1, text })) }, null, 2);
+    downloadBlob(json, f.name.replace(/\.pdf$/i, "") + ".json", "application/json");
+  }
+  async function pdfToXml(f) {
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<document source="${escapeXml(f.name)}" pageCount="${f.pageCount}">\n`;
+    f.pages.forEach((text, i) => { xml += `  <page number="${i+1}">${escapeXml(text)}</page>\n`; });
+    xml += `</document>\n`;
+    downloadBlob(xml, f.name.replace(/\.pdf$/i, "") + ".xml", "application/xml");
+  }
+  async function pdfPageToPng(f) {
+    if (!f.previewDataUrl) return;
+    await withProgress("Rendering PNG", "", async () => {
+      const img = await loadImage(f.previewDataUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width; canvas.height = img.height;
+      canvas.getContext("2d").drawImage(img, 0, 0);
+      await new Promise(resolve => canvas.toBlob(blob => {
+        downloadBlob(blob, f.name.replace(/\.pdf$/i, "") + "-page1.png");
+        resolve();
+      }, "image/png"));
+    });
+  }
+
+  // Word → PDF (basic, text only)
+  async function docxToPdf(f) {
+    await withProgress("Building PDF", "loading pdf-lib (~300KB first time)", async () => {
+      const pdfLib = await loadLib("pdf-lib", "https://esm.run/pdf-lib@1.17.1/dist/pdf-lib.esm.js");
+      const { PDFDocument, StandardFonts, rgb } = pdfLib;
+      const doc = await PDFDocument.create();
+      const font = await doc.embedFont(StandardFonts.Helvetica);
+      const fontSize = 11, lineHeight = 14, margin = 60;
+      const pageWidth = 612, pageHeight = 792; // US Letter
+      const textWidth = pageWidth - margin * 2;
+      const maxCharsPerLine = Math.floor(textWidth / (fontSize * 0.5)); // rough monospace estimate
+      let page = doc.addPage([pageWidth, pageHeight]);
+      let y = pageHeight - margin;
+
+      const paragraphs = (f.content || "").split(/\n/);
+      const wrap = (text, max) => {
+        const words = text.split(/\s+/);
+        const lines = [];
+        let cur = "";
+        for (const w of words) {
+          if ((cur + " " + w).trim().length > max) { if (cur) lines.push(cur); cur = w; }
+          else cur = (cur ? cur + " " : "") + w;
+        }
+        if (cur) lines.push(cur);
+        return lines;
+      };
+      for (const para of paragraphs) {
+        if (!para.trim()) { y -= lineHeight; continue; }
+        const lines = wrap(para, maxCharsPerLine);
+        for (const ln of lines) {
+          if (y < margin) { page = doc.addPage([pageWidth, pageHeight]); y = pageHeight - margin; }
+          // Sanitize: pdf-lib's Helvetica supports WinAnsi only. Replace chars it can't encode.
+          const safe = ln.replace(/[^\x20-\x7E\xA0-\xFF]/g, "?");
+          try { page.drawText(safe, { x: margin, y, size: fontSize, font, color: rgb(0,0,0) }); }
+          catch { /* skip problem lines rather than fail the whole export */ }
+          y -= lineHeight;
+        }
+        y -= lineHeight * 0.5; // paragraph spacing
+      }
+      const bytes = await doc.save();
+      downloadBlob(bytes, f.name.replace(/\.docx$/i, "") + ".pdf", "application/pdf");
+    });
+  }
+
+  async function docxToHtml(f) {
+    await withProgress("Converting to HTML", "reading Word structure", async () => {
+      const mammoth = await loadLib("mammoth", "https://esm.run/mammoth@1.6.0/mammoth.browser.js");
+      const mammothLib = mammoth.default || mammoth;
+      // Re-read the original file — we only cached plain text earlier
+      // Actually we cached text only. So for HTML conversion we do a best-effort
+      // from text: wrap paragraphs. (Real HTML conversion needs the original file object.)
+      const paragraphs = (f.content || "").split(/\n{2,}/).filter(p => p.trim());
+      const html = "<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"><title>" +
+        escapeAttr(f.name) + "</title>\n<style>body{max-width:780px;margin:40px auto;font:16px/1.6 Georgia,serif;padding:0 20px;}p{margin:0 0 1em;}</style>\n</head>\n<body>\n" +
+        paragraphs.map(p => "<p>" + escapeAttr(p).replace(/\n/g, "<br>") + "</p>").join("\n") +
+        "\n</body>\n</html>";
+      downloadBlob(html, f.name.replace(/\.docx$/i, "") + ".html", "text/html");
+    });
+  }
+
+  // CSV → JSON / XML
+  function csvToJson(f) {
+    const objs = f.rows.map(row => {
+      const obj = {};
+      f.headers.forEach((h, i) => { obj[h || `col${i+1}`] = row[i] ?? ""; });
+      return obj;
+    });
+    downloadBlob(JSON.stringify(objs, null, 2), f.name.replace(/\.(csv|tsv)$/i, "") + ".json", "application/json");
+  }
+  function csvToXml(f) {
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<rows>\n`;
+    for (const row of f.rows) {
+      xml += "  <row>\n";
+      f.headers.forEach((h, i) => {
+        const tag = (h || `col${i+1}`).replace(/[^a-zA-Z0-9_.-]/g, "_");
+        xml += `    <${tag}>${escapeXml(row[i] ?? "")}</${tag}>\n`;
+      });
+      xml += "  </row>\n";
+    }
+    xml += "</rows>\n";
+    downloadBlob(xml, f.name.replace(/\.(csv|tsv)$/i, "") + ".xml", "application/xml");
+  }
+
+  // JSON → CSV / XML / pretty
+  function jsonToCsv(f) {
+    if (!Array.isArray(f.data)) throw new Error("JSON must be an array to convert to CSV");
+    const rows = f.data;
+    // Collect all keys across all row objects (union of shapes)
+    const headers = [];
+    const seen = new Set();
+    for (const r of rows) {
+      if (r && typeof r === "object") {
+        for (const k of Object.keys(r)) if (!seen.has(k)) { seen.add(k); headers.push(k); }
+      }
+    }
+    const esc = (v) => {
+      if (v == null) return "";
+      const s = typeof v === "object" ? JSON.stringify(v) : String(v);
+      if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    };
+    let out = headers.map(esc).join(",") + "\n";
+    for (const r of rows) {
+      if (r && typeof r === "object") {
+        out += headers.map(h => esc(r[h])).join(",") + "\n";
+      }
+    }
+    downloadBlob(out, f.name.replace(/\.json$/i, "") + ".csv", "text/csv");
+  }
+  function jsonToXml(f) {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<root>\n${toXml(f.data, "  ")}</root>\n`;
+    downloadBlob(xml, f.name.replace(/\.json$/i, "") + ".xml", "application/xml");
+  }
+  function jsonPrettyPrint(f) {
+    if (f.data == null) throw new Error("JSON couldn't be parsed to pretty-print");
+    downloadBlob(JSON.stringify(f.data, null, 2), f.name.replace(/\.json$/i, "") + "-pretty.json", "application/json");
+  }
+  function toXml(val, indent) {
+    if (val == null) return "";
+    if (Array.isArray(val)) {
+      return val.map(v => `${indent}<item>\n${toXml(v, indent + "  ")}${indent}</item>\n`).join("");
+    }
+    if (typeof val === "object") {
+      return Object.entries(val).map(([k, v]) => {
+        const tag = String(k).replace(/[^a-zA-Z0-9_.-]/g, "_");
+        if (v == null || typeof v !== "object") return `${indent}<${tag}>${escapeXml(v == null ? "" : String(v))}</${tag}>\n`;
+        return `${indent}<${tag}>\n${toXml(v, indent + "  ")}${indent}</${tag}>\n`;
+      }).join("");
+    }
+    return `${indent}${escapeXml(String(val))}\n`;
+  }
+  function escapeXml(s) {
+    return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+  }
+
+  // XML/HTML → JSON / text
+  function xmlToJson(f) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(f.content, f.kind === "html" ? "text/html" : "application/xml");
+    const err = doc.querySelector("parsererror");
+    if (err) throw new Error("XML parsing failed: " + err.textContent.slice(0, 120));
+    const result = nodeToJson(doc.documentElement);
+    downloadBlob(JSON.stringify(result, null, 2), f.name.replace(/\.(xml|html?)$/i, "") + ".json", "application/json");
+  }
+  function nodeToJson(node) {
+    if (!node) return null;
+    const obj = { tag: node.tagName };
+    const attrs = {};
+    if (node.attributes) for (const a of node.attributes) attrs[a.name] = a.value;
+    if (Object.keys(attrs).length) obj.attributes = attrs;
+    const children = [];
+    for (const child of node.childNodes) {
+      if (child.nodeType === 3 && child.textContent.trim()) children.push(child.textContent);
+      else if (child.nodeType === 1) children.push(nodeToJson(child));
+    }
+    if (children.length === 1 && typeof children[0] === "string") obj.text = children[0];
+    else if (children.length) obj.children = children;
+    return obj;
+  }
+  function xmlToText(f) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(f.content, f.kind === "html" ? "text/html" : "application/xml");
+    const text = doc.body ? doc.body.innerText || doc.body.textContent : (doc.documentElement?.textContent || "");
+    downloadBlob(text.trim(), f.name.replace(/\.(xml|html?)$/i, "") + ".txt", "text/plain");
+  }
+
+  // ── Wiring ──────────────────────────────────────────────────────
   els.sendBtn.addEventListener("click", sendDirection);
   els.input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendDirection(); }
@@ -5159,40 +6174,8 @@ Final rules:
     els.input.style.height = Math.min(els.input.scrollHeight, 120) + "px";
   });
 
-  // ── Export ──────────────────────────────────────────────────────
-  els.exportBtn.addEventListener("click", () => {
-    const serializer = new XMLSerializer();
-    const svgStr = serializer.serializeToString(els.svg);
-    const blob = new Blob([svgStr], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "studio.svg"; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
-
-  els.exportPngBtn.addEventListener("click", async () => {
-    try {
-      const serializer = new XMLSerializer();
-      const svgStr = serializer.serializeToString(els.svg);
-      const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(svgBlob);
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = state.baseImageW; canvas.height = state.baseImageH;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob((blob) => {
-          const pngUrl = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = pngUrl; a.download = "studio.png"; a.click();
-          setTimeout(() => { URL.revokeObjectURL(pngUrl); URL.revokeObjectURL(url); }, 1000);
-        }, "image/png");
-      };
-      img.onerror = () => { alert("Couldn't render PNG (some images block canvas export due to CORS). Try SVG export instead."); URL.revokeObjectURL(url); };
-      img.src = url;
-    } catch (e) { alert("Export failed: " + (e.message || e)); }
-  });
+  els.toolboxBtn.addEventListener("click", toggleToolbox);
+  els.openToolboxBtn.addEventListener("click", openToolbox);
 
   return { onActivate };
 })();
