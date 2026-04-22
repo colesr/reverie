@@ -804,8 +804,7 @@ document.querySelectorAll(".tabnav-tab").forEach(tab => {
     if (view === "chat") setTimeout(() => $("r-input")?.focus(), 50);
   });
 });
-$("chatroom-locked-goto").addEventListener("click", () => document.querySelector('.tabnav-tab[data-view=chat]').click());
-$("aol-close-btn").addEventListener("click", () => document.querySelector('.tabnav-tab[data-view=chat]').click());
+// (chatroom locked-state redirect is wired inside the chatroom module)
 
 // ═══ REVERIE MAIN CHAT ════════════════════════════════════════════════
 const mainChat = (() => {
