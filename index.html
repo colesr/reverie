@@ -4,794 +4,1230 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Reverie — thought, on device</title>
-<meta name="description" content="A local, browser-based thinking AI. No server, no keys." />
+<meta name="description" content="A local, browser-based thinking AI with an AOL-style chatroom." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #14110d;
-    --bg-elevated: #1c1814;
-    --bg-subtle: #1a1612;
-    --text: #eae4d7;
-    --text-muted: #8b8578;
-    --text-dim: #5a5449;
-    --accent: #c8a574;
-    --accent-soft: rgba(200, 165, 116, 0.12);
-    --accent-dim: #7a6443;
-    --border: #2a251f;
-    --border-subtle: #1f1b16;
-    --thinking-bg: #181511;
-    --danger: #c87a5a;
-    --user-bg: #1f1b15;
+    --r-bg: #14110d; --r-bg-elevated: #1c1814; --r-bg-subtle: #1a1612;
+    --r-text: #eae4d7; --r-text-muted: #8b8578; --r-text-dim: #5a5449;
+    --r-accent: #c8a574; --r-accent-soft: rgba(200,165,116,0.12); --r-accent-dim: #7a6443;
+    --r-border: #2a251f; --r-border-subtle: #1f1b16;
+    --r-thinking-bg: #181511; --r-danger: #c87a5a; --r-user-bg: #1f1b15;
     --mono: "JetBrains Mono", ui-monospace, monospace;
     --serif: "Instrument Serif", Georgia, serif;
     --sans: "DM Sans", system-ui, sans-serif;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 15px;
-    line-height: 1.55;
-    overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-    background-image:
-      radial-gradient(ellipse at top left, rgba(200, 165, 116, 0.04), transparent 60%),
-      radial-gradient(ellipse at bottom right, rgba(200, 165, 116, 0.02), transparent 50%);
-  }
-
-  /* ─── Layout ─── */
-  .app { display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto; }
-
-  /* ─── Header ─── */
-  header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    padding: 28px 32px 20px;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .brand { display: flex; align-items: baseline; gap: 14px; }
-  .mark {
-    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 16px var(--accent);
-    transform: translateY(-1px);
-    animation: breathe 4s ease-in-out infinite;
-  }
-  .mark.thinking { animation: pulse 1.2s ease-in-out infinite; }
-  @keyframes breathe { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
-  @keyframes pulse  { 0%, 100% { opacity: 0.3; transform: translateY(-1px) scale(0.8); } 50% { opacity: 1; transform: translateY(-1px) scale(1.15); } }
-
-  h1 { font-family: var(--serif); font-size: 32px; font-weight: 400; letter-spacing: -0.01em; }
-  .tagline { font-family: var(--serif); font-style: italic; color: var(--text-muted); font-size: 15px; }
-
-  .controls { display: flex; align-items: center; gap: 10px; }
-  .controls select, .controls button {
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 8px 12px;
-    background: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .controls select:hover, .controls button:hover { color: var(--text); border-color: var(--accent-dim); }
-  .controls select { padding-right: 28px; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path fill='%238b8578' d='M3 4.5 6 7.5 9 4.5'/></svg>"); background-repeat: no-repeat; background-position: right 8px center; }
-  .controls button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* ─── Loading panel ─── */
-  .loader {
-    flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px;
-  }
-  .loader-inner { max-width: 500px; text-align: center; }
-  .loader-title { font-family: var(--serif); font-size: 38px; font-style: italic; margin-bottom: 12px; color: var(--text); line-height: 1.2; }
-  .loader-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; line-height: 1.7; }
-  .progress-track { height: 2px; background: var(--border); border-radius: 999px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; box-shadow: 0 0 12px var(--accent); }
-  .progress-label { margin-top: 14px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
-  .loader-hint { margin-top: 32px; font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
-  .loader-start-btn {
-    font-family: var(--sans); font-size: 14px; font-weight: 500;
-    padding: 12px 28px; margin-top: 24px;
-    background: var(--accent); color: var(--bg); border: none; border-radius: 6px;
-    cursor: pointer; transition: all 0.15s ease;
-  }
-  .loader-start-btn:hover { background: #d4b58a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(200, 165, 116, 0.2); }
-
-  /* ─── Messages ─── */
-  #messages {
-    flex: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 28px;
-    scroll-behavior: smooth;
-  }
-  #messages::-webkit-scrollbar { width: 8px; }
-  #messages::-webkit-scrollbar-track { background: transparent; }
-  #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  #messages::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
-
-  .msg { display: flex; flex-direction: column; gap: 10px; max-width: 100%; }
-  .msg-role {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .msg-user .msg-role { color: var(--accent-dim); }
-
-  .msg-body {
-    font-family: var(--serif); font-size: 21px; line-height: 1.55;
-    color: var(--text); letter-spacing: 0.005em;
-  }
-  .msg-user .msg-body {
-    font-family: var(--sans); font-size: 15px; line-height: 1.6;
-    padding: 14px 18px; background: var(--user-bg); border-radius: 10px;
-    border: 1px solid var(--border-subtle); align-self: flex-end; max-width: 75%;
-  }
-  .msg-user { align-items: flex-end; }
-  .msg-body p { margin-bottom: 0.8em; }
-  .msg-body p:last-child { margin-bottom: 0; }
-  .msg-body code {
-    font-family: var(--mono); font-size: 0.85em;
-    background: var(--bg-subtle); padding: 1px 6px; border-radius: 4px;
-    border: 1px solid var(--border-subtle);
-  }
-  .msg-body pre {
-    font-family: var(--mono); font-size: 13px; line-height: 1.55;
-    background: var(--bg-subtle); padding: 14px 16px; border-radius: 8px;
-    border: 1px solid var(--border-subtle);
-    overflow-x: auto; margin: 12px 0;
-  }
-  .msg-body pre code { background: none; padding: 0; border: none; }
-  .msg-body ul, .msg-body ol { padding-left: 1.5em; margin: 0.4em 0 0.8em; }
-  .msg-body li { margin-bottom: 0.3em; }
-
-  /* Thinking block */
-  .thinking {
-    border-left: 2px solid var(--accent-dim);
-    padding: 10px 16px;
-    background: var(--thinking-bg);
-    border-radius: 0 6px 6px 0;
-    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
-    color: var(--text-muted);
-    white-space: pre-wrap; word-wrap: break-word;
-    max-height: 260px; overflow-y: auto;
-    transition: all 0.25s ease;
-  }
-  .thinking.collapsed { max-height: 36px; overflow: hidden; cursor: pointer; opacity: 0.7; }
-  .thinking.collapsed:hover { opacity: 1; }
-  .thinking-header {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-    color: var(--text-dim); margin-bottom: 6px; user-select: none;
-  }
-  .thinking-toggle { cursor: pointer; }
-  .thinking-toggle:hover { color: var(--accent); }
-  .thinking-pulse::after {
-    content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent); margin-left: 8px; transform: translateY(-1px);
-    animation: pulse 1s ease-in-out infinite;
-  }
-
-  /* Intro */
-  .intro {
-    padding: 40px 0;
-    text-align: center;
-    color: var(--text-muted);
-  }
-  .intro h2 { font-family: var(--serif); font-style: italic; font-size: 36px; font-weight: 400; color: var(--text); margin-bottom: 14px; line-height: 1.2; }
-  .intro p { max-width: 420px; margin: 0 auto; line-height: 1.7; font-size: 14px; }
-  .intro .starters { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-  .starter {
-    font-family: var(--mono); font-size: 12px;
-    padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px;
-    background: transparent; color: var(--text-muted); cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .starter:hover { color: var(--text); border-color: var(--accent-dim); background: var(--accent-soft); }
-
-  /* ─── Input ─── */
-  .input-wrap {
-    padding: 16px 32px 28px;
-    border-top: 1px solid var(--border-subtle);
-    background: linear-gradient(to bottom, transparent, rgba(20, 17, 13, 0.8));
-  }
-  .input-shell {
-    display: flex; gap: 10px; align-items: flex-end;
-    padding: 12px 14px 12px 18px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    transition: border-color 0.15s ease;
-  }
-  .input-shell:focus-within { border-color: var(--accent-dim); }
-  #input {
-    flex: 1;
-    background: transparent; border: none; resize: none; outline: none;
+    background: var(--r-bg); color: var(--r-text);
     font-family: var(--sans); font-size: 15px; line-height: 1.55;
-    color: var(--text);
-    min-height: 24px; max-height: 200px;
+    overflow: hidden; -webkit-font-smoothing: antialiased;
+    transition: background 0.4s ease;
   }
-  #input::placeholder { color: var(--text-dim); font-style: italic; font-family: var(--serif); font-size: 17px; }
-  #send-btn {
-    font-family: var(--sans); font-size: 13px; font-weight: 500;
-    padding: 8px 16px; background: var(--accent); color: var(--bg);
-    border: none; border-radius: 8px; cursor: pointer;
-    transition: all 0.15s ease;
-    white-space: nowrap;
+  body.view-chat {
+    background-image:
+      radial-gradient(ellipse at top left, rgba(200,165,116,0.04), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(200,165,116,0.02), transparent 50%);
   }
-  #send-btn:hover:not(:disabled) { background: #d4b58a; transform: translateY(-1px); }
-  #send-btn:disabled { background: var(--border); color: var(--text-dim); cursor: not-allowed; transform: none; }
-  #send-btn.stop { background: var(--danger); color: var(--text); }
+  body.view-chatroom { background: #008080; color: #000; font-family: Tahoma, "MS Sans Serif", Verdana, sans-serif; }
+  .app-shell { display: flex; flex-direction: column; height: 100vh; }
 
-  .footer-hint {
-    text-align: center; margin-top: 10px;
-    font-family: var(--mono); font-size: 10px; color: var(--text-dim);
-    letter-spacing: 0.08em;
-  }
-  .footer-hint kbd {
-    display: inline-block; padding: 1px 5px; border: 1px solid var(--border);
-    border-radius: 3px; font-size: 10px; font-family: var(--mono);
-    color: var(--text-muted);
-  }
+  .tabnav { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(8px); flex-shrink: 0; z-index: 100; }
+  body.view-chatroom .tabnav { background: #000080; border-bottom: 2px solid #000040; }
+  .tabnav-brand { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+  .tabnav-tabs { display: flex; gap: 6px; }
+  .tabnav-tab { font-family: var(--mono); font-size: 12px; padding: 6px 14px; background: transparent; color: rgba(255,255,255,0.5); border: 1px solid transparent; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
+  .tabnav-tab:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.05); }
+  .tabnav-tab.active { color: var(--r-accent); background: var(--r-accent-soft); border-color: var(--r-accent-dim); }
+  body.view-chatroom .tabnav-tab { color: rgba(255,255,255,0.75); font-family: Tahoma, sans-serif; font-size: 11px; font-weight: bold; border-radius: 0; }
+  body.view-chatroom .tabnav-tab.active { color: #ffff00; background: rgba(255,255,0,0.12); border-color: #ffff00; }
+  body.view-chatroom .tabnav-brand { color: rgba(255,255,255,0.65); }
 
-  .error-banner {
-    margin: 16px 32px; padding: 16px 20px;
-    background: rgba(200, 122, 90, 0.08);
-    border: 1px solid rgba(200, 122, 90, 0.25);
-    border-radius: 10px;
-    color: var(--text);
-    font-size: 14px; line-height: 1.6;
-  }
-  .error-banner strong { color: var(--danger); font-weight: 600; }
-  .error-banner code { font-family: var(--mono); font-size: 12px; background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; }
+  .view { flex: 1; min-height: 0; display: none; }
+  .view.active { display: flex; flex-direction: column; }
+
+  /* REVERIE VIEW */
+  #view-chat { max-width: 900px; width: 100%; margin: 0 auto; }
+  .r-header { display: flex; align-items: baseline; justify-content: space-between; padding: 22px 32px 16px; border-bottom: 1px solid var(--r-border-subtle); }
+  .r-brand { display: flex; align-items: baseline; gap: 14px; }
+  .r-mark { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--r-accent); box-shadow: 0 0 16px var(--r-accent); transform: translateY(-1px); animation: r-breathe 4s ease-in-out infinite; }
+  .r-mark.thinking { animation: r-pulse 1.2s ease-in-out infinite; }
+  @keyframes r-breathe { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
+  @keyframes r-pulse  { 0%,100% { opacity: 0.3; transform: translateY(-1px) scale(0.8); } 50% { opacity: 1; transform: translateY(-1px) scale(1.15); } }
+  .r-header h1 { font-family: var(--serif); font-size: 30px; font-weight: 400; letter-spacing: -0.01em; color: var(--r-text); }
+  .r-tagline { font-family: var(--serif); font-style: italic; color: var(--r-text-muted); font-size: 15px; }
+  .r-controls { display: flex; align-items: center; gap: 10px; }
+  .r-controls select, .r-controls button { font-family: var(--mono); font-size: 12px; padding: 8px 12px; background: transparent; color: var(--r-text-muted); border: 1px solid var(--r-border); border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
+  .r-controls select:hover, .r-controls button:hover { color: var(--r-text); border-color: var(--r-accent-dim); }
+  .r-controls select { padding-right: 28px; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path fill='%238b8578' d='M3 4.5 6 7.5 9 4.5'/></svg>"); background-repeat: no-repeat; background-position: right 8px center; }
+
+  .r-loader { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
+  .r-loader-inner { max-width: 500px; text-align: center; }
+  .r-loader-title { font-family: var(--serif); font-size: 38px; font-style: italic; margin-bottom: 12px; color: var(--r-text); line-height: 1.2; }
+  .r-loader-sub { color: var(--r-text-muted); font-size: 14px; margin-bottom: 32px; line-height: 1.7; }
+  .r-progress-track { height: 2px; background: var(--r-border); border-radius: 999px; overflow: hidden; }
+  .r-progress-fill { height: 100%; background: var(--r-accent); width: 0%; transition: width 0.3s ease; box-shadow: 0 0 12px var(--r-accent); }
+  .r-progress-label { margin-top: 14px; font-family: var(--mono); font-size: 11px; color: var(--r-text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+  .r-loader-start-btn { font-family: var(--sans); font-size: 14px; font-weight: 500; padding: 12px 28px; margin-top: 24px; background: var(--r-accent); color: var(--r-bg); border: none; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
+  .r-loader-start-btn:hover { background: #d4b58a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(200,165,116,0.2); }
+
+  #r-messages { flex: 1; overflow-y: auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 24px; scroll-behavior: smooth; }
+  #r-messages::-webkit-scrollbar { width: 8px; }
+  #r-messages::-webkit-scrollbar-track { background: transparent; }
+  #r-messages::-webkit-scrollbar-thumb { background: var(--r-border); border-radius: 4px; }
+  #r-messages::-webkit-scrollbar-thumb:hover { background: var(--r-accent-dim); }
+  .r-msg { display: flex; flex-direction: column; gap: 10px; max-width: 100%; }
+  .r-msg-role { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--r-text-dim); }
+  .r-msg-user .r-msg-role { color: var(--r-accent-dim); }
+  .r-msg-body { font-family: var(--serif); font-size: 21px; line-height: 1.55; color: var(--r-text); letter-spacing: 0.005em; }
+  .r-msg-user .r-msg-body { font-family: var(--sans); font-size: 15px; line-height: 1.6; padding: 14px 18px; background: var(--r-user-bg); border-radius: 10px; border: 1px solid var(--r-border-subtle); align-self: flex-end; max-width: 75%; }
+  .r-msg-user { align-items: flex-end; }
+  .r-msg-body p { margin-bottom: 0.8em; }
+  .r-msg-body p:last-child { margin-bottom: 0; }
+  .r-msg-body code { font-family: var(--mono); font-size: 0.85em; background: var(--r-bg-subtle); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--r-border-subtle); }
+  .r-msg-body pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--r-bg-subtle); padding: 14px 16px; border-radius: 8px; border: 1px solid var(--r-border-subtle); overflow-x: auto; margin: 12px 0; }
+  .r-msg-body pre code { background: none; padding: 0; border: none; }
+  .r-msg-body ul, .r-msg-body ol { padding-left: 1.5em; margin: 0.4em 0 0.8em; }
+  .r-msg-body li { margin-bottom: 0.3em; }
+
+  .r-thinking { border-left: 2px solid var(--r-accent-dim); padding: 10px 16px; background: var(--r-thinking-bg); border-radius: 0 6px 6px 0; font-family: var(--mono); font-size: 12.5px; line-height: 1.7; color: var(--r-text-muted); white-space: pre-wrap; word-wrap: break-word; max-height: 260px; overflow-y: auto; transition: all 0.25s ease; }
+  .r-thinking.collapsed { max-height: 36px; overflow: hidden; cursor: pointer; opacity: 0.7; }
+  .r-thinking.collapsed:hover { opacity: 1; }
+  .r-thinking-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--r-text-dim); margin-bottom: 6px; user-select: none; }
+  .r-thinking-toggle { cursor: pointer; }
+  .r-thinking-toggle:hover { color: var(--r-accent); }
+  .r-thinking-pulse::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--r-accent); margin-left: 8px; transform: translateY(-1px); animation: r-pulse 1s ease-in-out infinite; }
+
+  .r-intro { padding: 40px 0; text-align: center; color: var(--r-text-muted); }
+  .r-intro h2 { font-family: var(--serif); font-style: italic; font-size: 36px; font-weight: 400; color: var(--r-text); margin-bottom: 14px; line-height: 1.2; }
+  .r-intro p { max-width: 420px; margin: 0 auto; line-height: 1.7; font-size: 14px; }
+  .r-intro .starters { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .r-starter { font-family: var(--mono); font-size: 12px; padding: 8px 14px; border: 1px solid var(--r-border); border-radius: 999px; background: transparent; color: var(--r-text-muted); cursor: pointer; transition: all 0.15s ease; }
+  .r-starter:hover { color: var(--r-text); border-color: var(--r-accent-dim); background: var(--r-accent-soft); }
+
+  .r-input-wrap { padding: 14px 32px 22px; border-top: 1px solid var(--r-border-subtle); background: linear-gradient(to bottom, transparent, rgba(20,17,13,0.8)); }
+  .r-input-shell { display: flex; gap: 10px; align-items: flex-end; padding: 12px 14px 12px 18px; background: var(--r-bg-elevated); border: 1px solid var(--r-border); border-radius: 14px; transition: border-color 0.15s ease; }
+  .r-input-shell:focus-within { border-color: var(--r-accent-dim); }
+  #r-input { flex: 1; background: transparent; border: none; resize: none; outline: none; font-family: var(--sans); font-size: 15px; line-height: 1.55; color: var(--r-text); min-height: 24px; max-height: 200px; }
+  #r-input::placeholder { color: var(--r-text-dim); font-style: italic; font-family: var(--serif); font-size: 17px; }
+  #r-send-btn { font-family: var(--sans); font-size: 13px; font-weight: 500; padding: 8px 16px; background: var(--r-accent); color: var(--r-bg); border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+  #r-send-btn:hover:not(:disabled) { background: #d4b58a; transform: translateY(-1px); }
+  #r-send-btn:disabled { background: var(--r-border); color: var(--r-text-dim); cursor: not-allowed; transform: none; }
+  #r-send-btn.stop { background: var(--r-danger); color: var(--r-text); }
+  .r-footer-hint { text-align: center; margin-top: 10px; font-family: var(--mono); font-size: 10px; color: var(--r-text-dim); letter-spacing: 0.08em; }
+  .r-footer-hint kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--r-border); border-radius: 3px; font-size: 10px; font-family: var(--mono); color: var(--r-text-muted); }
+
+  /* AOL CHATROOM VIEW */
+  #view-chatroom { padding: 18px 20px; overflow: hidden; position: relative; }
+  .w-out { border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #404040; border-bottom: 2px solid #404040; box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf; }
+  .w-btn { background: #c0c0c0; border-top: 1px solid #ffffff; border-left: 1px solid #ffffff; border-right: 1px solid #404040; border-bottom: 1px solid #404040; box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf; padding: 4px 14px; font: 11px Tahoma, sans-serif; color: #000; cursor: pointer; min-width: 72px; }
+  .w-btn:active { border-color: #404040 #ffffff #ffffff #404040; box-shadow: inset 1px 1px 0 #808080; padding: 5px 13px 3px 15px; }
+  .w-btn:disabled { color: #808080; text-shadow: 1px 1px 0 #ffffff; cursor: default; }
+  .w-btn:focus { outline: 1px dotted #000; outline-offset: -4px; }
+
+  .aol-window { max-width: 980px; margin: 0 auto; background: #c0c0c0; display: flex; flex-direction: column; height: 100%; }
+  .aol-titlebar { background: linear-gradient(to right, #0a246a 0%, #3a6ea5 100%); color: white; padding: 3px 4px 3px 6px; display: flex; align-items: center; justify-content: space-between; font: bold 11px Tahoma, sans-serif; flex-shrink: 0; }
+  .aol-titlebar-title { display: flex; align-items: center; gap: 6px; }
+  .aol-titlebar-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; background: #ffff00; color: #000; font: bold 11px Tahoma; border: 1px solid #000; }
+  .aol-titlebar-btns { display: flex; gap: 2px; }
+  .aol-tb-btn { width: 18px; height: 16px; background: #c0c0c0; color: #000; font: bold 10px Tahoma; line-height: 12px; border-top: 1px solid #ffffff; border-left: 1px solid #ffffff; border-right: 1px solid #404040; border-bottom: 1px solid #404040; box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+
+  .aol-menubar { display: flex; padding: 2px 4px; background: #c0c0c0; border-bottom: 1px solid #808080; font: 11px Tahoma; flex-shrink: 0; }
+  .aol-menu-item { padding: 3px 8px; cursor: default; user-select: none; }
+  .aol-menu-item:hover { background: #000080; color: #fff; }
+  .aol-menu-item u { text-decoration: underline; }
+
+  .aol-toolbar { display: flex; gap: 6px; align-items: center; padding: 6px 8px; background: #c0c0c0; border-bottom: 1px solid #808080; flex-shrink: 0; flex-wrap: wrap; }
+  .aol-toolbar label { font: 11px Tahoma; }
+  .aol-toolbar select { font: 11px Tahoma; padding: 2px 4px; background: #fff; border-top: 1px solid #808080; border-left: 1px solid #808080; border-right: 1px solid #ffffff; border-bottom: 1px solid #ffffff; }
+  .aol-toolbar-spacer { flex: 1; }
+  .aol-status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #00cc00; margin-right: 4px; }
+
+  .aol-body { flex: 1; display: flex; gap: 6px; padding: 6px; background: #c0c0c0; min-height: 0; }
+  .aol-chat-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .aol-chat-header { background: #000080; color: #fff; padding: 3px 8px; font: bold 11px Tahoma; border: 1px solid #000; border-bottom: none; display: flex; justify-content: space-between; }
+  .aol-chat-header-right { font-weight: normal; opacity: 0.85; }
+  .aol-chat-area { flex: 1; overflow-y: auto; padding: 8px 10px; font: 13px Tahoma, "MS Sans Serif", sans-serif; background: #ffffff; color: #000; min-height: 0; line-height: 1.5; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; }
+  .aol-chat-area::-webkit-scrollbar { width: 16px; }
+  .aol-chat-area::-webkit-scrollbar-track { background: #c0c0c0; }
+  .aol-chat-area::-webkit-scrollbar-thumb { background: #c0c0c0; border-top: 1px solid #ffffff; border-left: 1px solid #ffffff; border-right: 1px solid #404040; border-bottom: 1px solid #404040; }
+
+  .aol-msg { margin: 2px 0; word-wrap: break-word; }
+  .aol-msg .name { font-weight: bold; }
+  .aol-msg .ts { color: #808080; font-size: 11px; margin-right: 6px; }
+  .aol-msg.system { color: #606060; font-style: italic; font-size: 12px; margin: 4px 0; }
+  .aol-msg.system .stars { color: #b8860b; font-weight: bold; }
+  .aol-msg.typing { color: #808080; font-style: italic; font-size: 12px; }
+  .aol-msg.typing::after { content: " ▋"; animation: aol-blink 1s steps(2) infinite; }
+  @keyframes aol-blink { 50% { opacity: 0; } }
+
+  .aol-participants { width: 180px; display: flex; flex-direction: column; flex-shrink: 0; }
+  .aol-participants-header { background: #000080; color: #fff; padding: 3px 8px; font: bold 11px Tahoma; border: 1px solid #000; border-bottom: none; }
+  .aol-participants-list { flex: 1; overflow-y: auto; padding: 4px; background: #ffffff; font: 12px Tahoma; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; }
+  .aol-participant { padding: 3px 6px; display: flex; align-items: center; gap: 6px; user-select: none; }
+  .aol-participant .dot { width: 6px; height: 6px; border-radius: 50%; background: #00aa00; flex-shrink: 0; }
+  .aol-participant .icon { width: 14px; height: 14px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; background: #ffff00; color: #000; border: 1px solid #000; }
+  .aol-participant.bot .icon { background: #ff00ff; color: #fff; }
+  .aol-participant.human .icon { background: #00ffff; color: #000; }
+  .aol-kick { margin-left: auto; color: #606060; cursor: pointer; font-family: Tahoma; font-size: 11px; padding: 0 3px; }
+  .aol-kick:hover { color: #cc0000; }
+
+  .aol-input-row { display: flex; gap: 6px; padding: 6px 8px 8px; background: #c0c0c0; border-top: 1px solid #808080; flex-shrink: 0; align-items: stretch; }
+  .aol-input-wrap { flex: 1; background: #fff; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; padding: 4px 6px; }
+  .aol-input-wrap input { width: 100%; border: none; outline: none; font: 13px Tahoma, "MS Sans Serif", sans-serif; color: #000; background: transparent; }
+  .aol-input-wrap input::placeholder { color: #808080; }
+
+  .aol-signon-overlay { position: absolute; inset: 0; background: rgba(0,128,128,0.85); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .aol-signon { width: 380px; background: #c0c0c0; }
+  .aol-signon-body { padding: 18px 20px; font: 12px Tahoma; display: flex; flex-direction: column; gap: 12px; }
+  .aol-signon-body h3 { font: bold 14px Tahoma; margin-bottom: 2px; }
+  .aol-signon-body p { font-size: 11px; color: #404040; line-height: 1.5; }
+  .aol-field { display: flex; flex-direction: column; gap: 3px; }
+  .aol-field label { font: 11px Tahoma; }
+  .aol-field input { font: 12px Tahoma; padding: 4px 6px; background: #fff; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; outline: none; }
+  .aol-signon-buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+  .aol-signon-note { margin-top: 2px; padding: 8px 10px; background: #ffffe0; border: 1px solid #c0c000; font: 11px Tahoma; line-height: 1.5; }
+  .aol-signon-error { padding: 6px 8px; background: #ffe0e0; border: 1px solid #c00000; color: #800000; font: 11px Tahoma; }
+
+  .aol-modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 20; }
+  .aol-modal { width: 560px; max-width: calc(100% - 40px); max-height: calc(100% - 40px); background: #c0c0c0; display: flex; flex-direction: column; }
+  .aol-modal-body { padding: 12px 14px; font: 12px Tahoma; overflow-y: auto; }
+  .aol-modal-body h4 { font: bold 11px Tahoma; margin: 8px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; color: #404040; }
+  .aol-bot-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .aol-bot-card { background: #fff; padding: 8px 10px; border-top: 1px solid #808080; border-left: 1px solid #808080; border-right: 1px solid #ffffff; border-bottom: 1px solid #ffffff; cursor: pointer; font: 12px Tahoma; }
+  .aol-bot-card:hover { background: #ffffe0; }
+  .aol-bot-card .name { font-weight: bold; display: block; margin-bottom: 3px; color: #000080; }
+  .aol-bot-card .desc { font-size: 11px; color: #404040; line-height: 1.4; }
+
+  .aol-custom-form { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding: 10px; background: #ffffff; border-top: 1px solid #808080; border-left: 1px solid #808080; border-right: 1px solid #ffffff; border-bottom: 1px solid #ffffff; }
+  .aol-custom-form input, .aol-custom-form textarea { font: 12px Tahoma; padding: 4px 6px; background: #fff; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; outline: none; resize: vertical; width: 100%; }
+  .aol-custom-form textarea { min-height: 56px; }
+  .aol-custom-form .row { display: flex; gap: 6px; align-items: flex-start; }
+  .aol-custom-form .row label { font: 11px Tahoma; width: 80px; padding-top: 4px; flex-shrink: 0; }
+  .aol-modal-buttons { display: flex; gap: 6px; justify-content: flex-end; padding: 8px 12px; background: #c0c0c0; border-top: 1px solid #808080; }
+
+  .chatroom-locked { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+  .chatroom-locked-inner { max-width: 400px; background: #c0c0c0; padding: 24px; }
+  .chatroom-locked-inner h3 { font: bold 14px Tahoma; margin-bottom: 10px; }
+  .chatroom-locked-inner p { font: 12px Tahoma; line-height: 1.6; margin-bottom: 16px; }
 
   @media (max-width: 640px) {
-    header { padding: 20px 20px 16px; flex-direction: column; align-items: flex-start; gap: 14px; }
-    .controls { width: 100%; }
-    .controls select { flex: 1; }
-    #messages { padding: 24px 20px; }
-    .input-wrap { padding: 12px 20px 20px; }
-    .msg-body { font-size: 18px; }
-    h1 { font-size: 26px; }
-    .tagline { display: none; }
+    .r-header { padding: 16px 18px; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .r-controls { width: 100%; }
+    .r-controls select { flex: 1; }
+    #r-messages { padding: 20px 18px; }
+    .r-input-wrap { padding: 12px 18px 18px; }
+    .r-msg-body { font-size: 18px; }
+    .r-header h1 { font-size: 24px; }
+    .r-tagline { display: none; }
+    #view-chatroom { padding: 8px; }
+    .aol-participants { width: 120px; }
+    .aol-bot-presets { grid-template-columns: 1fr; }
   }
 </style>
 </head>
-<body>
-<div class="app">
-  <header>
-    <div class="brand">
-      <span class="mark" id="mark"></span>
-      <h1>Reverie</h1>
-      <span class="tagline">thought, on device</span>
-    </div>
-    <div class="controls">
-      <select id="model-select" title="Model">
-        <!-- Options injected by JS -->
-      </select>
-      <button id="clear-btn" title="Clear conversation">Clear</button>
-    </div>
-  </header>
+<body class="view-chat">
 
-  <div id="loader" class="loader">
-    <div class="loader-inner">
-      <div class="loader-title" id="loader-title">A mind, cached in your browser.</div>
-      <div class="loader-sub" id="loader-sub">
-        Reverie runs a language model entirely on your device via WebGPU. Nothing leaves your machine. Choose a model and it downloads once — subsequent visits are instant.
+<div class="app-shell">
+  <nav class="tabnav">
+    <span class="tabnav-brand">Reverie · local AI</span>
+    <div class="tabnav-tabs">
+      <button class="tabnav-tab active" data-view="chat">Reverie</button>
+      <button class="tabnav-tab" data-view="chatroom">AI Chatroom</button>
+    </div>
+  </nav>
+
+  <section id="view-chat" class="view active">
+    <header class="r-header">
+      <div class="r-brand">
+        <span class="r-mark" id="r-mark"></span>
+        <h1>Reverie</h1>
+        <span class="r-tagline">thought, on device</span>
       </div>
-      <button class="loader-start-btn" id="start-btn">Download &amp; begin</button>
-      <div class="progress-track" id="progress-track" style="display:none;"><div class="progress-fill" id="progress-fill"></div></div>
-      <div class="progress-label" id="progress-label" style="display:none;">Initialising…</div>
-      <div class="loader-hint" id="loader-hint" style="margin-top: 40px;">Requires a recent Chrome, Edge, or Safari 17+.</div>
-    </div>
-  </div>
+      <div class="r-controls">
+        <select id="model-select" title="Model"></select>
+        <button id="r-clear-btn" title="Clear conversation">Clear</button>
+      </div>
+    </header>
 
-  <div id="messages" style="display:none;"></div>
+    <div id="r-loader" class="r-loader">
+      <div class="r-loader-inner">
+        <div class="r-loader-title" id="r-loader-title">A mind, cached in your browser.</div>
+        <div class="r-loader-sub" id="r-loader-sub">Reverie runs a language model entirely on your device via WebGPU. Nothing leaves your machine. Choose a model and it downloads once — subsequent visits are instant.</div>
+        <button class="r-loader-start-btn" id="r-start-btn">Download &amp; begin</button>
+        <div class="r-progress-track" id="r-progress-track" style="display:none;"><div class="r-progress-fill" id="r-progress-fill"></div></div>
+        <div class="r-progress-label" id="r-progress-label" style="display:none;">Initialising…</div>
+        <div class="r-loader-sub" id="r-loader-hint" style="margin-top: 40px;">Requires a recent Chrome, Edge, or Safari 17+.</div>
+      </div>
+    </div>
 
-  <div id="input-wrap" class="input-wrap" style="display:none;">
-    <div class="input-shell">
-      <textarea id="input" placeholder="What are you thinking about…" rows="1"></textarea>
-      <button id="send-btn" disabled>Send</button>
+    <div id="r-messages" style="display:none;"></div>
+
+    <div id="r-input-wrap" class="r-input-wrap" style="display:none;">
+      <div class="r-input-shell">
+        <textarea id="r-input" placeholder="What are you thinking about…" rows="1"></textarea>
+        <button id="r-send-btn" disabled>Send</button>
+      </div>
+      <div class="r-footer-hint"><kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for new line · all inference runs locally</div>
     </div>
-    <div class="footer-hint">
-      <kbd>Enter</kbd> to send · <kbd>Shift + Enter</kbd> for new line · all inference runs locally
+  </section>
+
+  <section id="view-chatroom" class="view">
+
+    <div class="chatroom-locked" id="chatroom-locked" style="display:none;">
+      <div class="chatroom-locked-inner w-out">
+        <h3>☕ The chatroom is offline.</h3>
+        <p>The AI Chatroom uses the same local model as Reverie. Head to the <b>Reverie</b> tab and click <b>Download &amp; begin</b> to load a model first.</p>
+        <button class="w-btn" id="chatroom-locked-goto">Go to Reverie →</button>
+      </div>
     </div>
-  </div>
+
+    <div class="aol-window w-out" id="aol-window" style="display:none;">
+      <div class="aol-titlebar">
+        <div class="aol-titlebar-title">
+          <span class="aol-titlebar-icon">R</span>
+          <span id="aol-window-title">Reverie Chat :: The Lobby</span>
+        </div>
+        <div class="aol-titlebar-btns">
+          <button class="aol-tb-btn" title="Minimize">_</button>
+          <button class="aol-tb-btn" title="Maximize">▢</button>
+          <button class="aol-tb-btn" title="Close" id="aol-close-btn">×</button>
+        </div>
+      </div>
+
+      <div class="aol-menubar">
+        <span class="aol-menu-item"><u>F</u>ile</span>
+        <span class="aol-menu-item"><u>E</u>dit</span>
+        <span class="aol-menu-item"><u>P</u>eople</span>
+        <span class="aol-menu-item"><u>H</u>elp</span>
+      </div>
+
+      <div class="aol-toolbar">
+        <button class="w-btn" id="aol-add-bot">+ Add a Bot</button>
+        <button class="w-btn" id="aol-signoff">Sign Off</button>
+        <div class="aol-toolbar-spacer"></div>
+        <label for="aol-chatter-rate">Chatter:</label>
+        <select id="aol-chatter-rate">
+          <option value="slow">Slow</option>
+          <option value="medium" selected>Medium</option>
+          <option value="fast">Rapid</option>
+          <option value="silent">Silent (only when @named)</option>
+        </select>
+        <span title="Engine status"><span class="aol-status-dot" id="aol-status-dot"></span><span id="aol-status-text">Ready</span></span>
+      </div>
+
+      <div class="aol-body">
+        <div class="aol-chat-panel">
+          <div class="aol-chat-header">
+            <span>The Reverie Lobby — <i>welcome to the chat</i></span>
+            <span class="aol-chat-header-right" id="aol-chat-header-count">0 online</span>
+          </div>
+          <div class="aol-chat-area" id="aol-chat-area"></div>
+          <div class="aol-input-row">
+            <div class="aol-input-wrap">
+              <input id="aol-input" type="text" placeholder="Type your message…" autocomplete="off" maxlength="500" />
+            </div>
+            <button class="w-btn" id="aol-send">Send</button>
+          </div>
+        </div>
+
+        <div class="aol-participants">
+          <div class="aol-participants-header">People Here</div>
+          <div class="aol-participants-list" id="aol-participants-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="aol-signon-overlay" id="aol-signon-overlay">
+      <div class="aol-signon w-out">
+        <div class="aol-titlebar">
+          <div class="aol-titlebar-title"><span class="aol-titlebar-icon">R</span><span>Welcome to Reverie Chat</span></div>
+          <div class="aol-titlebar-btns">
+            <button class="aol-tb-btn">_</button><button class="aol-tb-btn">▢</button><button class="aol-tb-btn">×</button>
+          </div>
+        </div>
+        <div class="aol-signon-body">
+          <h3>Sign on to the Reverie Lobby</h3>
+          <p>Enter a screen name and password — or drop in as a guest.</p>
+          <div class="aol-field">
+            <label for="aol-username">Screen Name</label>
+            <input id="aol-username" type="text" placeholder="e.g. xXCyberDreamer99Xx" maxlength="24" autocomplete="off" />
+          </div>
+          <div class="aol-field">
+            <label for="aol-password">Password</label>
+            <input id="aol-password" type="password" placeholder="(optional)" maxlength="32" autocomplete="off" />
+          </div>
+          <div class="aol-signon-error" id="aol-signon-error" style="display:none;"></div>
+          <div class="aol-signon-note">
+            <b>Note:</b> accounts live only in this browser. Nothing is sent anywhere. Please don't reuse a real password — this is just for the vibe.
+          </div>
+          <div class="aol-signon-buttons">
+            <button class="w-btn" id="aol-guest-btn">Guest</button>
+            <button class="w-btn" id="aol-signon-btn"><b>Sign On</b></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="aol-modal-overlay" id="aol-bot-modal" style="display:none;">
+      <div class="aol-modal w-out">
+        <div class="aol-titlebar">
+          <div class="aol-titlebar-title"><span class="aol-titlebar-icon">R</span><span>Invite Bots to the Chatroom</span></div>
+          <div class="aol-titlebar-btns"><button class="aol-tb-btn" id="aol-bot-modal-x">×</button></div>
+        </div>
+        <div class="aol-modal-body">
+          <h4>Built-in personas</h4>
+          <div class="aol-bot-presets" id="aol-bot-presets"></div>
+          <h4 style="margin-top: 14px;">Or: craft your own</h4>
+          <div class="aol-custom-form">
+            <div class="row"><label for="aol-custom-name">Screen name</label><input id="aol-custom-name" type="text" placeholder="e.g. MothmanFan77" maxlength="24" /></div>
+            <div class="row"><label for="aol-custom-persona">Personality</label><textarea id="aol-custom-persona" placeholder="How do they talk? e.g. 'A conspiracy theorist who sees patterns everywhere. Short, paranoid fragments.'"></textarea></div>
+            <div class="row"><label>&nbsp;</label><button class="w-btn" id="aol-custom-add">Create &amp; Invite</button></div>
+          </div>
+        </div>
+        <div class="aol-modal-buttons">
+          <button class="w-btn" id="aol-bot-modal-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
 </div>
-
 <script type="module">
 import * as webllm from "https://esm.run/@mlc-ai/web-llm@0.2.79";
 
-// ─── Available models ──────────────────────────────────────────────────────
-// A curated subset of WebLLM's catalog, sorted small → capable.
 const MODELS = [
-  { id: "Llama-3.2-1B-Instruct-q4f16_1-MLC",   label: "Llama 3.2 · 1B",   size: "~850 MB", desc: "Fastest. Good for short questions." },
-  { id: "Llama-3.2-3B-Instruct-q4f16_1-MLC",   label: "Llama 3.2 · 3B",   size: "~2.0 GB", desc: "Balanced. Recommended." },
-  { id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",   label: "Qwen 2.5 · 1.5B",  size: "~1.1 GB", desc: "Strong at reasoning for its size." },
-  { id: "Qwen2.5-3B-Instruct-q4f16_1-MLC",     label: "Qwen 2.5 · 3B",    size: "~2.0 GB", desc: "Very capable generalist." },
-  { id: "Hermes-3-Llama-3.2-3B-q4f16_1-MLC",   label: "Hermes 3 · 3B",    size: "~2.0 GB", desc: "Conversational, expressive." },
-  { id: "SmolLM2-1.7B-Instruct-q4f16_1-MLC",   label: "SmolLM2 · 1.7B",   size: "~1.2 GB", desc: "Compact and quick." },
+  { id: "Llama-3.2-1B-Instruct-q4f16_1-MLC",   label: "Llama 3.2 · 1B",   size: "~850 MB" },
+  { id: "Llama-3.2-3B-Instruct-q4f16_1-MLC",   label: "Llama 3.2 · 3B",   size: "~2.0 GB" },
+  { id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",   label: "Qwen 2.5 · 1.5B",  size: "~1.1 GB" },
+  { id: "Qwen2.5-3B-Instruct-q4f16_1-MLC",     label: "Qwen 2.5 · 3B",    size: "~2.0 GB" },
+  { id: "Hermes-3-Llama-3.2-3B-q4f16_1-MLC",   label: "Hermes 3 · 3B",    size: "~2.0 GB" },
+  { id: "SmolLM2-1.7B-Instruct-q4f16_1-MLC",   label: "SmolLM2 · 1.7B",   size: "~1.2 GB" },
 ];
-
 const DEFAULT_MODEL = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
 
-// ─── Thinking system prompt ────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Reverie, a thoughtful local AI.
+// Shared engine state. A serial queue ensures the main chat and the chatroom's
+// many bot generations never try to use the engine simultaneously.
+const engineState = {
+  engine: null,
+  generating: false,
+  currentModel: localStorage.getItem("reverie-model") || DEFAULT_MODEL,
+  _queue: Promise.resolve(),
+  run(fn) {
+    const next = this._queue.then(fn, fn);
+    this._queue = next.catch(() => {});
+    return next;
+  },
+};
+
+const $ = (id) => document.getElementById(id);
+
+// ─── Tab nav ───────────────────────────────────────────────────────────
+document.querySelectorAll(".tabnav-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    const view = tab.dataset.view;
+    document.querySelectorAll(".tabnav-tab").forEach(t => t.classList.toggle("active", t === tab));
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === `view-${view}`));
+    document.body.classList.remove("view-chat", "view-chatroom");
+    document.body.classList.add(`view-${view}`);
+    if (view === "chatroom") chatroom.onActivate();
+    if (view === "chat") setTimeout(() => $("r-input")?.focus(), 50);
+  });
+});
+$("chatroom-locked-goto").addEventListener("click", () => document.querySelector('.tabnav-tab[data-view=chat]').click());
+$("aol-close-btn").addEventListener("click", () => document.querySelector('.tabnav-tab[data-view=chat]').click());
+
+// ═══ REVERIE MAIN CHAT ════════════════════════════════════════════════
+const mainChat = (() => {
+  const SYSTEM_PROMPT = `You are Reverie, a thoughtful local AI.
 
 For every user message, you think carefully before answering. Format EVERY response exactly like this:
 
 <thinking>
-Reason step by step here. Think through what the user is actually asking, consider any ambiguity, sketch a rough answer, check yourself, then decide how to respond. Be honest about uncertainty. This section is shown to the user in a muted pane so they can see your reasoning — be genuine, not performative.
+Reason step by step here. Think through what the user is actually asking, consider any ambiguity, sketch a rough answer, check yourself, then decide how to respond. Be honest about uncertainty.
 </thinking>
 
 Your final answer to the user goes here, outside the thinking tags. Write in clear, natural prose. Do not repeat the thinking in the answer.
 
 Always include both sections. Always close the </thinking> tag before your final answer.`;
 
-// ─── State ─────────────────────────────────────────────────────────────────
-const state = {
-  engine: null,
-  loading: false,
-  generating: false,
-  messages: [],                     // [{role: "user"|"assistant", content, thinking}]
-  currentModel: localStorage.getItem("reverie-model") || DEFAULT_MODEL,
-  abortCtrl: null,
-};
+  const state = { messages: [], generating: false, abortCtrl: null };
+  const els = {
+    loader: $("r-loader"), loaderTitle: $("r-loader-title"), loaderSub: $("r-loader-sub"),
+    startBtn: $("r-start-btn"), progressTrack: $("r-progress-track"), progressFill: $("r-progress-fill"),
+    progressLabel: $("r-progress-label"), messages: $("r-messages"), inputWrap: $("r-input-wrap"),
+    input: $("r-input"), sendBtn: $("r-send-btn"), modelSelect: $("model-select"),
+    clearBtn: $("r-clear-btn"), mark: $("r-mark"),
+  };
 
-// ─── DOM refs ──────────────────────────────────────────────────────────────
-const $ = (id) => document.getElementById(id);
-const els = {
-  loader:      $("loader"),
-  loaderTitle: $("loader-title"),
-  loaderSub:   $("loader-sub"),
-  loaderHint:  $("loader-hint"),
-  startBtn:    $("start-btn"),
-  progressTrack: $("progress-track"),
-  progressFill:  $("progress-fill"),
-  progressLabel: $("progress-label"),
-  messages:    $("messages"),
-  inputWrap:   $("input-wrap"),
-  input:       $("input"),
-  sendBtn:     $("send-btn"),
-  modelSelect: $("model-select"),
-  clearBtn:    $("clear-btn"),
-  mark:        $("mark"),
-};
-
-// ─── Model picker ──────────────────────────────────────────────────────────
-for (const m of MODELS) {
-  const opt = document.createElement("option");
-  opt.value = m.id;
-  opt.textContent = `${m.label} · ${m.size}`;
-  if (m.id === state.currentModel) opt.selected = true;
-  els.modelSelect.appendChild(opt);
-}
-els.modelSelect.addEventListener("change", async (e) => {
-  const newModel = e.target.value;
-  if (newModel === state.currentModel) return;
-  state.currentModel = newModel;
-  localStorage.setItem("reverie-model", newModel);
-  // Reset engine; user will need to load the new one
-  state.engine = null;
-  showLoader();
-});
-
-// ─── WebGPU check ──────────────────────────────────────────────────────────
-async function checkGPU() {
-  if (!navigator.gpu) return { ok: false, reason: "no-webgpu" };
-  try {
-    const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter) return { ok: false, reason: "no-adapter" };
-    return { ok: true, adapter };
-  } catch (e) {
-    return { ok: false, reason: "error", error: e };
+  for (const m of MODELS) {
+    const opt = document.createElement("option");
+    opt.value = m.id; opt.textContent = `${m.label} · ${m.size}`;
+    if (m.id === engineState.currentModel) opt.selected = true;
+    els.modelSelect.appendChild(opt);
   }
-}
-
-// ─── Loader / init flow ────────────────────────────────────────────────────
-function showLoader() {
-  els.loader.style.display = "flex";
-  els.messages.style.display = "none";
-  els.inputWrap.style.display = "none";
-  els.startBtn.style.display = "inline-block";
-  els.progressTrack.style.display = "none";
-  els.progressLabel.style.display = "none";
-  const m = MODELS.find(x => x.id === state.currentModel);
-  els.loaderSub.textContent = `Reverie runs a language model entirely on your device via WebGPU. Nothing leaves your machine. Selected: ${m.label} (${m.size}). First load downloads once; subsequent visits are instant.`;
-}
-
-function showChat() {
-  els.loader.style.display = "none";
-  els.messages.style.display = "flex";
-  els.inputWrap.style.display = "block";
-  if (state.messages.length === 0) renderIntro();
-  else renderMessages();
-}
-
-function renderIntro() {
-  els.messages.innerHTML = `
-    <div class="intro">
-      <h2>A mind, on device.</h2>
-      <p>Ask anything. Reverie thinks out loud in a side panel, then answers. Everything runs in this tab — no server, no account, no key.</p>
-      <div class="starters">
-        <button class="starter" data-prompt="Explain how WebGPU makes local AI possible.">how does WebGPU work?</button>
-        <button class="starter" data-prompt="Give me three unusual but true facts about octopuses.">tell me about octopuses</button>
-        <button class="starter" data-prompt="Write a short, wistful haiku about autumn in New England.">write a haiku</button>
-        <button class="starter" data-prompt="Help me think through whether I should learn Rust or Go next. Ask me questions if it would help.">rust or go?</button>
-      </div>
-    </div>`;
-  els.messages.querySelectorAll(".starter").forEach(b => {
-    b.addEventListener("click", () => {
-      els.input.value = b.dataset.prompt;
-      handleSend();
-    });
-  });
-}
-
-async function initEngine() {
-  const gpu = await checkGPU();
-  if (!gpu.ok) {
-    showGPUError(gpu.reason);
-    return;
-  }
-  els.startBtn.style.display = "none";
-  els.progressTrack.style.display = "block";
-  els.progressLabel.style.display = "block";
-  state.loading = true;
-  els.mark.classList.add("thinking");
-
-  try {
-    const engine = await webllm.CreateMLCEngine(
-      state.currentModel,
-      {
-        initProgressCallback: (p) => {
-          // p = { progress: 0..1, text: "..." }
-          const pct = Math.round((p.progress || 0) * 100);
-          els.progressFill.style.width = pct + "%";
-          els.progressLabel.textContent = p.text || "Loading…";
-        },
-      },
-      {
-        // Per-model engine config. Without this, WebLLM's default for some
-        // models reports a 4096-token window that it then rejects prompts
-        // against. Explicitly setting the window + enabling sliding attention
-        // keeps long conversations from hitting a hard wall.
-        context_window_size: 8192,
-        sliding_window_size: -1,
-        attention_sink_size: 4,
-      }
-    );
-    state.engine = engine;
-    state.loading = false;
-    els.mark.classList.remove("thinking");
-    showChat();
-    els.sendBtn.disabled = false;
-    els.input.focus();
-  } catch (e) {
-    state.loading = false;
-    els.mark.classList.remove("thinking");
-    console.error(e);
-    els.loaderTitle.textContent = "Something went sideways.";
-    els.loaderSub.innerHTML = `The model failed to load. This sometimes happens on the first try — you can retry, or pick a smaller model.<br/><br/><code style="font-family: var(--mono); font-size: 12px;">${(e && e.message) || e}</code>`;
-    els.startBtn.textContent = "Retry";
-    els.startBtn.style.display = "inline-block";
-    els.progressTrack.style.display = "none";
-    els.progressLabel.style.display = "none";
-  }
-}
-
-function showGPUError(reason) {
-  els.startBtn.style.display = "none";
-  els.progressTrack.style.display = "none";
-  els.progressLabel.style.display = "none";
-  els.loaderTitle.textContent = "WebGPU isn't available.";
-  let msg = "";
-  if (reason === "no-webgpu") {
-    msg = "Your browser doesn't expose the WebGPU API. Reverie needs it to run a local language model. Try the latest <strong>Chrome</strong>, <strong>Edge</strong>, or <strong>Safari 17+</strong>. Firefox has partial support — you may need to enable <code>dom.webgpu.enabled</code> in <code>about:config</code>.";
-  } else if (reason === "no-adapter") {
-    msg = "WebGPU is available, but no GPU adapter could be acquired. This often means the browser has WebGPU disabled for the current hardware. A discrete or integrated GPU is typically required.";
-  } else {
-    msg = "WebGPU errored during initialisation. Try reloading the page, or switching browsers.";
-  }
-  els.loaderSub.innerHTML = msg;
-  els.loaderHint.textContent = "Reverie is a static page — no server to call, so WebGPU is the only way to run a model here.";
-}
-
-els.startBtn.addEventListener("click", () => {
-  if (els.startBtn.textContent === "Retry") {
-    els.loaderTitle.textContent = "A mind, cached in your browser.";
+  els.modelSelect.addEventListener("change", (e) => {
+    engineState.currentModel = e.target.value;
+    localStorage.setItem("reverie-model", engineState.currentModel);
+    engineState.engine = null;
     showLoader();
-    setTimeout(initEngine, 50);
-  } else {
-    initEngine();
-  }
-});
-
-// ─── Message rendering ─────────────────────────────────────────────────────
-function renderMessages() {
-  els.messages.innerHTML = "";
-  for (const m of state.messages) {
-    els.messages.appendChild(renderMsg(m));
-  }
-  scrollBottom();
-}
-
-function renderMsg(m) {
-  const wrap = document.createElement("div");
-  wrap.className = "msg " + (m.role === "user" ? "msg-user" : "msg-assistant");
-  const role = document.createElement("div");
-  role.className = "msg-role";
-  role.textContent = m.role === "user" ? "you" : "reverie";
-  wrap.appendChild(role);
-
-  if (m.role === "assistant" && (m.thinking || m._thinkingStreaming)) {
-    const think = document.createElement("div");
-    think.className = "thinking" + (m._thinkingCollapsed ? " collapsed" : "");
-    const header = document.createElement("div");
-    header.className = "thinking-header";
-    header.innerHTML = `<span class="${m._thinkingStreaming ? 'thinking-pulse' : ''}">${m._thinkingStreaming ? 'thinking' : 'thought'}</span><span class="thinking-toggle">${m._thinkingCollapsed ? '▸ show' : '▾ hide'}</span>`;
-    think.appendChild(header);
-    const body = document.createElement("div");
-    body.textContent = m.thinking || "";
-    think.appendChild(body);
-    header.querySelector(".thinking-toggle").addEventListener("click", () => {
-      m._thinkingCollapsed = !m._thinkingCollapsed;
-      renderMessages();
-    });
-    wrap.appendChild(think);
-  }
-
-  const body = document.createElement("div");
-  body.className = "msg-body";
-  if (m.role === "user") {
-    body.textContent = m.content;
-  } else {
-    body.innerHTML = renderMarkdown(m.content || "");
-  }
-  wrap.appendChild(body);
-  return wrap;
-}
-
-// ─── Lightweight markdown ──────────────────────────────────────────────────
-function renderMarkdown(src) {
-  // Escape HTML first
-  let s = src.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  // Code blocks
-  s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => `<pre><code>${code.replace(/\n$/, "")}</code></pre>`);
-  // Inline code
-  s = s.replace(/`([^`\n]+)`/g, "<code>$1</code>");
-  // Bold & italic
-  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  s = s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "<em>$1</em>");
-  // Headings (simple)
-  s = s.replace(/^### (.*)$/gm, "<h3>$1</h3>").replace(/^## (.*)$/gm, "<h2>$1</h2>").replace(/^# (.*)$/gm, "<h1>$1</h1>");
-  // Bulleted lists
-  s = s.replace(/(?:^|\n)((?:- .+\n?)+)/g, (m, block) => {
-    const items = block.trim().split("\n").map(l => `<li>${l.replace(/^- /, "")}</li>`).join("");
-    return `\n<ul>${items}</ul>`;
+    chatroom.onEngineLost();
   });
-  // Paragraphs: split on double newline
-  s = s.split(/\n{2,}/).map(p => {
-    if (/^\s*<(ul|ol|pre|h[1-6]|blockquote)/.test(p)) return p;
-    return `<p>${p.replace(/\n/g, "<br/>")}</p>`;
-  }).join("\n");
-  return s;
-}
 
-function scrollBottom() {
-  requestAnimationFrame(() => {
-    els.messages.scrollTop = els.messages.scrollHeight;
-  });
-}
-
-// ─── Streaming & thinking parser ───────────────────────────────────────────
-// The model is asked to emit <thinking>...</thinking> then the final answer.
-// We stream tokens into either the thinking buffer or the answer buffer
-// depending on which tag state we're in. If the model never emits thinking
-// tags, the whole stream becomes the answer.
-function makeStreamParser() {
-  let mode = "pre";            // "pre" | "thinking" | "answer"
-  let thinking = "";
-  let answer = "";
-  let carry = "";              // carry-over to handle tags split across tokens
-
-  return {
-    feed(chunk) {
-      let buf = carry + chunk;
-      carry = "";
-      while (buf.length > 0) {
-        if (mode === "pre") {
-          const idx = buf.indexOf("<thinking>");
-          if (idx === -1) {
-            // No thinking tag seen yet. If "<" is near the end, carry it.
-            const ltIdx = buf.lastIndexOf("<");
-            if (ltIdx !== -1 && buf.length - ltIdx < 10) {
-              answer += buf.slice(0, ltIdx);
-              carry = buf.slice(ltIdx);
-            } else {
-              answer += buf;
-            }
-            // If we've accumulated real answer content with no tag, switch mode
-            if (!carry && answer.length > 0) mode = "answer";
-            buf = "";
-          } else {
-            answer += buf.slice(0, idx); // anything before the tag
-            buf = buf.slice(idx + "<thinking>".length);
-            mode = "thinking";
-          }
-        } else if (mode === "thinking") {
-          const idx = buf.indexOf("</thinking>");
-          if (idx === -1) {
-            const ltIdx = buf.lastIndexOf("<");
-            if (ltIdx !== -1 && buf.length - ltIdx < 12) {
-              thinking += buf.slice(0, ltIdx);
-              carry = buf.slice(ltIdx);
-            } else {
-              thinking += buf;
-            }
-            buf = "";
-          } else {
-            thinking += buf.slice(0, idx);
-            buf = buf.slice(idx + "</thinking>".length);
-            mode = "answer";
-          }
-        } else {
-          answer += buf;
-          buf = "";
-        }
-      }
-      return { mode, thinking, answer };
-    },
-    finish() {
-      // If there's carry, flush it to the current mode.
-      if (carry) {
-        if (mode === "thinking") thinking += carry;
-        else answer += carry;
-        carry = "";
-      }
-      return { mode, thinking, answer };
-    },
-  };
-}
-
-// ─── Send / generate ───────────────────────────────────────────────────────
-async function handleSend() {
-  const text = els.input.value.trim();
-  if (!text || state.generating || !state.engine) return;
-
-  // Push user message
-  state.messages.push({ role: "user", content: text });
-  els.input.value = "";
-  autoResize();
-  renderMessages();
-
-  // Push assistant placeholder
-  const assistant = {
-    role: "assistant",
-    content: "",
-    thinking: "",
-    _thinkingStreaming: true,
-    _thinkingCollapsed: false,
-  };
-  state.messages.push(assistant);
-  renderMessages();
-
-  // Build prompt for engine (use its ChatCompletion API).
-  // Rough token budgeting: ~4 chars/token. Keep total under ~6k tokens of
-  // input so there's room for the response. Older turns are dropped first,
-  // system prompt is always preserved.
-  const MAX_INPUT_CHARS = 6000 * 4;
-  const history = state.messages
-    .filter(m => m.role === "user" || m.role === "assistant")
-    .slice(0, -1) // exclude the empty placeholder we just pushed
-    .map(m => ({
-      role: m.role,
-      // For assistant history, we don't include prior thinking — it eats
-      // context and the answer alone is what should inform future turns.
-      content: m.role === "assistant" ? (m.content || "") : m.content,
-    }));
-
-  // Drop oldest pairs until we fit. Always keep the latest user turn.
-  let totalChars = SYSTEM_PROMPT.length + history.reduce((n, m) => n + m.content.length, 0);
-  while (totalChars > MAX_INPUT_CHARS && history.length > 1) {
-    const dropped = history.shift();
-    totalChars -= dropped.content.length;
+  async function checkGPU() {
+    if (!navigator.gpu) return { ok: false, reason: "no-webgpu" };
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) return { ok: false, reason: "no-adapter" };
+      return { ok: true };
+    } catch (e) { return { ok: false, reason: "error" }; }
   }
 
-  const chatMessages = [
-    { role: "system", content: SYSTEM_PROMPT },
-    ...history,
-  ];
+  function showLoader() {
+    els.loader.style.display = "flex"; els.messages.style.display = "none"; els.inputWrap.style.display = "none";
+    els.startBtn.style.display = "inline-block"; els.startBtn.textContent = "Download & begin";
+    els.progressTrack.style.display = "none"; els.progressLabel.style.display = "none";
+    const m = MODELS.find(x => x.id === engineState.currentModel);
+    els.loaderSub.textContent = `Reverie runs a language model entirely on your device via WebGPU. Nothing leaves your machine. Selected: ${m.label} (${m.size}). First load downloads once; subsequent visits are instant.`;
+  }
 
-  state.generating = true;
-  els.sendBtn.textContent = "Stop";
-  els.sendBtn.classList.add("stop");
-  els.mark.classList.add("thinking");
+  function showChat() {
+    els.loader.style.display = "none"; els.messages.style.display = "flex"; els.inputWrap.style.display = "block";
+    if (state.messages.length === 0) renderIntro(); else renderMessages();
+  }
 
-  const parser = makeStreamParser();
-  state.abortCtrl = new AbortController();
-
-  try {
-    const stream = await state.engine.chat.completions.create({
-      messages: chatMessages,
-      stream: true,
-      temperature: 0.7,
-      max_tokens: 1024,
+  function renderIntro() {
+    els.messages.innerHTML = `
+      <div class="r-intro">
+        <h2>A mind, on device.</h2>
+        <p>Ask anything. Reverie thinks out loud in a side panel, then answers. Everything runs in this tab — no server, no account, no key.</p>
+        <div class="starters">
+          <button class="r-starter" data-prompt="Explain how WebGPU makes local AI possible.">how does WebGPU work?</button>
+          <button class="r-starter" data-prompt="Give me three unusual but true facts about octopuses.">tell me about octopuses</button>
+          <button class="r-starter" data-prompt="Write a short, wistful haiku about autumn in New England.">write a haiku</button>
+          <button class="r-starter" data-prompt="Help me think through whether I should learn Rust or Go next. Ask me questions if it would help.">rust or go?</button>
+        </div>
+      </div>`;
+    els.messages.querySelectorAll(".r-starter").forEach(b => {
+      b.addEventListener("click", () => { els.input.value = b.dataset.prompt; handleSend(); });
     });
+  }
 
-    for await (const chunk of stream) {
-      if (state.abortCtrl.signal.aborted) break;
-      const delta = chunk.choices?.[0]?.delta?.content || "";
-      if (!delta) continue;
-      const { thinking, answer } = parser.feed(delta);
-      assistant.thinking = thinking;
-      assistant.content = answer;
-      // Mark thinking as done once we've moved into answer mode
-      if (answer.length > 0 && assistant._thinkingStreaming) {
-        assistant._thinkingStreaming = false;
-        // Auto-collapse thinking once the answer starts
-        assistant._thinkingCollapsed = true;
-      }
-      renderMessages();
+  async function initEngine() {
+    const gpu = await checkGPU();
+    if (!gpu.ok) { showGPUError(gpu.reason); return; }
+    els.startBtn.style.display = "none";
+    els.progressTrack.style.display = "block"; els.progressLabel.style.display = "block";
+    els.mark.classList.add("thinking");
+    try {
+      const engine = await webllm.CreateMLCEngine(
+        engineState.currentModel,
+        { initProgressCallback: (p) => {
+            const pct = Math.round((p.progress || 0) * 100);
+            els.progressFill.style.width = pct + "%";
+            els.progressLabel.textContent = p.text || "Loading…";
+          },
+        },
+        { context_window_size: 8192, sliding_window_size: -1, attention_sink_size: 4 }
+      );
+      engineState.engine = engine;
+      els.mark.classList.remove("thinking");
+      showChat();
+      els.sendBtn.disabled = false;
+      els.input.focus();
+      chatroom.onEngineReady();
+    } catch (e) {
+      els.mark.classList.remove("thinking");
+      console.error(e);
+      els.loaderTitle.textContent = "Something went sideways.";
+      els.loaderSub.innerHTML = `The model failed to load. Retry, or pick a smaller model.<br/><br/><code style="font-family: var(--mono); font-size: 12px;">${(e && e.message) || e}</code>`;
+      els.startBtn.textContent = "Retry"; els.startBtn.style.display = "inline-block";
+      els.progressTrack.style.display = "none"; els.progressLabel.style.display = "none";
+    }
+  }
+
+  function showGPUError(reason) {
+    els.startBtn.style.display = "none"; els.progressTrack.style.display = "none"; els.progressLabel.style.display = "none";
+    els.loaderTitle.textContent = "WebGPU isn't available.";
+    const msgs = {
+      "no-webgpu": "Your browser doesn't expose WebGPU. Reverie needs it. Try the latest <b>Chrome</b>, <b>Edge</b>, or <b>Safari 17+</b>.",
+      "no-adapter": "WebGPU is available, but no GPU adapter could be acquired.",
+      "error": "WebGPU errored during init. Try reloading, or switching browsers."
+    };
+    els.loaderSub.innerHTML = msgs[reason] || msgs.error;
+  }
+
+  els.startBtn.addEventListener("click", () => {
+    if (els.startBtn.textContent === "Retry") {
+      els.loaderTitle.textContent = "A mind, cached in your browser.";
+      showLoader(); setTimeout(initEngine, 50);
+    } else initEngine();
+  });
+
+  function renderMessages() {
+    els.messages.innerHTML = "";
+    for (const m of state.messages) els.messages.appendChild(renderMsg(m));
+    scrollBottom();
+  }
+
+  function renderMsg(m) {
+    const wrap = document.createElement("div");
+    wrap.className = "r-msg " + (m.role === "user" ? "r-msg-user" : "r-msg-assistant");
+    const role = document.createElement("div");
+    role.className = "r-msg-role";
+    role.textContent = m.role === "user" ? "you" : "reverie";
+    wrap.appendChild(role);
+
+    if (m.role === "assistant" && (m.thinking || m._thinkingStreaming)) {
+      const think = document.createElement("div");
+      think.className = "r-thinking" + (m._thinkingCollapsed ? " collapsed" : "");
+      const header = document.createElement("div");
+      header.className = "r-thinking-header";
+      header.innerHTML = `<span class="${m._thinkingStreaming ? 'r-thinking-pulse' : ''}">${m._thinkingStreaming ? 'thinking' : 'thought'}</span><span class="r-thinking-toggle">${m._thinkingCollapsed ? '▸ show' : '▾ hide'}</span>`;
+      think.appendChild(header);
+      const body = document.createElement("div");
+      body.textContent = m.thinking || "";
+      think.appendChild(body);
+      header.querySelector(".r-thinking-toggle").addEventListener("click", () => {
+        m._thinkingCollapsed = !m._thinkingCollapsed; renderMessages();
+      });
+      wrap.appendChild(think);
     }
 
-    const final = parser.finish();
-    assistant.thinking = final.thinking;
-    assistant.content = final.answer || assistant.content;
-    // If the model never emitted a thinking block, drop the empty block
-    if (!assistant.thinking) delete assistant.thinking;
-    assistant._thinkingStreaming = false;
-    assistant._thinkingCollapsed = true;
+    const body = document.createElement("div");
+    body.className = "r-msg-body";
+    if (m.role === "user") body.textContent = m.content;
+    else body.innerHTML = renderMarkdown(m.content || "");
+    wrap.appendChild(body);
+    return wrap;
+  }
 
-  } catch (e) {
-    console.error(e);
-    assistant.content = `_Sorry — generation failed._\n\n\`${(e && e.message) || e}\``;
-    assistant._thinkingStreaming = false;
-  } finally {
-    state.generating = false;
-    state.abortCtrl = null;
-    els.sendBtn.textContent = "Send";
-    els.sendBtn.classList.remove("stop");
-    els.mark.classList.remove("thinking");
-    renderMessages();
+  function renderMarkdown(src) {
+    let s = src.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (m, l, code) => `<pre><code>${code.replace(/\n$/, "")}</code></pre>`);
+    s = s.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "<em>$1</em>");
+    s = s.replace(/^### (.*)$/gm, "<h3>$1</h3>").replace(/^## (.*)$/gm, "<h2>$1</h2>").replace(/^# (.*)$/gm, "<h1>$1</h1>");
+    s = s.replace(/(?:^|\n)((?:- .+\n?)+)/g, (m, block) => {
+      const items = block.trim().split("\n").map(l => `<li>${l.replace(/^- /, "")}</li>`).join("");
+      return `\n<ul>${items}</ul>`;
+    });
+    s = s.split(/\n{2,}/).map(p => {
+      if (/^\s*<(ul|ol|pre|h[1-6]|blockquote)/.test(p)) return p;
+      return `<p>${p.replace(/\n/g, "<br/>")}</p>`;
+    }).join("\n");
+    return s;
+  }
+
+  function scrollBottom() { requestAnimationFrame(() => { els.messages.scrollTop = els.messages.scrollHeight; }); }
+
+  function makeStreamParser() {
+    let mode = "pre", thinking = "", answer = "", carry = "";
+    return {
+      feed(chunk) {
+        let buf = carry + chunk; carry = "";
+        while (buf.length > 0) {
+          if (mode === "pre") {
+            const idx = buf.indexOf("<thinking>");
+            if (idx === -1) {
+              const ltIdx = buf.lastIndexOf("<");
+              if (ltIdx !== -1 && buf.length - ltIdx < 10) { answer += buf.slice(0, ltIdx); carry = buf.slice(ltIdx); }
+              else answer += buf;
+              if (!carry && answer.length > 0) mode = "answer";
+              buf = "";
+            } else { answer += buf.slice(0, idx); buf = buf.slice(idx + 10); mode = "thinking"; }
+          } else if (mode === "thinking") {
+            const idx = buf.indexOf("</thinking>");
+            if (idx === -1) {
+              const ltIdx = buf.lastIndexOf("<");
+              if (ltIdx !== -1 && buf.length - ltIdx < 12) { thinking += buf.slice(0, ltIdx); carry = buf.slice(ltIdx); }
+              else thinking += buf;
+              buf = "";
+            } else { thinking += buf.slice(0, idx); buf = buf.slice(idx + 11); mode = "answer"; }
+          } else { answer += buf; buf = ""; }
+        }
+        return { mode, thinking, answer };
+      },
+      finish() { if (carry) { if (mode === "thinking") thinking += carry; else answer += carry; } return { mode, thinking, answer }; },
+    };
+  }
+
+  async function handleSend() {
+    const text = els.input.value.trim();
+    if (!text || state.generating || !engineState.engine) return;
+    state.messages.push({ role: "user", content: text });
+    els.input.value = ""; autoResize(); renderMessages();
+
+    const assistant = { role: "assistant", content: "", thinking: "", _thinkingStreaming: true, _thinkingCollapsed: false };
+    state.messages.push(assistant); renderMessages();
+
+    const MAX_INPUT_CHARS = 6000 * 4;
+    const history = state.messages
+      .filter(m => m.role === "user" || m.role === "assistant")
+      .slice(0, -1)
+      .map(m => ({ role: m.role, content: m.role === "assistant" ? (m.content || "") : m.content }));
+    let totalChars = SYSTEM_PROMPT.length + history.reduce((n, m) => n + m.content.length, 0);
+    while (totalChars > MAX_INPUT_CHARS && history.length > 1) {
+      const dropped = history.shift(); totalChars -= dropped.content.length;
+    }
+    const chatMessages = [{ role: "system", content: SYSTEM_PROMPT }, ...history];
+
+    state.generating = true; engineState.generating = true;
+    els.sendBtn.textContent = "Stop"; els.sendBtn.classList.add("stop");
+    els.mark.classList.add("thinking");
+    const parser = makeStreamParser();
+    state.abortCtrl = new AbortController();
+
+    try {
+      await engineState.run(async () => {
+        const stream = await engineState.engine.chat.completions.create({
+          messages: chatMessages, stream: true, temperature: 0.7, max_tokens: 1024,
+        });
+        for await (const chunk of stream) {
+          if (state.abortCtrl.signal.aborted) break;
+          const delta = chunk.choices?.[0]?.delta?.content || "";
+          if (!delta) continue;
+          const { thinking, answer } = parser.feed(delta);
+          assistant.thinking = thinking; assistant.content = answer;
+          if (answer.length > 0 && assistant._thinkingStreaming) {
+            assistant._thinkingStreaming = false; assistant._thinkingCollapsed = true;
+          }
+          renderMessages();
+        }
+        const final = parser.finish();
+        assistant.thinking = final.thinking; assistant.content = final.answer || assistant.content;
+        if (!assistant.thinking) delete assistant.thinking;
+        assistant._thinkingStreaming = false; assistant._thinkingCollapsed = true;
+      });
+    } catch (e) {
+      console.error(e);
+      assistant.content = `_Sorry — generation failed._\n\n\`${(e && e.message) || e}\``;
+      assistant._thinkingStreaming = false;
+    } finally {
+      state.generating = false; engineState.generating = false; state.abortCtrl = null;
+      els.sendBtn.textContent = "Send"; els.sendBtn.classList.remove("stop");
+      els.mark.classList.remove("thinking");
+      renderMessages(); els.input.focus();
+    }
+  }
+
+  function stopGeneration() {
+    if (state.abortCtrl) state.abortCtrl.abort();
+    if (engineState.engine?.interruptGenerate) { try { engineState.engine.interruptGenerate(); } catch {} }
+  }
+
+  function autoResize() {
+    els.input.style.height = "auto";
+    els.input.style.height = Math.min(els.input.scrollHeight, 200) + "px";
+  }
+  els.input.addEventListener("input", autoResize);
+  els.input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (state.generating) stopGeneration(); else handleSend();
+    }
+  });
+  els.sendBtn.addEventListener("click", () => { if (state.generating) stopGeneration(); else handleSend(); });
+  els.clearBtn.addEventListener("click", () => { if (state.generating) return; state.messages = []; renderIntro(); });
+
+  showLoader();
+  return { isEngineReady: () => !!engineState.engine };
+})();
+
+// ═══ AOL CHATROOM MODULE ══════════════════════════════════════════════
+const chatroom = (() => {
+
+  // ─── Bot presets ─────────────────────────────────────────────────────
+  const BOT_PRESETS = [
+    { id: "askjeeves98", name: "AskJeeves98",
+      desc: "Polite butler. Answers everything formally, slightly archaic.",
+      persona: "You are AskJeeves98, a butler-like helper from the late 1990s. You answer questions politely and formally. Sometimes begin with 'I should think...' or 'If memory serves...'. Light courtly tone. Keep replies to 1-2 short sentences." },
+    { id: "xxdarkpoetxx", name: "xXDarkPoetXx",
+      desc: "Melodramatic 2003 teen poet. Ellipses everywhere. Always tragic.",
+      persona: "You are xXDarkPoetXx, a melodramatic 2003-era teenage goth poet. Everything is tragic and profound. You use ellipses... a lot... and speak in half-verses. Reference darkness, roses, rain. 1-2 dramatic sentences, never cheerful." },
+    { id: "grandma_linda", name: "grandma_linda",
+      desc: "Sweet grandma. Mostly lowercase. Talks about food and grandkids.",
+      persona: "You are grandma_linda, a sweet grandmother in her first month online. Type mostly in lowercase, ask about people's day, often mention what you're cooking or your grandchildren. Slightly confused about technology. 1-2 warm sentences." },
+    { id: "debatebrobrad", name: "DebateBroBrad",
+      desc: "Contrarian. Starts replies with 'well actually…'",
+      persona: "You are DebateBroBrad, an argumentative know-it-all who disagrees with nearly everyone. Often start with 'well, actually...' or 'that's not quite right...'. Cite vague sources. 1-2 contrarian sentences. Do not be cruel — just insistently contrarian." },
+    { id: "codemonkey2000", name: "CodeMonkey2000",
+      desc: "Relates every topic to programming.",
+      persona: "You are CodeMonkey2000, a programmer who relates every topic to code, algorithms, or software metaphors. Use light programming jargon. 1-2 sentences." },
+    { id: "hellokitty97", name: "HelloKitty_1997",
+      desc: "Enthusiastic late-90s girl. Lots of :) and <3 and ^_^",
+      persona: "You are HelloKitty_1997, a cheerful late-90s/early-2000s girl. Use lots of :) and ^_^ and <3 and !!! and 'omg'. Everything is kawaii or neat. Favorite topics: ponies, boybands, AIM. 1-2 cheerful sentences." },
+    { id: "professor", name: "ProfessorReverie",
+      desc: "Pedantic academic. Occasional (cf. citations).",
+      persona: "You are ProfessorReverie, an academic. You over-explain simple things and occasionally add footnote-style asides like '(cf. Jameson 1991)'. Pedantic but warm. 1-3 sentences." },
+    { id: "moodring", name: "MoodRing",
+      desc: "Cryptic one-liners, like a fortune cookie.",
+      persona: "You are MoodRing. You speak only in cryptic, fortune-cookie style one-liners. Every message is a single enigmatic sentence, sometimes relevant, sometimes not. Never explain yourself. One short sentence only." },
+    { id: "nightowl", name: "NightOwl_42",
+      desc: "Up too late. Philosophical at 3am.",
+      persona: "You are NightOwl_42. It's always 3am for you. You're a bit sleep-deprived and prone to philosophical tangents about small things (lightbulbs, moths, windowpanes). 1-2 dreamy sentences." },
+    { id: "sk8rgrrl", name: "sk8rgrrl_x",
+      desc: "Late-90s skater. Lowercase. Lots of 'dude' and 'rad'.",
+      persona: "You are sk8rgrrl_x, a late-90s skater. Type in lowercase, use 'dude', 'rad', 'stoked', 'sick'. Casual, chill. 1-2 sentences." },
+  ];
+
+  const USER_COLORS = ["#0000cc", "#cc0000", "#006600", "#cc6600", "#800080", "#008b8b", "#b8860b", "#9932cc", "#dc143c", "#4b0082"];
+  function colorForName(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
+    return USER_COLORS[Math.abs(h) % USER_COLORS.length];
+  }
+
+  const state = {
+    activated: false, signedOn: false,
+    username: null, isGuest: false,
+    bots: [], messages: [],
+    consecutiveBotMessages: 0,
+    chatterRate: "medium",
+    pendingBotGens: 0,
+  };
+
+  // Chatter rates tune orchestration aggressiveness.
+  const CHATTER = {
+    slow:   { base: 0.25, maxChain: 4, delayMin: 2000, delayMax: 5000 },
+    medium: { base: 0.45, maxChain: 7, delayMin: 1200, delayMax: 3500 },
+    fast:   { base: 0.7,  maxChain: 10, delayMin: 700, delayMax: 2200 },
+    silent: { base: 0.0,  maxChain: 0,  delayMin: 900, delayMax: 2000 },
+  };
+
+  // Local account store. Pure roleplay — nothing leaves the browser.
+  function simpleHash(s) {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36);
+  }
+  const accountStore = {
+    read() { try { return JSON.parse(localStorage.getItem("reverie-accounts") || "{}"); } catch { return {}; } },
+    write(data) { localStorage.setItem("reverie-accounts", JSON.stringify(data)); },
+    get(name) { return this.read()[name.toLowerCase()] || null; },
+    create(name, password) {
+      const accounts = this.read();
+      accounts[name.toLowerCase()] = { name, hash: simpleHash(password || ""), createdAt: Date.now() };
+      this.write(accounts);
+    },
+    verify(name, password) {
+      const acc = this.get(name);
+      if (!acc) return "new";
+      return acc.hash === simpleHash(password || "") ? "ok" : "wrong";
+    }
+  };
+
+  const els = {
+    locked:      $("chatroom-locked"),
+    window:      $("aol-window"),
+    signonOverlay: $("aol-signon-overlay"),
+    usernameInput: $("aol-username"),
+    passwordInput: $("aol-password"),
+    signonBtn:   $("aol-signon-btn"),
+    guestBtn:    $("aol-guest-btn"),
+    signonError: $("aol-signon-error"),
+    chatArea:    $("aol-chat-area"),
+    participants:$("aol-participants-list"),
+    chatCount:   $("aol-chat-header-count"),
+    input:       $("aol-input"),
+    sendBtn:     $("aol-send"),
+    addBotBtn:   $("aol-add-bot"),
+    signoffBtn:  $("aol-signoff"),
+    chatterSelect: $("aol-chatter-rate"),
+    statusDot:   $("aol-status-dot"),
+    statusText:  $("aol-status-text"),
+    botModal:    $("aol-bot-modal"),
+    botModalX:   $("aol-bot-modal-x"),
+    botModalClose: $("aol-bot-modal-close"),
+    botPresets:  $("aol-bot-presets"),
+    customName:  $("aol-custom-name"),
+    customPersona: $("aol-custom-persona"),
+    customAddBtn:$("aol-custom-add"),
+  };
+
+  // ─── Lifecycle ───────────────────────────────────────────────────────
+  function onActivate() {
+    state.activated = true;
+    if (!engineState.engine) {
+      els.locked.style.display = "flex"; els.window.style.display = "none"; els.signonOverlay.style.display = "none";
+      return;
+    }
+    els.locked.style.display = "none"; els.window.style.display = "flex";
+    if (!state.signedOn) {
+      els.signonOverlay.style.display = "flex";
+      setTimeout(() => els.usernameInput.focus(), 80);
+    } else {
+      els.signonOverlay.style.display = "none";
+      setTimeout(() => els.input.focus(), 80);
+    }
+  }
+  function onEngineReady() { if (state.activated) onActivate(); }
+  function onEngineLost() {
+    if (state.activated) {
+      els.locked.style.display = "flex"; els.window.style.display = "none"; els.signonOverlay.style.display = "none";
+    }
+  }
+
+  // ─── Sign-on ─────────────────────────────────────────────────────────
+  function showSignonError(msg) { els.signonError.textContent = msg; els.signonError.style.display = "block"; }
+  function hideSignonError() { els.signonError.style.display = "none"; }
+
+  function signOn(username, password, asGuest = false) {
+    if (asGuest) {
+      state.username = "Guest" + Math.floor(Math.random() * 900 + 100);
+      state.isGuest = true;
+    } else {
+      username = username.trim();
+      if (!username) { showSignonError("Please enter a screen name."); return; }
+      if (username.length < 2) { showSignonError("Screen name is too short."); return; }
+      if (!/^[A-Za-z0-9_.x]+$/.test(username)) { showSignonError("Letters, numbers, _ and . only."); return; }
+      const result = accountStore.verify(username, password);
+      if (result === "new") accountStore.create(username, password);
+      else if (result === "wrong") { showSignonError("That password doesn't match this screen name. (Accounts live only in this browser.)"); return; }
+      state.username = username; state.isGuest = false;
+    }
+    state.signedOn = true;
+    els.signonOverlay.style.display = "none";
+    hideSignonError();
+
+    // First-time seed: welcome + two starter bots.
+    if (state.messages.length === 0) {
+      addSystemMessage(`Welcome to the Reverie Lobby, ${state.username}.`);
+      addSystemMessage(`${state.username} has entered the room.`, { dbl: true });
+      addBot(BOT_PRESETS.find(b => b.id === "grandma_linda"));
+      addBot(BOT_PRESETS.find(b => b.id === "moodring"));
+    } else {
+      addSystemMessage(`${state.username} has entered the room.`, { dbl: true });
+    }
+    renderParticipants();
     els.input.focus();
   }
-}
 
-function stopGeneration() {
-  if (state.abortCtrl) state.abortCtrl.abort();
-  if (state.engine && state.engine.interruptGenerate) {
-    try { state.engine.interruptGenerate(); } catch (e) {}
+  function signOff() {
+    if (state.username) addSystemMessage(`${state.username} has left the room.`, { dbl: true });
+    state.signedOn = false; state.username = null; state.isGuest = false;
+    els.signonOverlay.style.display = "flex";
+    els.usernameInput.value = ""; els.passwordInput.value = "";
+    setTimeout(() => els.usernameInput.focus(), 60);
   }
-}
 
-// ─── Input wiring ──────────────────────────────────────────────────────────
-function autoResize() {
-  els.input.style.height = "auto";
-  els.input.style.height = Math.min(els.input.scrollHeight, 200) + "px";
-}
-els.input.addEventListener("input", autoResize);
-els.input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    if (state.generating) stopGeneration();
-    else handleSend();
+  els.signonBtn.addEventListener("click", () => signOn(els.usernameInput.value, els.passwordInput.value, false));
+  els.guestBtn.addEventListener("click", () => signOn("", "", true));
+  els.passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") els.signonBtn.click(); });
+  els.usernameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") els.passwordInput.focus(); });
+  els.signoffBtn.addEventListener("click", signOff);
+
+  // ─── Bot management ──────────────────────────────────────────────────
+  function addBot(preset, customPersona = null) {
+    let baseName = preset.name;
+    let uniqueName = baseName;
+    let n = 2;
+    const taken = new Set([state.username?.toLowerCase(), ...state.bots.map(b => b.name.toLowerCase())]);
+    while (taken.has(uniqueName.toLowerCase())) { uniqueName = baseName + n++; }
+    const bot = {
+      id: "bot_" + Math.random().toString(36).slice(2, 9),
+      name: uniqueName,
+      persona: customPersona || preset.persona,
+      color: colorForName(uniqueName),
+    };
+    state.bots.push(bot);
+    addSystemMessage(`${bot.name} has entered the room.`, { dbl: true });
+    renderParticipants();
+    if (state.signedOn) {
+      setTimeout(() => scheduleBotResponse(bot, { forceGreeting: true }), 800 + Math.random() * 1200);
+    }
+    return bot;
   }
-});
-els.sendBtn.addEventListener("click", () => {
-  if (state.generating) stopGeneration();
-  else handleSend();
-});
-els.clearBtn.addEventListener("click", () => {
-  if (state.generating) return;
-  state.messages = [];
-  renderIntro();
-});
+  function removeBot(botId) {
+    const bot = state.bots.find(b => b.id === botId);
+    if (!bot) return;
+    state.bots = state.bots.filter(b => b.id !== botId);
+    addSystemMessage(`${bot.name} has left the room.`, { dbl: true });
+    renderParticipants();
+  }
 
-// ─── Boot ──────────────────────────────────────────────────────────────────
-showLoader();
+  function renderBotPresets() {
+    els.botPresets.innerHTML = "";
+    for (const p of BOT_PRESETS) {
+      const card = document.createElement("div");
+      card.className = "aol-bot-card";
+      card.innerHTML = `<span class="name">${p.name}</span><span class="desc">${p.desc}</span>`;
+      card.addEventListener("click", () => { addBot(p); closeBotModal(); });
+      els.botPresets.appendChild(card);
+    }
+  }
+  function openBotModal() { renderBotPresets(); els.botModal.style.display = "flex"; setTimeout(() => els.customName.focus(), 60); }
+  function closeBotModal() { els.botModal.style.display = "none"; els.customName.value = ""; els.customPersona.value = ""; }
+
+  els.addBotBtn.addEventListener("click", openBotModal);
+  els.botModalX.addEventListener("click", closeBotModal);
+  els.botModalClose.addEventListener("click", closeBotModal);
+  els.customAddBtn.addEventListener("click", () => {
+    const name = els.customName.value.trim();
+    const persona = els.customPersona.value.trim();
+    if (!name || !persona) { alert("Both a screen name and a personality are required."); return; }
+    if (!/^[A-Za-z0-9_.x]+$/.test(name)) { alert("Screen names: letters, numbers, _ and . only."); return; }
+    addBot({ name, persona }, persona);
+    closeBotModal();
+  });
+
+  els.chatterSelect.addEventListener("change", (e) => { state.chatterRate = e.target.value; });
+
+  // ─── Rendering ───────────────────────────────────────────────────────
+  function addMessage(msg) {
+    msg.id = msg.id || ("m_" + Math.random().toString(36).slice(2, 9));
+    msg.ts = msg.ts || new Date();
+    state.messages.push(msg);
+    appendMessageDOM(msg);
+    scrollChatBottom();
+    return msg;
+  }
+
+  function addSystemMessage(text, opts = {}) {
+    return addMessage({ system: true, text, dbl: opts.dbl });
+  }
+
+  function appendMessageDOM(msg) {
+    const el = document.createElement("div");
+    if (msg.system) {
+      el.className = "aol-msg system";
+      const stars = msg.dbl ? '<span class="stars">***</span> ' : "";
+      el.innerHTML = `${stars}${escapeHtml(msg.text)}${msg.dbl ? ' <span class="stars">***</span>' : ''}`;
+    } else {
+      el.className = "aol-msg";
+      el.dataset.msgId = msg.id;
+      const tsStr = formatTS(msg.ts);
+      el.innerHTML = `<span class="ts">[${tsStr}]</span><span class="name" style="color:${msg.color}">${escapeHtml(msg.author)}:</span> ${formatBody(msg.text)}`;
+    }
+    els.chatArea.appendChild(el);
+  }
+
+  function formatTS(d) {
+    const h = d.getHours(), m = d.getMinutes();
+    const hh = ((h % 12) || 12), mm = String(m).padStart(2, "0");
+    const ap = h < 12 ? "AM" : "PM";
+    return `${hh}:${mm} ${ap}`;
+  }
+
+  function formatBody(text) {
+    let s = escapeHtml(text);
+    s = s.replace(/(^|\s)(:\)|:-\)|:D|:-D)(?=\s|$)/g, "$1☺");
+    s = s.replace(/(^|\s)(:\(|:-\()(?=\s|$)/g, "$1☹");
+    s = s.replace(/(^|\s)(&lt;3)(?=\s|$)/g, "$1♥");
+    s = s.replace(/(^|\s)\^_\^(?=\s|$)/g, "$1✿");
+    return s;
+  }
+
+  function escapeHtml(s) {
+    return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function scrollChatBottom() {
+    requestAnimationFrame(() => { els.chatArea.scrollTop = els.chatArea.scrollHeight; });
+  }
+
+  function renderParticipants() {
+    els.participants.innerHTML = "";
+    const items = [];
+    if (state.signedOn) items.push({ type: "human", name: state.username });
+    for (const b of state.bots) items.push({ type: "bot", name: b.name, id: b.id });
+
+    for (const p of items) {
+      const row = document.createElement("div");
+      row.className = `aol-participant ${p.type}`;
+      const color = colorForName(p.name);
+      row.innerHTML = `<span class="icon">${p.type === "bot" ? "R" : "U"}</span><span class="dot"></span><span style="color:${color}; font-weight:bold;">${escapeHtml(p.name)}</span>`;
+      if (p.type === "bot") {
+        const kick = document.createElement("span");
+        kick.className = "aol-kick";
+        kick.textContent = "✕";
+        kick.title = "Kick from room";
+        kick.addEventListener("click", (e) => { e.stopPropagation(); removeBot(p.id); });
+        row.appendChild(kick);
+      }
+      els.participants.appendChild(row);
+    }
+    els.chatCount.textContent = `${items.length} online`;
+  }
+
+  function showTyping(bot) {
+    const existing = els.chatArea.querySelector(`[data-typing-for="${CSS.escape(bot.name)}"]`);
+    if (existing) return existing;
+    const el = document.createElement("div");
+    el.className = "aol-msg typing";
+    el.dataset.typingFor = bot.name;
+    el.innerHTML = `<span class="name" style="color:${bot.color}">${escapeHtml(bot.name)}</span> is typing`;
+    els.chatArea.appendChild(el);
+    scrollChatBottom();
+    return el;
+  }
+  function clearTyping(bot) {
+    const el = els.chatArea.querySelector(`[data-typing-for="${CSS.escape(bot.name)}"]`);
+    if (el) el.remove();
+  }
+
+  // ─── Orchestration ───────────────────────────────────────────────────
+  function shouldBotRespond(bot, msg) {
+    const settings = CHATTER[state.chatterRate];
+    const mentioned = msg.text && new RegExp(`\\b${bot.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(msg.text);
+    if (state.chatterRate === "silent") return mentioned;
+
+    // Damp bot-to-bot chains so the room doesn't run away on its own.
+    const damper = Math.pow(0.75, state.consecutiveBotMessages);
+    let p = settings.base * damper;
+
+    if (mentioned) p += 0.5;
+    const lastMsg = [...state.messages].reverse().find(m => !m.system && !m.typing);
+    if (lastMsg && lastMsg.author === bot.name) p -= 0.4;
+    if (msg.authorType === "human") p += 0.15;
+
+    p = Math.max(0, Math.min(0.95, p));
+    return Math.random() < p;
+  }
+
+  function afterNewMessage(msg) {
+    if (msg.system || msg.typing) return;
+    if (msg.authorType === "bot") state.consecutiveBotMessages++;
+    else state.consecutiveBotMessages = 0;
+
+    const settings = CHATTER[state.chatterRate];
+    if (state.consecutiveBotMessages >= settings.maxChain) return;
+
+    const candidates = state.bots.filter(b => b.name !== msg.author);
+    if (candidates.length === 0) return;
+
+    const responders = [];
+    for (const bot of candidates) {
+      if (shouldBotRespond(bot, msg)) responders.push(bot);
+      if (responders.length >= 2) break;
+    }
+    responders.forEach((bot, i) => {
+      const delay = (settings.delayMin + Math.random() * (settings.delayMax - settings.delayMin)) + i * 900;
+      scheduleBotResponse(bot, { delay });
+    });
+  }
+
+  function scheduleBotResponse(bot, opts = {}) {
+    const delay = opts.delay ?? (900 + Math.random() * 1800);
+    state.pendingBotGens++;
+    updateStatus();
+    setTimeout(() => {
+      if (!state.bots.find(b => b.id === bot.id) || !state.signedOn) {
+        state.pendingBotGens = Math.max(0, state.pendingBotGens - 1); updateStatus(); return;
+      }
+      engineState.run(() => generateBotResponse(bot, opts))
+        .finally(() => { state.pendingBotGens = Math.max(0, state.pendingBotGens - 1); updateStatus(); });
+    }, delay);
+  }
+
+  function updateStatus() {
+    if (!engineState.engine) { els.statusDot.style.background = "#aa0000"; els.statusText.textContent = "Offline"; return; }
+    if (state.pendingBotGens > 0 || engineState.generating) {
+      els.statusDot.style.background = "#ffaa00";
+      els.statusText.textContent = state.pendingBotGens > 1 ? `${state.pendingBotGens} thinking…` : "Thinking…";
+    } else {
+      els.statusDot.style.background = "#00cc00";
+      els.statusText.textContent = "Ready";
+    }
+  }
+
+  async function generateBotResponse(bot, opts = {}) {
+    if (!state.bots.find(b => b.id === bot.id)) return;
+    if (!state.signedOn) return;
+
+    showTyping(bot);
+    updateStatus();
+
+    const recent = state.messages.filter(m => !m.system && !m.typing).slice(-14);
+    const transcript = recent.map(m => `${m.author}: ${m.text}`).join("\n");
+    const participantsList = [
+      state.username && `${state.username} (human)`,
+      ...state.bots.map(b => b.name + (b.id === bot.id ? " (you)" : ""))
+    ].filter(Boolean).join(", ");
+
+    const entryNote = opts.forceGreeting
+      ? `\n\nYou just entered the chatroom. Give a SHORT in-character greeting (one sentence). Do not ask long questions.`
+      : "";
+
+    const sys = `You are ${bot.name}, a participant in an online chatroom called "The Reverie Lobby".
+Persona: ${bot.persona}
+
+Strict rules:
+- Respond with ONE short message, usually 1-2 sentences, 3 max.
+- Stay fully in character as ${bot.name}.
+- DO NOT prefix with your name — the chat client handles that.
+- DO NOT use any <thinking> tags or meta-commentary.
+- React naturally to what was just said.
+- Never speak for anyone else, and never impersonate another chatter.
+- Occasional typos or chat-era punctuation are fine; stay in the 90s/2000s AIM voice if your persona suggests it.
+
+Current participants: ${participantsList}${entryNote}`;
+
+    const userContent = transcript
+      ? `Recent chatroom transcript:\n\n${transcript}\n\nRespond now as ${bot.name}. Just the message text, nothing else.`
+      : `The room is quiet. Respond now as ${bot.name} with one short in-character opening line.`;
+
+    let text = "";
+    try {
+      const stream = await engineState.engine.chat.completions.create({
+        messages: [
+          { role: "system", content: sys },
+          { role: "user", content: userContent },
+        ],
+        stream: true, temperature: 0.9, max_tokens: 120,
+      });
+      for await (const chunk of stream) {
+        const delta = chunk.choices?.[0]?.delta?.content || "";
+        if (delta) text += delta;
+      }
+    } catch (e) {
+      console.warn("bot generation failed", bot.name, e);
+      clearTyping(bot);
+      return;
+    }
+
+    clearTyping(bot);
+
+    // Clean up bot output
+    text = text.trim();
+    text = text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, "").trim();
+    text = text.replace(/<\/?thinking>/gi, "").trim();
+    const prefixRe = new RegExp(`^\\s*${bot.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*`, 'i');
+    text = text.replace(prefixRe, "");
+    if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+      text = text.slice(1, -1);
+    }
+    const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+    if (sentences.length > 3) text = sentences.slice(0, 3).join(" ");
+    text = text.slice(0, 400).trim();
+
+    if (!text) return;
+
+    const msg = addMessage({ author: bot.name, authorType: "bot", color: bot.color, text });
+    afterNewMessage(msg);
+  }
+
+  // ─── Human send ─────────────────────────────────────────────────────
+  function handleHumanSend() {
+    const text = els.input.value.trim();
+    if (!text || !state.signedOn) return;
+    els.input.value = "";
+    const msg = addMessage({
+      author: state.username, authorType: "human",
+      color: colorForName(state.username), text,
+    });
+    afterNewMessage(msg);
+  }
+  els.sendBtn.addEventListener("click", handleHumanSend);
+  els.input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); handleHumanSend(); } });
+
+  return { onActivate, onEngineReady, onEngineLost };
+})();
+
 </script>
 </body>
 </html>
