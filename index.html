@@ -920,6 +920,107 @@
   }
   .r-book-empty strong { color: var(--r-text-muted); font-style: normal; font-weight: 400; }
 
+  /* ── Shared feedback primitives ─────────────────────────────
+     Small, consistent motion language for wait-acknowledgment across the app.
+     Used sparingly — only where genuine delay (>500ms) would otherwise feel silent. */
+
+  /* Inline spinner: 14px, teal accent, 0.8s revolution. Sized to inherit font size for flexibility. */
+  .r-spinner {
+    display: inline-block;
+    width: 1em; height: 1em;
+    min-width: 12px; min-height: 12px;
+    border: 1.5px solid rgba(200, 165, 116, 0.2);
+    border-top-color: #c8a574;
+    border-radius: 50%;
+    animation: r-spinner-rev 0.8s linear infinite;
+    vertical-align: -0.15em;
+  }
+  .r-spinner.sage {
+    border-color: rgba(129, 178, 154, 0.2);
+    border-top-color: #81b29a;
+  }
+  .r-spinner.teal {
+    border-color: rgba(131, 197, 190, 0.2);
+    border-top-color: #83c5be;
+  }
+  @keyframes r-spinner-rev { to { transform: rotate(360deg); } }
+
+  /* Ephemeral status line — italic mono, softly cross-fading when text changes */
+  .r-status-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: italic 11.5px var(--mono);
+    color: var(--r-text-dim);
+    letter-spacing: 0.02em;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    min-height: 14px;
+  }
+  .r-status-line.visible { opacity: 1; }
+
+  /* ── Reflect pass feedback (in Book modal) ─────────────── */
+  .r-reflect-phases {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px;
+    background: var(--r-bg-subtle);
+    border: 1px solid var(--r-border-subtle);
+    border-left: 2px solid #c8a574;
+    border-radius: 0 7px 7px 0;
+    margin-bottom: 14px;
+  }
+  .r-reflect-phase-text {
+    font: italic 13px/1.5 var(--serif);
+    color: var(--r-text-muted);
+    flex: 1;
+    transition: opacity 0.3s ease;
+  }
+  .r-reflect-phase-text.fading { opacity: 0.3; }
+
+  /* ── Vault unlock feedback ──────────────────────────────── */
+  .r-vault-working {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: 11.5px var(--mono);
+    color: var(--r-text-muted);
+    letter-spacing: 0.02em;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .r-vault-working.visible { opacity: 1; }
+
+  /* ── Reverie file-parse chip spinner ────────────────────── */
+  .r-attached-chip.parsing {
+    background: rgba(200, 165, 116, 0.06);
+    border-color: rgba(200, 165, 116, 0.25);
+    color: var(--r-text-muted);
+  }
+  .r-attached-chip.parsing .icon { opacity: 0; position: relative; }
+  .r-attached-chip.parsing .icon::before {
+    content: "";
+    position: absolute; inset: 0;
+    width: 12px; height: 12px;
+    margin: auto;
+    border: 1.5px solid rgba(200, 165, 116, 0.2);
+    border-top-color: #c8a574;
+    border-radius: 50%;
+    animation: r-spinner-rev 0.8s linear infinite;
+    opacity: 1;
+  }
+  .r-attached-chip .parse-label {
+    font: italic 10px var(--mono);
+    color: var(--r-text-dim);
+    margin-left: 4px;
+  }
+
+  /* ── Book modal open — subtle fade-in for large lists ──── */
+  .r-book-body {
+    transition: opacity 0.18s ease;
+  }
+  .r-book-body.loading { opacity: 0.5; }
+
   /* Studio saved looks (shape memory) */
   .st-looks-panel {
     padding: 10px 12px;
@@ -3535,13 +3636,19 @@ Always include both sections. Always close the </thinking> tag before your final
     tray.innerHTML = "";
     state.pendingFiles.forEach((f, idx) => {
       const chip = document.createElement("div");
-      chip.className = "r-attached-chip tray";
+      const isParsing = !!f._parsing;
+      chip.className = "r-attached-chip tray" + (isParsing ? " parsing" : "");
       const iconEmoji = f.kind === "image" ? "🖼️" : f.kind === "unknown" ? "⚠️" : "📄";
-      chip.innerHTML = `<span class="icon">${iconEmoji}</span><span class="name" title="${f.name.replace(/"/g, "&quot;")}">${escapeHtmlLocal(f.name)}</span><span class="size">${formatBytes(f.size)}</span><button class="remove" title="Remove">×</button>`;
-      chip.querySelector(".remove").addEventListener("click", () => {
-        state.pendingFiles.splice(idx, 1);
-        renderAttachedFiles();
-      });
+      const rightSide = isParsing
+        ? `<span class="parse-label">parsing…</span>`
+        : `<span class="size">${formatBytes(f.size)}</span><button class="remove" title="Remove">×</button>`;
+      chip.innerHTML = `<span class="icon">${iconEmoji}</span><span class="name" title="${f.name.replace(/"/g, "&quot;")}">${escapeHtmlLocal(f.name)}</span>${rightSide}`;
+      if (!isParsing) {
+        chip.querySelector(".remove").addEventListener("click", () => {
+          state.pendingFiles.splice(idx, 1);
+          renderAttachedFiles();
+        });
+      }
       tray.appendChild(chip);
     });
   }
@@ -3556,18 +3663,30 @@ Always include both sections. Always close the </thinking> tag before your final
     const files = Array.from(e.target.files || []);
     e.target.value = "";
     for (const file of files) {
+      // Put a placeholder chip on the tray so the user sees parsing in-flight.
+      // PDFs and docx files can take 1-3s; silence during that window feels broken.
+      const parsingPlaceholder = {
+        _parsing: true,
+        name: file.name,
+        size: file.size,
+        kind: "text",
+      };
+      state.pendingFiles.push(parsingPlaceholder);
+      renderAttachedFiles();
+      const idx = state.pendingFiles.indexOf(parsingPlaceholder);
       try {
         const parsed = await parseFile(file);
+        // Replace the placeholder with the real parsed entry
+        if (idx !== -1) state.pendingFiles[idx] = parsed;
+        renderAttachedFiles();
         if (parsed.kind === "unknown") {
-          state.pendingFiles.push(parsed);
-          renderAttachedFiles();
-          // Friendly nudge — we didn't fail, just can't see inside
           setTimeout(() => alert(`"${file.name}" was attached but its format isn't readable as text. Reverie will know it exists but can't read its contents. Try a .txt, .md, .pdf, .docx, or a common code file for full analysis.`), 0);
-        } else {
-          state.pendingFiles.push(parsed);
-          renderAttachedFiles();
         }
       } catch (err) {
+        // Remove the placeholder on failure
+        const stillIdx = state.pendingFiles.indexOf(parsingPlaceholder);
+        if (stillIdx !== -1) state.pendingFiles.splice(stillIdx, 1);
+        renderAttachedFiles();
         alert(`Couldn't read "${file.name}": ${err.message || err}`);
       }
     }
@@ -4043,11 +4162,27 @@ Always include both sections. Always close the </thinking> tag before your final
 
   function renderBookBody() {
     const body = $("r-book-body");
-    body.innerHTML = "";
     const book = bookStore.all();
-    if (bookActiveTab === "moments") renderBookMoments(body, book);
-    else if (bookActiveTab === "about") renderBookAbout(body, book);
-    else if (bookActiveTab === "throughlines") renderBookThroughlines(body, book);
+    // If the library is substantial (many moments), the synchronous render can
+    // cause a visible judder when the modal is opening. Fade the body out first,
+    // let the modal animate in, then fade back in with new content.
+    const isLargeLibrary = (book.moments.length + book.about.length + book.throughlines.length) > 30;
+    if (isLargeLibrary) {
+      body.classList.add("loading");
+      requestAnimationFrame(() => {
+        body.innerHTML = "";
+        if (bookActiveTab === "moments") renderBookMoments(body, book);
+        else if (bookActiveTab === "about") renderBookAbout(body, book);
+        else if (bookActiveTab === "throughlines") renderBookThroughlines(body, book);
+        // One more frame before removing loading class so the transition runs
+        requestAnimationFrame(() => body.classList.remove("loading"));
+      });
+    } else {
+      body.innerHTML = "";
+      if (bookActiveTab === "moments") renderBookMoments(body, book);
+      else if (bookActiveTab === "about") renderBookAbout(body, book);
+      else if (bookActiveTab === "throughlines") renderBookThroughlines(body, book);
+    }
   }
 
   function renderBookMoments(body, book) {
@@ -4231,12 +4366,44 @@ Always include both sections. Always close the </thinking> tag before your final
       return;
     }
     btn.disabled = true; btn.classList.add("working");
+    // Show the reflect-phases panel at the top of the book body
+    const body = $("r-book-body");
+    body.innerHTML = "";
+    const phasesEl = document.createElement("div");
+    phasesEl.className = "r-reflect-phases";
+    phasesEl.innerHTML = `<span class="r-spinner"></span><span class="r-reflect-phase-text" id="r-reflect-phase-text">reading your recent conversations…</span>`;
+    body.appendChild(phasesEl);
+
+    // Cycle through honest phase descriptions so the user sees progress
+    const phases = [
+      "reading your recent conversations…",
+      "looking for patterns and recurring threads…",
+      "composing notes worth remembering…",
+      "almost there…",
+    ];
+    let phaseIdx = 0;
+    const phaseEl = $("r-reflect-phase-text");
+    const phaseInterval = setInterval(() => {
+      phaseIdx = Math.min(phaseIdx + 1, phases.length - 1);
+      phaseEl.classList.add("fading");
+      setTimeout(() => {
+        phaseEl.textContent = phases[phaseIdx];
+        phaseEl.classList.remove("fading");
+      }, 240);
+    }, 2800);
+
     try {
       const proposals = await askReverieToReflect();
+      clearInterval(phaseInterval);
       showReflectProposals(proposals);
     } catch (e) {
+      clearInterval(phaseInterval);
       console.warn("reflect failed", e);
-      alert("Reflection didn't work: " + (e.message || e));
+      body.innerHTML = "";
+      const errEl = document.createElement("div");
+      errEl.className = "r-book-empty";
+      errEl.innerHTML = "Reflection didn't work this time.<br><strong>" + escapeHtmlR(e.message || String(e)) + "</strong>";
+      body.appendChild(errEl);
     } finally {
       btn.disabled = false; btn.classList.remove("working");
     }
@@ -4713,6 +4880,7 @@ Rules:
       <div class="r-vault-error" id="r-vault-err"></div>
       <div class="r-vault-button-row">
         <button class="r-header-btn" data-close="vault">Cancel</button>
+        <span class="r-vault-working" id="r-vault-setup-working"><span class="r-spinner"></span><span>deriving key…</span></span>
         <button class="r-dict-add-btn" id="r-vault-create-btn">Create vault</button>
       </div>
     `;
@@ -4721,22 +4889,27 @@ Rules:
     const pw1 = body.querySelector("#r-vault-pw1");
     const pw2 = body.querySelector("#r-vault-pw2");
     const err = body.querySelector("#r-vault-err");
+    const working = body.querySelector("#r-vault-setup-working");
+    const createBtn = body.querySelector("#r-vault-create-btn");
     const doCreate = async () => {
       err.textContent = "";
       if (!pw1.value || pw1.value.length < 6) { err.textContent = "Password must be at least 6 characters."; return; }
       if (pw1.value !== pw2.value) { err.textContent = "Passwords don't match."; return; }
-      body.querySelector("#r-vault-create-btn").disabled = true;
+      createBtn.disabled = true;
+      working.classList.add("visible");
       try {
         await vault.setup(pw1.value);
         pw1.value = pw2.value = "";
+        working.classList.remove("visible");
         closeModal("vault");
         await openVaultModal("browse");
       } catch (e) {
+        working.classList.remove("visible");
         err.textContent = e.message || String(e);
-        body.querySelector("#r-vault-create-btn").disabled = false;
+        createBtn.disabled = false;
       }
     };
-    body.querySelector("#r-vault-create-btn").addEventListener("click", doCreate);
+    createBtn.addEventListener("click", doCreate);
     [pw1, pw2].forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") doCreate(); }));
     setTimeout(() => pw1.focus(), 80);
   }
@@ -4753,6 +4926,7 @@ Rules:
       <div class="r-vault-error" id="r-vault-err"></div>
       <div class="r-vault-button-row">
         <button class="r-header-btn" data-close="vault">Cancel</button>
+        <span class="r-vault-working" id="r-vault-working"><span class="r-spinner"></span><span>deriving key…</span></span>
         <button class="r-dict-add-btn" id="r-vault-unlock-btn">Unlock</button>
       </div>
     `;
@@ -4760,19 +4934,26 @@ Rules:
     wrap.querySelector("[data-close]").addEventListener("click", () => closeModal("vault"));
     const pw = body.querySelector("#r-vault-unlock-pw");
     const err = body.querySelector("#r-vault-err");
+    const working = body.querySelector("#r-vault-working");
+    const unlockBtn = body.querySelector("#r-vault-unlock-btn");
     const doUnlock = async () => {
       err.textContent = "";
-      body.querySelector("#r-vault-unlock-btn").disabled = true;
+      unlockBtn.disabled = true;
+      // Show the working indicator — PBKDF2 at 600k iterations can take
+      // 500-1500ms depending on hardware, enough for silence to feel broken
+      working.classList.add("visible");
       try {
         await vault.unlock(pw.value);
         pw.value = "";
+        working.classList.remove("visible");
         await openVaultModal("browse");
       } catch (e) {
+        working.classList.remove("visible");
         err.textContent = e.message || String(e);
-        body.querySelector("#r-vault-unlock-btn").disabled = false;
+        unlockBtn.disabled = false;
       }
     };
-    body.querySelector("#r-vault-unlock-btn").addEventListener("click", doUnlock);
+    unlockBtn.addEventListener("click", doUnlock);
     pw.addEventListener("keydown", e => { if (e.key === "Enter") doUnlock(); });
     setTimeout(() => pw.focus(), 80);
   }
