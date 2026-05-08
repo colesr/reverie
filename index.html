@@ -712,6 +712,23 @@
     animation: r-book-reflect-spin 1.1s linear infinite;
   }
   .r-book-reflect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .r-book-tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; margin-left: 8px; padding: 0 6px; border-radius: 999px; background: var(--r-accent); color: var(--r-bg); font-size: 10px; font-weight: 700; opacity: 0.95; }
+  .r-book-tab.pulse .r-book-tab-badge { animation: r-pulse 1.2s ease-in-out infinite; }
+  .r-notes-status { margin-bottom: 18px; font-size: 13px; color: var(--r-text-muted); }
+  .r-notes-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
+  .r-notes-form-row { display: grid; gap: 10px; }
+  .r-notes-form-row--two { grid-template-columns: 1fr 1fr; }
+  .r-notes-form textarea, .r-notes-form input { width: 100%; font-family: var(--sans); font-size: 14px; border: 1px solid var(--r-border); border-radius: 10px; background: var(--r-bg); color: var(--r-text); padding: 12px 14px; }
+  .r-notes-form textarea { min-height: 120px; resize: vertical; }
+  .r-notes-form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .r-notes-entry { border: 1px solid var(--r-border); border-radius: 12px; background: var(--r-bg-elevated); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .r-notes-entry-header { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; color: var(--r-text-dim); font-size: 12px; }
+  .r-notes-entry-title { font-weight: 600; color: var(--r-text); }
+  .r-notes-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .r-notes-action { font-family: var(--mono); font-size: 11px; padding: 7px 10px; border: 1px solid var(--r-border); border-radius: 9px; background: transparent; color: var(--r-text); cursor: pointer; transition: all 0.15s ease; }
+  .r-notes-action:hover { background: var(--r-bg-subtle); }
+  .r-notes-action.danger { color: var(--r-danger); border-color: rgba(200,122,90,0.35); }
+  .r-notes-secret-hint { color: var(--r-text-muted); font-size: 12px; line-height: 1.4; }
   @keyframes r-book-reflect-spin { to { transform: rotate(360deg); } }
 
   .r-book-body { padding: 16px 20px 24px; }
@@ -2440,6 +2457,7 @@
           <button class="r-book-tab active" data-book-tab="moments">Moments</button>
           <button class="r-book-tab" data-book-tab="about">About you</button>
           <button class="r-book-tab" data-book-tab="throughlines">Through-lines</button>
+          <button class="r-book-tab" data-book-tab="notes">Notes<span class="r-book-tab-badge"></span></button>
           <span class="r-book-tab-spacer"></span>
           <button class="r-book-reflect-btn" id="r-book-reflect-btn" title="Ask Reverie to reflect on recent conversations">Reflect</button>
         </div>
@@ -3867,6 +3885,155 @@ Always include both sections. Always close the </thinking> tag before your final
     },
   };
 
+  const NOTES_KEY = "reverie-notes-v1";
+  const NOTE_MAX = 200;
+  const decryptedNotes = new Map();
+
+  const noteStore = {
+    read() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(NOTES_KEY) || "null");
+        if (!raw) return { notes: [] };
+        return { notes: raw.notes || [] };
+      } catch {
+        return { notes: [] };
+      }
+    },
+    write(state) {
+      try { localStorage.setItem(NOTES_KEY, JSON.stringify(state)); }
+      catch (e) { console.warn("note save failed", e); }
+    },
+    all() { return this.read().notes; },
+    find(id) { return this.all().find(n => n.id === id); },
+    draftsBySender(sender) {
+      return this.all().filter(n => n.sender.toLowerCase() === sender.toLowerCase() && n.status === "draft");
+    },
+    inboxFor(recipient) {
+      return this.all().filter(n => n.recipient.toLowerCase() === recipient.toLowerCase() && n.status === "sent");
+    },
+    unreadCount(recipient) {
+      return this.inboxFor(recipient).filter(n => !n.readAt).length;
+    },
+    removeNote(id) {
+      const st = this.read();
+      st.notes = st.notes.filter(n => n.id !== id);
+      decryptedNotes.delete(id);
+      this.write(st);
+    },
+    markRead(id) {
+      const st = this.read();
+      const note = st.notes.find(n => n.id === id);
+      if (!note) return;
+      if (!note.readAt) note.readAt = Date.now();
+      this.write(st);
+    },
+    async createDraft(sender, recipient, content, secretKey) {
+      const st = this.read();
+      const id = "n_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      const payload = secretKey ? await encryptText(content, secretKey) : content;
+      st.notes.push({
+        id,
+        sender,
+        recipient,
+        encrypted: !!secretKey,
+        payload,
+        status: "draft",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      while (st.notes.length > NOTE_MAX) st.notes.shift();
+      this.write(st);
+      return id;
+    },
+    async sendDraft(id) {
+      const st = this.read();
+      const note = st.notes.find(n => n.id === id);
+      if (!note) return;
+      note.status = "sent";
+      note.sentAt = Date.now();
+      note.updatedAt = Date.now();
+      if (note.sender.toLowerCase() === note.recipient.toLowerCase()) note.readAt = Date.now();
+      this.write(st);
+    },
+    async createAndSend(sender, recipient, content, secretKey) {
+      const st = this.read();
+      const id = "n_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      const payload = secretKey ? await encryptText(content, secretKey) : content;
+      st.notes.push({
+        id,
+        sender,
+        recipient,
+        encrypted: !!secretKey,
+        payload,
+        status: "sent",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        sentAt: Date.now(),
+        readAt: sender.toLowerCase() === recipient.toLowerCase() ? Date.now() : null,
+      });
+      while (st.notes.length > NOTE_MAX) st.notes.shift();
+      this.write(st);
+      return id;
+    },
+  };
+
+  async function secretKeyToAesKey(secret) {
+    const data = new TextEncoder().encode(secret);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    return crypto.subtle.importKey("raw", hash, "AES-GCM", false, ["encrypt", "decrypt"]);
+  }
+
+  function toBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+
+  function fromBase64(str) {
+    const binary = atob(str);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  async function encryptText(text, secret) {
+    const key = await secretKeyToAesKey(secret);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(text));
+    return `${toBase64(iv)}:${toBase64(encrypted)}`;
+  }
+
+  async function decryptText(payload, secret) {
+    const [ivPart, cipherPart] = payload.split(":");
+    const key = await secretKeyToAesKey(secret);
+    const iv = new Uint8Array(fromBase64(ivPart));
+    const encrypted = fromBase64(cipherPart);
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encrypted);
+    return new TextDecoder().decode(decrypted);
+  }
+
+  function openNotesSignInOverlay() {
+    els.signonOverlay.style.display = "flex";
+    setTimeout(() => els.usernameInput.focus(), 80);
+  }
+
+  function refreshNotesTabStatus() {
+    const tab = document.querySelector('.r-book-tab[data-book-tab="notes"]');
+    if (!tab) return;
+    const badge = tab.querySelector('.r-book-tab-badge');
+    const count = state.signedOn ? noteStore.unreadCount(state.username) : 0;
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = "inline-flex";
+      tab.classList.toggle("pulse", bookActiveTab !== "notes");
+    } else {
+      badge.textContent = "";
+      badge.style.display = "none";
+      tab.classList.remove("pulse");
+    }
+  }
+
   // ── History store ───────────────────────────────────────────────
   // Records (user prompt, assistant response, timestamp, extracted topic keywords)
   // for each completed turn. Used by the History modal to enable search + topic grouping.
@@ -4174,14 +4341,20 @@ Always include both sections. Always close the </thinking> tag before your final
         if (bookActiveTab === "moments") renderBookMoments(body, book);
         else if (bookActiveTab === "about") renderBookAbout(body, book);
         else if (bookActiveTab === "throughlines") renderBookThroughlines(body, book);
+        else if (bookActiveTab === "notes") renderBookNotes(body, book);
         // One more frame before removing loading class so the transition runs
-        requestAnimationFrame(() => body.classList.remove("loading"));
+        requestAnimationFrame(() => {
+          body.classList.remove("loading");
+          refreshNotesTabStatus();
+        });
       });
     } else {
       body.innerHTML = "";
       if (bookActiveTab === "moments") renderBookMoments(body, book);
       else if (bookActiveTab === "about") renderBookAbout(body, book);
       else if (bookActiveTab === "throughlines") renderBookThroughlines(body, book);
+      else if (bookActiveTab === "notes") renderBookNotes(body, book);
+      refreshNotesTabStatus();
     }
   }
 
@@ -4301,6 +4474,205 @@ Always include both sections. Always close the </thinking> tag before your final
     ta.addEventListener("keydown", (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") form.querySelector("#r-about-add-btn").click();
     });
+  }
+
+  function renderBookNotes(body, book) {
+    const hint = document.createElement("div");
+    hint.className = "r-book-section-hint";
+    hint.textContent = "Private notes between signed-in handles. Save drafts locally, send later, and optionally encrypt with a secret key so only the recipient can decrypt them.";
+    body.appendChild(hint);
+
+    if (!state.signedOn) {
+      const prompt = document.createElement("div");
+      prompt.className = "r-book-empty";
+      prompt.innerHTML = `Private Notes are available after signing in.<br><strong>Use the sign-in screen to create a handle or sign in with an existing one.</strong><br><button class="r-dict-add-btn" id="r-notes-signin-btn">Sign in / Sign up</button>`;
+      body.appendChild(prompt);
+      prompt.querySelector("#r-notes-signin-btn").addEventListener("click", openNotesSignInOverlay);
+      return;
+    }
+
+    const count = noteStore.unreadCount(state.username);
+    const status = document.createElement("div");
+    status.className = "r-notes-status";
+    status.textContent = count > 0
+      ? `Signed in as ${state.username}. You have ${count} unread note${count === 1 ? "" : "s"}.`
+      : `Signed in as ${state.username}. No unread notes at the moment.`;
+    body.appendChild(status);
+
+    const form = document.createElement("div");
+    form.className = "r-notes-form";
+    form.innerHTML = `
+      <div class="r-notes-form-row r-notes-form-row--two">
+        <input id="r-note-recipient" placeholder="Recipient handle" />
+        <input id="r-note-secret" type="password" placeholder="Secret key (optional)" />
+      </div>
+      <textarea id="r-note-content" placeholder="Write your private note here..."></textarea>
+      <div class="r-notes-form-actions">
+        <button class="r-dict-add-btn" id="r-note-send-btn">Send</button>
+        <button class="r-dict-add-btn" id="r-note-save-btn">Save draft</button>
+        <button class="r-notes-action danger" id="r-note-discard-btn">Discard</button>
+      </div>
+      <div class="r-notes-secret-hint">Encrypted notes are protected by a shared secret key. If you leave the key blank, the note will be stored in plain text.</div>
+    `;
+    body.appendChild(form);
+
+    const recipientInput = form.querySelector("#r-note-recipient");
+    const secretInput = form.querySelector("#r-note-secret");
+    const contentInput = form.querySelector("#r-note-content");
+    const sendBtn = form.querySelector("#r-note-send-btn");
+    const saveBtn = form.querySelector("#r-note-save-btn");
+    const discardBtn = form.querySelector("#r-note-discard-btn");
+
+    const clearForm = () => {
+      recipientInput.value = "";
+      secretInput.value = "";
+      contentInput.value = "";
+    };
+
+    sendBtn.addEventListener("click", async () => {
+      const recipient = recipientInput.value.trim();
+      const content = contentInput.value.trim();
+      const key = secretInput.value.trim();
+      if (!recipient) return alert("Please enter a recipient handle.");
+      if (!content) return alert("Please enter your note.");
+      await noteStore.createAndSend(state.username, recipient, content, key);
+      clearForm();
+      renderBookBody();
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      const recipient = recipientInput.value.trim();
+      const content = contentInput.value.trim();
+      const key = secretInput.value.trim();
+      if (!recipient) return alert("Please enter a recipient handle.");
+      if (!content) return alert("Please enter your note.");
+      await noteStore.createDraft(state.username, recipient, content, key);
+      clearForm();
+      renderBookBody();
+    });
+
+    discardBtn.addEventListener("click", clearForm);
+
+    const drafts = noteStore.draftsBySender(state.username);
+    const draftsSection = document.createElement("div");
+    draftsSection.className = "r-notes-section";
+    draftsSection.innerHTML = `<div class="r-book-section-hint"><strong>Drafts</strong> — notes you saved before sending.</div>`;
+    body.appendChild(draftsSection);
+
+    if (drafts.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-book-empty";
+      empty.innerHTML = "No drafts yet.<br><strong>Save a note and it will appear here.</strong>";
+      draftsSection.appendChild(empty);
+    } else {
+      for (const draft of drafts.slice().sort((a, b) => b.updatedAt - a.updatedAt)) {
+        const entry = document.createElement("div");
+        entry.className = "r-notes-entry";
+        const header = document.createElement("div");
+        header.className = "r-notes-entry-header";
+        const title = document.createElement("div");
+        title.className = "r-notes-entry-title";
+        title.textContent = `Draft to ${draft.recipient}`;
+        const meta = document.createElement("div");
+        meta.textContent = new Date(draft.updatedAt).toLocaleString();
+        header.appendChild(title); header.appendChild(meta);
+        entry.appendChild(header);
+        const text = document.createElement("div");
+        text.className = "r-moment-note";
+        text.textContent = draft.encrypted ? "Encrypted draft — secret key preserved." : draft.payload;
+        entry.appendChild(text);
+        const actions = document.createElement("div");
+        actions.className = "r-notes-actions";
+        const sendDraftBtn = document.createElement("button");
+        sendDraftBtn.className = "r-notes-action";
+        sendDraftBtn.textContent = "Send";
+        sendDraftBtn.addEventListener("click", async () => { await noteStore.sendDraft(draft.id); renderBookBody(); });
+        const discardDraftBtn = document.createElement("button");
+        discardDraftBtn.className = "r-notes-action danger";
+        discardDraftBtn.textContent = "Discard";
+        discardDraftBtn.addEventListener("click", () => { noteStore.removeNote(draft.id); renderBookBody(); });
+        actions.appendChild(sendDraftBtn); actions.appendChild(discardDraftBtn);
+        entry.appendChild(actions);
+        draftsSection.appendChild(entry);
+      }
+    }
+
+    const inbox = noteStore.inboxFor(state.username).slice().sort((a, b) => (b.sentAt || b.createdAt) - (a.sentAt || a.createdAt));
+    const inboxSection = document.createElement("div");
+    inboxSection.className = "r-notes-section";
+    inboxSection.innerHTML = `<div class="r-book-section-hint"><strong>Inbox</strong> — notes sent to you.</div>`;
+    body.appendChild(inboxSection);
+
+    if (inbox.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "r-book-empty";
+      empty.innerHTML = "No notes received yet.<br><strong>Ask someone to send you a note, or send one to yourself.</strong>";
+      inboxSection.appendChild(empty);
+    } else {
+      for (const note of inbox) {
+        const entry = document.createElement("div");
+        entry.className = "r-notes-entry";
+        const header = document.createElement("div");
+        header.className = "r-notes-entry-header";
+        const title = document.createElement("div");
+        title.className = "r-notes-entry-title";
+        title.textContent = `From ${note.sender}`;
+        const meta = document.createElement("div");
+        meta.textContent = `${new Date(note.sentAt || note.createdAt).toLocaleString()} • ${note.readAt ? "Read" : "Unread"}`;
+        header.appendChild(title); header.appendChild(meta);
+        entry.appendChild(header);
+        const bodyContainer = document.createElement("div");
+        if (note.encrypted) {
+          const decrypted = decryptedNotes.get(note.id);
+          if (decrypted) {
+            const decryptedText = document.createElement("div");
+            decryptedText.className = "r-moment-note";
+            decryptedText.textContent = decrypted;
+            bodyContainer.appendChild(decryptedText);
+          } else {
+            const hintBlock = document.createElement("div");
+            hintBlock.className = "r-notes-secret-hint";
+            hintBlock.textContent = "Encrypted note. Enter the shared secret key to decrypt it.";
+            const keyInput = document.createElement("input");
+            keyInput.type = "password";
+            keyInput.placeholder = "Secret key";
+            const decryptBtn = document.createElement("button");
+            decryptBtn.className = "r-notes-action";
+            decryptBtn.textContent = "Decrypt";
+            decryptBtn.addEventListener("click", async () => {
+              try {
+                const plaintext = await decryptText(note.payload, keyInput.value.trim());
+                decryptedNotes.set(note.id, plaintext);
+                noteStore.markRead(note.id);
+                renderBookBody();
+              } catch (err) {
+                alert("Unable to decrypt with that key.");
+              }
+            });
+            bodyContainer.appendChild(hintBlock);
+            bodyContainer.appendChild(keyInput);
+            bodyContainer.appendChild(decryptBtn);
+          }
+        } else {
+          const text = document.createElement("div");
+          text.className = "r-moment-note";
+          text.textContent = note.payload;
+          bodyContainer.appendChild(text);
+        }
+        entry.appendChild(bodyContainer);
+        if (!note.readAt) {
+          const actions = document.createElement("div");
+          actions.className = "r-notes-actions";
+          const markReadBtn = document.createElement("button");
+          markReadBtn.className = "r-notes-action";
+          markReadBtn.textContent = "Mark read";
+          markReadBtn.addEventListener("click", () => { noteStore.markRead(note.id); renderBookBody(); });
+          actions.appendChild(markReadBtn);
+          entry.appendChild(actions);
+        }
+        inboxSection.appendChild(entry);
+      }
+    }
   }
 
   function renderBookThroughlines(body, book) {
